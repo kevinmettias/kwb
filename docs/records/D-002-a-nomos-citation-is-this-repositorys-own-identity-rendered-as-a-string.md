@@ -1,0 +1,50 @@
+---
+id: D-002
+type: decision
+title: A Nomos citation is this repository's own identity, rendered as a string, and no separate KWB-side type exists for it
+status: accepted
+version: 1
+authority: canonical-normative-record
+tags:
+  - contracts
+  - ecosystem
+relations: []
+---
+
+# A Nomos citation is this repository's own identity, rendered as a string, and no separate KWB-side type exists for it
+
+## Decision
+
+`nomos-contracts::KnowledgeReferenceId` (`D-137` in `f:/repos/nomos`) is an opaque,
+peer-minted identifier a Nomos finding or governed rule projection carries to cite a
+claim, rationale, or decision this repository originates. Its value, when this
+repository mints one, is exactly the string form of whatever content-derived identity
+`kwb-model` assigns to that claim or concept. `kwb-contracts` does not define a matching
+wrapper type: the agreement between the two repositories is about the string's meaning
+and stability, not about either side compiling the other's Rust.
+
+## Rationale
+
+`nomos-contracts` admits a type only when a peer that never compiles that crate needs to
+agree with Nomos about its shape. A `KnowledgeReferenceId` is exactly that: an opaque
+string, and Nomos's own record is explicit that it does not compute, verify, or interpret
+the value. Inventing a KWB-side Rust type to "match" it would misstate what needs
+agreement — it is the string's stability (the same claim always renders the same
+identifier; the identifier never changes meaning once cited) that Nomos depends on, and
+that is a property of `kwb-model`'s own identity scheme, not of any wrapper this crate
+could add.
+
+## Consequences
+
+`kwb-model`'s identity scheme, once designed, is the actual contract this record refers
+to. If that scheme changes shape — for instance, if an identity ever needs to be
+disambiguated by more than its content, or if it stops being renderable as a stable
+plain string — that is a decision to record here and reconcile against `D-137`
+explicitly, because Nomos's assumption about the shape would then be stale.
+
+## Alternatives Considered
+
+Defining a `kwb-contracts::NomosCitation` type mirroring `KnowledgeReferenceId` was
+rejected: it would be a second name for the same string with no behavior of its own, and
+this repository's own `kwb-contracts` charter already treats an unused wrapper as the
+speculative extension its admission test exists to keep out.

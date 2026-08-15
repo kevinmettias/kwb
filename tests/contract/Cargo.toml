@@ -1,0 +1,13 @@
+[package]
+name = "kwb-contract-tests"
+version = "0.1.0"
+description = "Assertions about the workspace itself: the README's band table against the real workspace, both directions."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

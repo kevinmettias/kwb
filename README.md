@@ -1,0 +1,46 @@
+# KnowledgeWorkbench
+
+KnowledgeWorkbench (KWB) ingests references and builds a durable graph of the concepts
+they teach, the claims they assert, and the code that implements them — deduplicated
+across sources by content-derived identity, not by an authored key. It is one of four
+products sharing one ecosystem seam; `ARC-ECOSYSTEM-001` in `f:/repos/nomos` states what
+each owns. KWB owns knowledge: rationale, semantic intent, requirements elicitation,
+decision context, long-term epistemic memory, and rich authored knowledge models.
+
+This repository is a ground-up Rust rewrite. `D-001` records why: the prior
+implementation, in C# at `C:/Users/kmett/source/repos/KnowledgeWorkbench`, is prototype
+material from this point forward — read for its domain model and its recorded
+data-loss incidents, verdicted requirement by requirement as this repository is built,
+never ported wholesale. That relationship mirrors the one `f:/repos/nomos` has to its own
+prototype, `code-standards`.
+
+## Bands
+
+The authoritative statement of what each crate owns. `tests/contract` asserts this table
+against the real workspace, both directions.
+
+| Band | Crate | Owns |
+|---|---|---|
+| 0 | `kwb-contracts` | Protocol vocabulary crossing a product boundary. Depends on `serde` and nothing else. |
+| 1 | `kwb-model` | Canonical, content-derived identity. |
+| 1 | `kwb-store` | The content-addressed document store; one write door. |
+| 1p | `kwb-platform` | Port traits: clock, filesystem, lock, process. |
+| 1p | `kwb-platform-std` | The standard-library implementation of those traits. |
+| 2 | `kwb-domain` | Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel. |
+| 3 | `kwb-ingest` | The admission pipeline: link-concepts, normalize-concepts, admit. |
+| 3 | `kwb-retrieval` | Search and graph traversal over the domain model. |
+| 10 | `kwb-cli` | The `kwb` composition root. |
+| 10 | `kwb-mcp` | The MCP host: the read-only tool surface an agent speaks to. |
+
+## Working this repository
+
+The operating contract is `AGENTS.md`. It is not repeated here.
+
+## Ecosystem
+
+- `f:/repos/nomos` — Nomos, the software-engineering authority this product does not
+  duplicate.
+- `f:/repos/xvpe` — XVPE, the shared application platform. No crate here depends on it
+  yet, for the same reason Nomos's own `D-130` gives: XVPE's foundations tier does not
+  currently compile, and a `path` dependency would make this repository's buildability a
+  function of another product's refactor.

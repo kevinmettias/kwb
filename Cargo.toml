@@ -1,0 +1,90 @@
+[workspace]
+members = [
+    # Band 0 — contracts. What earns a place here is the same admission test
+    # nomos-contracts uses (see f:/repos/nomos, OD-CONTRACTS-001): a type crosses a
+    # subsystem, process or plugin boundary and the parties on both sides need one
+    # stable shared representation of it. The band table is README.md; nothing here
+    # restates it. Depends on serde and nothing else.
+    "crates/contracts/kwb-contracts",
+
+    # Band 1 — kernel. Canonical identity (content-derived, dedup-by-construction) and
+    # the content-addressed document store.
+    "crates/kernel/kwb-model",
+    "crates/kernel/kwb-store",
+
+    # Band 1p — platform port. Traits in kwb-platform, implementations beside it.
+    # kwb-platform-xvpe is deliberately absent until XVPE stabilizes and Nomos's own
+    # D-130 phase gate opens — this repository takes the same caution for the same
+    # reason: no path dependency on a workspace whose foundations tier does not
+    # currently compile.
+    "crates/platform/kwb-platform",
+    "crates/platform/kwb-platform-std",
+
+    # Band 2 — domain. The epistemic reasoning surface: claims, concepts,
+    # argumentation, evidence, coverage and the derivation ledger. One crate for now,
+    # mirroring the .NET prototype's single Domain project; splitting is a decision to
+    # make once growth justifies a boundary, not before.
+    "crates/domain/kwb-domain",
+
+    # Band 3 — ingestion. The admission pipeline: link-concepts, normalize-concepts,
+    # admit, in the .NET prototype's own order until a reason to change it is found.
+    "crates/ingestion/kwb-ingest",
+
+    # Band 3 — retrieval. Search and graph traversal over the domain model.
+    "crates/retrieval/kwb-retrieval",
+
+    # Band 10 — host. Composition roots and binaries.
+    "crates/host/kwb-cli",
+    "crates/host/kwb-mcp",
+
+    # Assertions about the workspace itself.
+    "tests/contract",
+]
+
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "UNLICENSED"
+publish = false
+
+[workspace.dependencies]
+kwb-contracts = { path = "crates/contracts/kwb-contracts" }
+kwb-model = { path = "crates/kernel/kwb-model" }
+kwb-store = { path = "crates/kernel/kwb-store" }
+kwb-platform = { path = "crates/platform/kwb-platform" }
+kwb-platform-std = { path = "crates/platform/kwb-platform-std" }
+kwb-domain = { path = "crates/domain/kwb-domain" }
+kwb-ingest = { path = "crates/ingestion/kwb-ingest" }
+kwb-retrieval = { path = "crates/retrieval/kwb-retrieval" }
+
+serde = { version = "1", default-features = false, features = ["derive", "std"] }
+serde_json = "1"
+sha2 = "0.10"
+
+# Workspace-wide lint policy, mirrored from f:/repos/nomos/Cargo.toml, itself mirrored
+# from f:/repos/xvpe/Cargo.toml — the same policy across all three repositories on
+# purpose, so a contributor moving between them is not also relearning severities.
+[workspace.lints.rust]
+non_snake_case = "allow"
+unsafe_code = "warn"
+private_interfaces = "deny"
+private_bounds = "deny"
+missing_docs = "allow"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+float_cmp = "deny"
+needless_return = "allow"
+unwrap_used = "deny"
+arithmetic_side_effects = "deny"
+indexing_slicing = "deny"
+
+[profile.dev]
+debug = 1
+
+[profile.release]
+codegen-units = 1
+lto = "thin"

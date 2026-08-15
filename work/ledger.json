@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "KWB-1",
+      "title": "kwb-model has no identity scheme, and every content-addressed thing above it is waiting on one",
+      "why": "The .NET prototype's DeterministicId (SHA-256 into a UUIDv8, with a claim's SourceId deliberately excluded from the hash) is the actual cross-source dedup mechanism: two books asserting the same claim hash to the same id, so a second admission is an upsert rather than a duplicate. D17 and D18 in that prototype's own AGENTS.md are both failures that a stricter identity discipline at the type level would have made harder to reach — a merge that fused two distinct concepts, and a predicate fed into an algorithm that assumed a property it did not have. This item is the decision point for which of those become type-level invariants here rather than review conventions.",
+      "done_when": "kwb-model exposes a content-derived identity type whose construction requires the bytes it is derived from (no bare `new` that accepts an arbitrary string), documents which fields participate in the hash and why, and has tests demonstrating that two inputs differing only in an explicitly-excluded field (the source) produce the same identity.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["crates/kernel/kwb-model"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "-p", "kwb-model", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-2",
+      "title": "kwb-store has no write door, and D19/D20 in the prototype are exactly the failure a missing one allows",
+      "why": "D19 (a scheduler defaulted queued work to Succeeded when its handler did not exist) and D20 (an enum's zero-value default read as success) are both failures of a status being assumed rather than derived from evidence. kwb-store's own write door is where a status becomes a property of what was actually written, not a value a caller could construct optimistically.",
+      "done_when": "kwb-store exposes one write path whose result type cannot be constructed as successful without the bytes it wrote, mirroring the one-write-door discipline nomos-store documents in f:/repos/nomos.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["crates/kernel/kwb-store"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": ["KWB-1"],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "-p", "kwb-store", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-3",
+      "title": "The universal epistemic type kernel is named in every document about this product and designed in none of them",
+      "why": "The .NET prototype's Domain/Universal — a discipline-neutral type and relation hierarchy that domain-specific YAML packs specialize, with a fixed nine-relation cross-discipline comparison vocabulary — is the piece the prototype's own architecture treats as most load-bearing. Porting its type *tree* (the ~30 hardcoded UniversalType entries) without re-deriving why those nine relation kinds are the closed set would be porting the easy half and leaving the actual design decision unmade here.",
+      "done_when": "kwb-domain states, as a record, what a UniversalType hierarchy must guarantee (closed under IsA, one KnowledgeLayer per type) and what the relation vocabulary must guarantee (the nine discriminations are complete and mutually exclusive, or a documented reason they are not), before any domain pack format is designed against it.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["crates/domain/kwb-domain", "docs/records"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": ["KWB-1"],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "-p", "kwb-domain", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-4",
+      "title": "kwb-domain has no claim, concept, or coverage types yet, and kwb-ingest cannot be built without them",
+      "why": "The prototype's CoverageOutcome (Yielded/Barren/Skipped/Unmet) is its central anti-data-loss primitive: distinguishing a rule that ran and found nothing from one that never ran. Building admission (KWB-5) before this exists would repeat the prototype's own D19, where a run-that-never-happened had no way to say so and reported clean.",
+      "done_when": "kwb-domain has Claim and Concept types built on kwb-model's identity, and a coverage type that cannot represent Barren and Skipped as the same value.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["crates/domain/kwb-domain"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": ["KWB-3"],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "-p", "kwb-domain", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-5",
+      "title": "kwb-ingest has no admission pipeline, and the prototype's own D18 is what happens when one is built without re-deriving its algorithm's assumptions",
+      "why": "D18 fed a pairwise-correct IsVariantOf predicate into union-find, which assumes transitivity the predicate did not have, and fused distinct concepts through bridge terms in 25% of merges — undetected by 1,878 passing tests, because they tested the predicate and not the consuming structure. Building admission here is the point to re-derive, for every algorithm used, what property it actually needs from its input rather than assuming one that happens to hold on the test corpus.",
+      "done_when": "kwb-ingest implements link-concepts, normalize-concepts and admit in that order, and each stage's tests exercise the algorithmic property that stage's design depends on, not only its typical-case output.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["crates/ingestion/kwb-ingest"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": ["KWB-2", "KWB-4"],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "-p", "kwb-ingest", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-6",
+      "title": "kwb-retrieval and kwb-mcp have no query surface, and the prototype's mutation-exclusion decision (its own D10) is not yet a property of this workspace's types",
+      "why": "The prototype's MCP host exposes nine read-only tools with every reply bounded so an agent cannot exhaust its own context, and excludes mutation from that surface entirely. Read this as a contract worth preserving independent of the protocol carrying it: the type an MCP tool handler is built against should not have a mutating method to call by mistake.",
+      "done_when": "kwb-retrieval exposes keyword, semantic and neighbourhood queries whose types have no write path, and kwb-mcp's tool surface is built only against those types.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["crates/retrieval/kwb-retrieval", "crates/host/kwb-mcp"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": ["KWB-4"],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "-p", "kwb-retrieval", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-7",
+      "title": "This repository has a work/ledger.json and no tool that operates on it",
+      "why": "AGENTS.md documents claim, finish, and territory as this repository's coordination mechanism, but nomos-ledger — the crate that actually implements those verbs in f:/repos/nomos — is Nomos-specific by location, not by semantics; ARC-ECOSYSTEM-001 already names it a candidate whose subject does not require the thing being coordinated to be software. D-135's new default-to-XVPE policy for genuinely domain-neutral code makes this the first real test of that policy in practice, not a hypothetical.",
+      "done_when": "A decision exists, recorded here, on whether this repository's ledger tooling vendors nomos-ledger, depends on a shared XVPE crate D-135 would place it in, or forks one — made by evaluating D-135's own admission test against this concrete case, not by defaulting to whichever is easiest to start.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["docs/records", "work"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    }
+  ]
+}

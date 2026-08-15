@@ -1,0 +1,13 @@
+[package]
+name = "kwb-platform"
+version = "0.1.0"
+description = "Port traits: clock, filesystem, lock, process. Implementations live beside this crate, never inside it."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

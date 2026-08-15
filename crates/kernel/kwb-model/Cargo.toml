@@ -1,0 +1,13 @@
+[package]
+name = "kwb-model"
+version = "0.1.0"
+description = "Canonical identity: the content-derived digest every claim, concept and edge in this workspace is addressed by."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

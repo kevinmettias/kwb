@@ -1,0 +1,14 @@
+[package]
+name = "kwb-platform-std"
+version = "0.1.0"
+description = "The standard-library implementation of kwb-platform's port traits."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+kwb-platform = { workspace = true }
+
+[lints]
+workspace = true

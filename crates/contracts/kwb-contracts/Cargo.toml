@@ -1,0 +1,18 @@
+[package]
+name = "kwb-contracts"
+version = "0.1.0"
+description = "Band 0. The only authoritative statement of KnowledgeWorkbench protocol semantics."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# This dependency list is a contract, not a convenience, mirroring
+# f:/repos/nomos/crates/contracts/nomos-contracts. Every type here may be copied into a
+# Nomos or XVPE implementation that has never seen this repository; a dependency added
+# here makes the protocol KWB-shaped and forces a peer to vendor a Rust crate to speak it.
+[dependencies]
+serde = { workspace = true }
+
+[lints]
+workspace = true
