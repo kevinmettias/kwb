@@ -72,16 +72,12 @@
         ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [
         "KWB-1"
       ],
       "blocked": null,
-      "claim": {
-        "holder": "fable",
-        "acquired_at": 1789250849,
-        "lease_expires_at": 1789258049
-      },
+      "claim": null,
       "verification": {
         "argv": [
           "cargo",
@@ -92,7 +88,31 @@
         ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest Test_A_Write_Offering_No_Bytes_Should_Be_Refused ... ok\ntest Test_A_Write_Should_Return_The_Address_Its_Content_Has ... ok\ntest Test_A_Held_Document_Should_Not_Change_When_Another_Is_Written ... ok\ntest Test_The_Collision_Refusal_Should_Render_Its_Address ... ok\ntest Test_An_Admission_Should_Have_No_Default_To_Fall_Into ... ok\ntest Test_Every_Address_The_Store_Reports_Should_Read_Back ... ok\ntest Test_Reading_An_Address_Nothing_Wrote_Should_Be_Refused_Rather_Than_Empty ... ok\ntest Test_A_Written_Document_Should_Reread_Byte_Identical ... ok\ntest Test_Two_Documents_Differing_Only_By_Whitespace_Should_Both_Be_Held ... ok\ntest Test_Writing_The_Same_Document_Twice_Should_Say_So_Rather_Than_Report_Two_Admissions ... ok\ntest Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In ... ok\ntest Test_The_Crate_Should_Expose_Exactly_One_Mutating_Method ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-5a7d6df53ef981c8.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-3245f4c681e8a862.exe)\n   Doc-tests kwb_store\n",
+        "verified_at": 1789251883,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "7e70027020e38721a57061c5d4c3334ef6e20a86"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null

@@ -117,6 +117,9 @@ dependencies = [
 [[package]]
 name = "kwb-store"
 version = "0.1.0"
+dependencies = [
+ "kwb-model",
+]
 
 [[package]]
 name = "libc"
