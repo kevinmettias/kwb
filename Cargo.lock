@@ -83,6 +83,8 @@ name = "kwb-ingest"
 version = "0.1.0"
 dependencies = [
  "kwb-domain",
+ "kwb-model",
+ "kwb-store",
 ]
 
 [[package]]

@@ -9,6 +9,8 @@ publish.workspace = true
 
 [dependencies]
 kwb-domain = { workspace = true }
+kwb-model = { workspace = true }
+kwb-store = { workspace = true }
 
 [lints]
 workspace = true

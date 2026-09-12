@@ -250,7 +250,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [
         "KWB-2",
         "KWB-4"
@@ -267,7 +267,31 @@
         ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 15 tests\ntest tests::Test_A_Source_Of_No_Bytes_Should_Be_Refused_Before_Anything_Is_Admitted ... ok\ntest tests::Test_A_Claim_Should_Be_Linked_Only_To_The_Concept_Its_Own_Extraction_Named ... ok\ntest tests::Test_Admitting_Nothing_Should_Be_Unmet_Rather_Than_Barren ... ok\ntest tests::Test_Every_Claims_Concept_Should_Be_Among_The_Concepts ... ok\ntest tests::Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct ... ok\ntest tests::Test_Admitting_The_Same_Source_Twice_Should_Not_Duplicate_It ... ok\ntest tests::Test_Case_Differences_Should_Not_Be_Grouped ... ok\ntest tests::Test_Admission_Should_Queue_Nothing_For_A_Consumer_That_Does_Not_Exist ... ok\ntest tests::Test_An_Incomplete_Extraction_Should_Be_Refused_And_Counted ... ok\ntest tests::Test_The_Report_Should_Not_Count_More_Than_It_Holds ... ok\ntest tests::Test_Normalization_Should_Remove_No_Claim ... ok\ntest tests::Test_An_Admitted_Source_Should_Be_Readable_Back_From_The_Store ... ok\ntest tests::Test_Examining_Extractions_And_Finding_None_Admissible_Should_Be_Barren ... ok\ntest tests::Test_The_Grouping_Relation_Should_Be_Transitive_Over_A_Chain ... ok\ntest tests::Test_Repeated_Mentions_Of_One_Concept_Should_Become_One_Concept ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-ingest v0.1.0 (F:\\repos\\kwb\\crates\\ingestion\\kwb-ingest)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-7234592b51ae3db2.exe)\n   Doc-tests kwb_ingest\n",
+        "verified_at": 1789254256,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "b31a77589d1b15917f071c85f7718568c59cea60"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
