@@ -1,0 +1,23 @@
+# Line endings are declared here rather than left to core.autocrlf, which is a property
+# of a machine and not of this repository. Without this file the two disagree silently:
+# git diff compares normalized content, so a working tree holding a mix of CRLF and LF
+# reports clean, while anything that compares raw bytes -- a generated table, a golden
+# file, a digest of a source tree -- fails against it with no visible cause. This
+# repository derives identity from bytes, so it is more exposed to that than most.
+
+# Normalize every text file in the index to LF, and check it out as LF everywhere.
+# `text=auto eol=lf` rather than plain `text=auto` so a Windows checkout is the same
+# bytes as a Linux one, which is what makes the gate's ubuntu runner and a developer's
+# machine able to agree about a file.
+* text=auto eol=lf
+
+# Windows-only scripts that genuinely require CRLF, listed even though none exist yet,
+# because the next person to add one should find the seam rather than invent it.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary, so git never rewrites a byte of it.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.ico binary
