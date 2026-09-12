@@ -146,13 +146,15 @@
       "done_when": "A decision exists, recorded here, on whether this repository's ledger tooling vendors nomos-ledger, depends on a shared XVPE crate D-135 would place it in, or forks one — made by evaluating D-135's own admission test against this concrete case, not by defaulting to whichever is easiest to start.",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/records", "work"],
+        "paths": ["docs/records"],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Claimed",
       "depends_on": [],
       "blocked": null,
-      "claim": null,
+      "claim": {
+        "note": "Claimed 2026-09-12, territory narrowed from [docs/records, work] to [docs/records] on release: `work` was needed only to claim this item and to add KWB-13, and holding it afterwards blocked KWB-13 — the item that finishes this one. That is OD-LEDGER-001's authoring mistake, made for the second time in one session on this board, which is itself evidence for what D-005 decided. Decision recorded as D-005: adopt nomos-ledger's schema, use its binary as the interim tool, and defer ownership. The three options this item named are all about owning ledger code; measurement showed the question was wrong-shaped, and the two options it did not name are the ones that answer it. KWB-13 is the follow-on the decision implies. Parked in Claimed rather than Done for the same reason KWB-9 is: no tool exists to transition it, which is this item's own subject. KWB-13 landing is what makes both transitionable."
+      },
       "verification": {
         "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
         "timeout_seconds": 300
@@ -268,6 +270,29 @@
       },
       "state": "Ready",
       "depends_on": ["KWB-9"],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-13",
+      "title": "D-005 decided the board adopts nomos-ledger's schema, and until the migration lands no item on this board can be finished at all",
+      "why": "D-005 is a decision and changes nothing by itself. Two items — KWB-7 and KWB-9 — are parked in Claimed with their work delivered because AGENTS.md forbids hand-editing an item to Done and nothing exists to transition them otherwise, and every other item on this board would reach the same wall on completion. This item is the migration that makes AGENTS.md's own loop completable for the first time. Measured 2026-09-12 against a throwaway copy, detail in docs/corpus/nomos-as-precedent.md: the whole gap is kind and origin per item drawn from nomos's closed sets (Capability|Decision|Validation|Correction|Cleanup, Required|Proposed, capitalized — the refusal names the set), schema_version 1 against 5, and a Claim that is {holder, acquired_at, lease_expires_at} with integer epoch timestamps rather than the prose note KWB-7 and KWB-9 currently carry, so that prose moves into each item's why. Two further facts the probe established. First, `nomos work finish` refuses at exit 4 when .github/workflows/gate.yml cannot be read, on the grounds that an item finished against a check weaker than the gate is the defect the refusal exists to prevent — this repository has no CI at all, so the workflow is a precondition of the decision working and not an extra. Second, the probe's `work list` reported KWB-9 as lapsed rather than claimed, which is the lease behaviour whose absence caused this board's deadlock; it arrives with the schema at no extra cost. Nothing in the build graph changes: no Cargo.toml gains an edge, no crate names nomos- or xvpe-, and tests/contract's bands table is untouched.",
+      "done_when": "work/ledger.json is at schema_version 5 with kind and origin on every item and no hand-written claim shape; .github/workflows/gate.yml exists and runs at least cargo test --workspace and a lint step; `nomos work validate` run from this repository's root exits 0 and reports that the build understands the schema; and `nomos work finish` has been used to transition KWB-7 and KWB-9, so the first items closed on this board are closed through the tool rather than by hand. The prose currently held in KWB-7's and KWB-9's claim objects survives the migration in their why fields; losing it is a failure of this item, not a detail of the format.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["work", ".github"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
       "blocked": null,
       "claim": null,
       "verification": {
