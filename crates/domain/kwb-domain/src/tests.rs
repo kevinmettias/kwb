@@ -206,3 +206,118 @@ fn Test_A_Claim_Should_Carry_No_Scope_And_No_Confidence()
     // which is the cost that makes the decision worth having been recorded.
     assert_ne!(claim.Identity(), entropy.Identity());
 }
+
+// ---- KWB-23: an assertion is where a source and a scope attach ----
+
+fn Entropy() -> (Concept, Claim)
+{
+    let concept = Concept::Named("entropy".to_owned());
+    let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.".to_owned());
+    return (concept, claim);
+}
+
+#[test]
+fn Test_Two_Sources_Asserting_One_Claim_Should_Be_Two_Assertions_Of_One_Claim()
+{
+    let (_, claim) = Entropy();
+    let thermodynamics = Scope::Named("physical theory");
+
+    let callen = Assertion::By("Callen 1985", &claim, thermodynamics.clone());
+    let kittel = Assertion::By("Kittel 1980", &claim, thermodynamics);
+
+    assert_ne!(callen.Identity(), kittel.Identity(), "two sources, two assertions");
+    assert_eq!(
+        callen.Claim(),
+        kittel.Claim(),
+        "and they meet at the claim, which is the whole cross-source mechanism"
+    );
+}
+
+#[test]
+fn Test_One_Source_Asserting_One_Claim_Twice_Should_Be_One_Assertion()
+{
+    let (_, claim) = Entropy();
+
+    let once = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
+    let twice = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
+
+    assert_eq!(once.Identity(), twice.Identity(), "re-reading a book is not a second citation");
+}
+
+#[test]
+fn Test_The_Same_Source_At_A_Different_Scope_Should_Be_A_Different_Assertion()
+{
+    let (_, claim) = Entropy();
+
+    let broad = Assertion::By("Callen 1985", &claim, Scope::Named("universal mathematics"));
+    let narrow = Assertion::By("Callen 1985", &claim, Scope::Named("this game workload"));
+
+    assert_ne!(
+        broad.Identity(),
+        narrow.Identity(),
+        "how far a source claims something reaches is part of what it asserted"
+    );
+    assert_eq!(broad.Claim(), narrow.Claim());
+}
+
+#[test]
+fn Test_A_Preference_And_A_Measurement_Saying_One_Thing_Should_Meet_At_The_Claim()
+{
+    // The contamination D-010 exists to prevent, and the thing that makes preventing it
+    // worthwhile: whether the two agree is the one question worth asking of the pair, and it
+    // is only askable because the claim is shared.
+    let concept = Concept::Named("static dispatch".to_owned());
+    let text = "Under workload W, target H, constraints C, it was preferred.".to_owned();
+    let claim = Claim::About(&concept, text);
+
+    let measured = Assertion::By("benchmark run 41", &claim, Scope::Named("project evidence"));
+    let preferred = Assertion::By("the user", &claim, Scope::Named("user preference"));
+
+    assert_eq!(
+        measured.Claim(),
+        preferred.Claim(),
+        "a scope in the claim would have made these two rows that never learn of each other"
+    );
+    assert_ne!(measured.Identity(), preferred.Identity(), "and they are still distinguishable");
+}
+
+#[test]
+fn Test_An_Assertion_Should_Carry_No_Strength_Of_Any_Kind()
+{
+    // D-004 holds the epistemic-strength model as pending. The prototype shipped the
+    // alternative in forty types: Confidence { get; set; } = 1.0. This fixes the absence --
+    // adding a grade changes the derivation and every assertion identity in the corpus.
+    let (_, claim) = Entropy();
+    let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
+
+    assert_eq!(assertion.Source(), "Callen 1985");
+    assert_eq!(assertion.Scope().Name(), "physical theory");
+    assert_eq!(assertion.Claim(), claim.Identity());
+    assert_ne!(assertion.Identity(), claim.Identity());
+}
+
+#[test]
+fn Test_An_Unstated_Scope_Should_Be_Recognisable_Rather_Than_Guessed()
+{
+    let (_, claim) = Entropy();
+    let unstated = Scope::Named("   ");
+
+    assert!(unstated.Is_Unstated());
+    let assertion = Assertion::By("Callen 1985", &claim, unstated);
+    assert!(
+        assertion.Scope().Is_Unstated(),
+        "a source that did not say how far it meant has not said the narrowest thing"
+    );
+}
+
+#[test]
+fn Test_A_Reflowed_Scope_Should_Not_Be_A_Different_Scope()
+{
+    assert_eq!(Scope::Named("physical  theory
+"), Scope::Named("physical theory"));
+    assert_ne!(
+        Scope::Named("Physical theory"),
+        Scope::Named("physical theory"),
+        "case is significant here, as it is for a concept"
+    );
+}

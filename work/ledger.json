@@ -1176,6 +1176,63 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-23",
+      "title": "D-010 decided a scope belongs to an assertion and there is no assertion type, so claims currently have nowhere to put a source or a scope",
+      "why": "KWB-4 built Claim and Concept, and both deliberately exclude the source and the scope from their identity -- the source so two references asserting one claim become one claim with two citations, the scope because D-010 measured that a scope in the identity would make a benchmark and a mere preference saying the same thing two rows that can never learn of each other. Both exclusions are right and both leave a hole. A claim currently records what is asserted and nothing about who asserted it, from where, or over what domain, so the citations the whole dedup mechanism exists to accumulate have nowhere to accumulate. D-010 named the missing type in as many words and said it is where a grade attaches. D-004 version 2 puts both halves of it on closed ground: the verification and provenance axis of the evidence model closed on measurement, and what a scope belongs to closed by D-010 needing no miner input at all. What stays open is the grading, which is the epistemic-strength model and is pending rather than stranded.",
+      "done_when": "kwb-domain has an assertion type that binds a claim to the source asserting it and the scope it is asserted at, with an identity derived from all three -- so that one claim carries many assertions and two assertions of one claim by two sources are two rows that meet at the claim. It carries no confidence, grade or strength of any kind, and a test fixes that absence, because the epistemic-strength model is on D-004 held list as pending and an assertion that graded itself now would be the settable Confidence = 1.0 the prototype shipped in forty types. Tests defend the properties rather than the accessors: two sources asserting one claim produce one claim and two assertions, the same source asserting the same claim twice is one assertion, and a scope change produces a different assertion of the same claim.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 19 tests\ntest tests::Test_A_Claim_Should_Depend_On_Its_Concepts_Identity_And_Not_Its_Name ... ok\ntest tests::Test_A_Changed_Claim_Should_Not_Keep_Its_Identity ... ok\ntest tests::Test_A_Preference_And_A_Measurement_Saying_One_Thing_Should_Meet_At_The_Claim ... ok\ntest tests::Test_A_Claim_Should_Carry_No_Scope_And_No_Confidence ... ok\ntest tests::Test_A_Reflowed_Claim_Should_Keep_Its_Identity ... ok\ntest tests::Test_A_Reflowed_Scope_Should_Not_Be_A_Different_Scope ... ok\ntest tests::Test_An_Outcome_Of_A_Run_Should_Be_Derived_From_What_It_Found ... ok\ntest tests::Test_Two_References_Naming_One_Concept_Should_Produce_One_Identity ... ok\ntest tests::Test_The_Same_Source_At_A_Different_Scope_Should_Be_A_Different_Assertion ... ok\ntest tests::Test_An_Unstated_Scope_Should_Be_Recognisable_Rather_Than_Guessed ... ok\ntest tests::Test_Barren_And_Unmet_Should_Not_Be_Interchangeable ... ok\ntest tests::Test_Concepts_Differing_Only_In_Case_Should_Be_Two_Concepts ... ok\ntest tests::Test_Only_A_Completed_Run_That_Found_Nothing_Should_Be_Evidence_Of_Absence ... ok\ntest tests::Test_A_Yield_Of_Nothing_Should_Be_A_Barren_Rather_Than_A_Yield_Of_Zero ... ok\ntest tests::Test_Three_Outcomes_Have_No_Findings_And_Only_One_Means_There_Are_None ... ok\ntest tests::Test_Two_References_Asserting_One_Claim_Should_Produce_One_Claim ... ok\ntest tests::Test_An_Assertion_Should_Carry_No_Strength_Of_Any_Kind ... ok\ntest tests::Test_Two_Sources_Asserting_One_Claim_Should_Be_Two_Assertions_Of_One_Claim ... ok\ntest tests::Test_One_Source_Asserting_One_Claim_Twice_Should_Be_One_Assertion ... ok\n\ntest result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-76e93b40c1c69cca.exe)\n   Doc-tests kwb_domain\n",
+        "verified_at": 1789256998,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "0c553ef35e3719c701364e181173592d46e381c6"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

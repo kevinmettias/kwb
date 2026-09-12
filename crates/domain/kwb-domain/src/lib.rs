@@ -27,7 +27,9 @@
 //!
 //! # What is here now
 //!
-//! `KWB-4`: [`Concept`], [`Claim`] and [`Coverage`]. The first two rest on `kwb-model`'s
+//! `KWB-4`: [`Concept`], [`Claim`] and [`Coverage`]. `KWB-23`: [`Assertion`] and
+//! [`Scope`], which are where a source and a domain attach — a claim has neither, and
+//! `D-010` is why. The first two rest on `kwb-model`'s
 //! identity and on its two exclusions; the third is the anti-data-loss primitive the
 //! admission pipeline cannot be built safely without, which is why it comes before `KWB-5`
 //! rather than with it.
@@ -36,13 +38,17 @@
 
 #![forbid(unsafe_code)]
 
+mod assertion;
 mod claim;
 mod concept;
 mod coverage;
+mod scope;
 
 #[cfg(test)]
 mod tests;
 
+pub use assertion::Assertion;
 pub use claim::Claim;
 pub use concept::Concept;
 pub use coverage::Coverage;
+pub use scope::Scope;
