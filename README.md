@@ -26,6 +26,7 @@ against the real workspace, both directions.
 | 1 | `kwb-store` | The content-addressed document store; one write door. |
 | 1p | `kwb-platform` | Port traits: clock, filesystem, lock, process. |
 | 1p | `kwb-platform-std` | The standard-library implementation of those traits. |
+| 1p | `kwb-platform-xvpe` | The one crate permitted to name XVPE. Adopts the persistent map versioned state is built on, by git reference and commit SHA. `D-007`, `D-012`. |
 | 2 | `kwb-domain` | Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel. |
 | 3 | `kwb-ingest` | The admission pipeline: link-concepts, normalize-concepts, admit. |
 | 3 | `kwb-retrieval` | Search and graph traversal over the domain model. |

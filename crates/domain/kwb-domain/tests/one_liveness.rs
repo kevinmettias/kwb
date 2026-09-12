@@ -1,0 +1,238 @@
+//! The properties versioned concept state exists to have, exercised from outside the crate.
+//!
+//! From outside deliberately: a read is only a separate world if it is separate to a caller.
+
+use kwb_domain::{Concept, ConceptGraph, ConceptRecord, Standing};
+
+fn Asserted(name: &str) -> ConceptRecord
+{
+    return ConceptRecord::Asserted(Concept::Named(name.to_owned()));
+}
+
+// ---- D-008's first requirement: liveness is one expression ----
+
+/// The claim is structural, so the test is structural: it reads this crate's own source and
+/// counts the definitions of the liveness rule.
+///
+/// # Why this is not a comment
+///
+/// The prototype had the rule in four places — a Postgres global query filter, an in-memory
+/// repository, a JSON repository and a partial unique index — and the providers came to
+/// disagree about which concepts exist.
+///
+/// Its migration history is the proof. `IX_Concepts_CanonicalName_Unique_Active` was created
+/// filtering only on `Status <> 'Deprecated'` and corrected three weeks later to also filter
+/// on `ValidUntil IS NULL`. **For three weeks the index enforced half the rule while the code
+/// documented all of it, and nothing failed**, because a half-rule is a weaker constraint and
+/// weaker constraints raise no errors. Nothing could have caught that except something
+/// counting the copies.
+#[test]
+fn Test_The_Crate_Should_Define_Liveness_Exactly_Once()
+{
+    let mut definitions: Vec<String> = Vec::new();
+
+    for (path, source) in Crate_Sources()
+    {
+        for name in Liveness_Definitions(&source)
+        {
+            definitions.push(format!("{path}: {name}"));
+        }
+    }
+
+    assert_eq!(
+        definitions.len(),
+        1,
+        "liveness must be defined once. A second definition is a second copy of the rule, \
+         and a copy drifts silently: {definitions:?}"
+    );
+    assert!(
+        definitions
+            .first()
+            .is_some_and(|found| return found.contains("standing.rs")),
+        "the one definition should be Standing's: {definitions:?}"
+    );
+}
+
+/// Every `.rs` file in this crate's `src`, with its file name.
+fn Crate_Sources() -> Vec<(String, String)>
+{
+    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let entries = std::fs::read_dir(&directory).expect("the crate has a src directory");
+
+    let mut sources = Vec::new();
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if path.extension().is_some_and(|extension| return extension == "rs")
+        {
+            let name = path
+                .file_name()
+                .and_then(|name| return name.to_str())
+                .unwrap_or_default()
+                .to_owned();
+            sources.push((name, std::fs::read_to_string(&path).expect("a readable source")));
+        }
+    }
+
+    assert!(!sources.is_empty(), "no sources were scanned, so this test proves nothing");
+    return sources;
+}
+
+/// Every function in `source` that defines the liveness rule.
+///
+/// A definition is a `fn Is_Current`. A *use* — calling it — is not, which is the distinction
+/// that makes this count the copies of the rule rather than the places that respect it.
+fn Liveness_Definitions(source: &str) -> Vec<String>
+{
+    let collapsed = source.split_whitespace().collect::<Vec<&str>>().join(" ");
+
+    let mut found = Vec::new();
+    for declaration in collapsed.split("fn ").skip(1)
+    {
+        let Some(name) = declaration.split('(').next()
+        else
+        {
+            continue;
+        };
+        if name.trim() == "Is_Current"
+        {
+            found.push(name.trim().to_owned());
+        }
+    }
+
+    return found;
+}
+
+// ---- D19-B: the two reads are different worlds, and neither is reachable by forgetting ----
+
+#[test]
+fn Test_A_Superseded_Concept_Should_Be_Absent_From_Current_And_Present_In_Every_Version()
+{
+    let entropy = Asserted("entropy");
+    let successor = Asserted("thermodynamic entropy");
+    let identity = entropy.Concept().Identity();
+
+    let graph = ConceptGraph::Empty()
+        .Publish(entropy.clone())
+        .Publish(successor.clone())
+        .Publish(entropy.Closed(Standing::Superseded {
+            by: successor.Concept().Identity(),
+        }));
+
+    assert!(
+        graph.Current().Get(identity).is_none(),
+        "a merge loser is not a current concept"
+    );
+    assert!(
+        graph.Every_Version().Get(identity).is_some(),
+        "and it is kept, because D17 says destruction requires evidence and a merge is not it"
+    );
+    assert_eq!(graph.Current().Length(), 1);
+    assert_eq!(graph.Every_Version().Length(), 2);
+}
+
+#[test]
+fn Test_The_Merge_Log_Should_Be_Answerable_From_The_All_Versions_Read()
+{
+    // merge-audit resolved the merge log's identifiers against a view that excluded losers,
+    // resolved none, printed "nothing has been merged away" and exited 0. Every merge on
+    // record could have been wrong and the gate would have passed.
+    let loser = Asserted("C");
+    let keeper = Asserted("C++");
+    let graph = ConceptGraph::Empty()
+        .Publish(keeper.clone())
+        .Publish(loser.Closed(Standing::Superseded {
+            by: keeper.Concept().Identity(),
+        }));
+
+    let losers = graph.Every_Version().Merge_Losers();
+
+    assert_eq!(losers.len(), 1, "the audit must be able to see what was merged away");
+    assert_eq!(
+        losers.first().and_then(|record| return record.Standing().Superseded_By()),
+        Some(keeper.Concept().Identity())
+    );
+    assert!(graph.Current().Records().len() == 1, "and the loser is not current");
+}
+
+#[test]
+fn Test_A_Retired_Concept_Should_Not_Claim_A_Successor()
+{
+    // Not current and merged-into-something are different facts, and a retired concept has
+    // the first without the second.
+    let retired = Asserted("phlogiston").Closed(Standing::Retired);
+
+    assert!(!retired.Standing().Is_Current());
+    assert_eq!(retired.Standing().Superseded_By(), None);
+}
+
+// ---- A version is a value: publishing leaves the previous version valid ----
+
+#[test]
+fn Test_Publishing_Should_Leave_The_Previous_Version_Queryable()
+{
+    let entropy = Asserted("entropy");
+    let identity = entropy.Concept().Identity();
+    let before = ConceptGraph::Empty().Publish(entropy.clone());
+
+    let after = before.Publish(entropy.Closed(Standing::Retired));
+
+    assert!(
+        before.Current().Get(identity).is_some(),
+        "the earlier graph is a value and is unchanged; this is what makes a temporal read a \
+         value you kept rather than a query that opts out of a filter"
+    );
+    assert!(after.Current().Get(identity).is_none());
+}
+
+#[test]
+fn Test_The_Two_Reads_Should_Not_Be_One_Type_With_A_Flag()
+{
+    // Asserted the only way a type-level absence can be: by fixing the call sites. Neither
+    // read takes an argument selecting a world, so neither can be pointed at the other by
+    // passing the wrong value, and a caller that needs merge losers has had to name
+    // Every_Version to get one.
+    let graph = ConceptGraph::Empty().Publish(Asserted("entropy"));
+
+    assert_eq!(graph.Current().Length(), 1);
+    assert_eq!(graph.Every_Version().Length(), 1);
+}
+
+// ---- determinism is enforced at the boundary, not obtained from a hasher ----
+
+#[test]
+fn Test_The_Listing_Should_Not_Depend_On_The_Order_Concepts_Arrived_In()
+{
+    let names = ["entropy", "enthalpy", "free energy", "temperature"];
+
+    let mut forwards = ConceptGraph::Empty();
+    for name in names
+    {
+        forwards = forwards.Publish(Asserted(name));
+    }
+    let mut backwards = ConceptGraph::Empty();
+    for name in names.iter().rev()
+    {
+        backwards = backwards.Publish(Asserted(name));
+    }
+
+    let one: Vec<_> = forwards
+        .Every_Version()
+        .Records()
+        .iter()
+        .map(|record| return record.Concept().Identity())
+        .collect();
+    let other: Vec<_> = backwards
+        .Every_Version()
+        .Records()
+        .iter()
+        .map(|record| return record.Concept().Identity())
+        .collect();
+
+    assert_eq!(
+        one, other,
+        "the map is a hash trie and two graphs carry two hashers, so an unsorted listing \
+         would differ here; determinism is enforced by the sort rather than by the hasher"
+    );
+    assert_eq!(one.len(), 4);
+}

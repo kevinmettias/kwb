@@ -57,6 +57,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashbrown"
+version = "0.15.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
+
+[[package]]
 name = "kwb-cli"
 version = "0.1.0"
 
@@ -76,6 +82,7 @@ name = "kwb-domain"
 version = "0.1.0"
 dependencies = [
  "kwb-model",
+ "kwb-platform-xvpe",
 ]
 
 [[package]]
@@ -107,6 +114,13 @@ name = "kwb-platform-std"
 version = "0.1.0"
 dependencies = [
  "kwb-platform",
+]
+
+[[package]]
+name = "kwb-platform-xvpe"
+version = "0.1.0"
+dependencies = [
+ "xvpe-collections-persistent",
 ]
 
 [[package]]
@@ -189,6 +203,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "smallvec"
+version = "1.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba467056f1b547ed52077911161fc86985becbc60e8e1857c8a144dab0def891"
+
+[[package]]
 name = "syn"
 version = "3.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -216,3 +236,45 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "xvpe-collections-handle"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+dependencies = [
+ "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-collections-map"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+dependencies = [
+ "hashbrown",
+ "xvpe-collections-handle",
+ "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-collections-persistent"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+dependencies = [
+ "xvpe-collections-map",
+ "xvpe-collections-sequence",
+ "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-collections-sequence"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+dependencies = [
+ "smallvec",
+ "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-primitives"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"

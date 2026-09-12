@@ -1,0 +1,31 @@
+[package]
+name = "kwb-platform-xvpe"
+version = "0.1.0"
+description = "The one crate permitted to name XVPE. Adopts the persistent map versioned state is built on."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# The only XVPE edge in this workspace, and it is a git reference pinned to a
+# commit. `D-007` is why it is not a `path`: a path edge binds this repository's
+# reproducibility to another repository's working tree, and that tree moved by
+# five crates in a day -- drift the caller never touched, which defeated a
+# deterministic replay inside XVPE itself. A commit SHA is the difference
+# between adopting a body of work and adopting whatever that work becomes.
+#
+# `D-012` is why it is this crate: persistent structures return a new version
+# that shares most of its nodes with the previous one, and the old version stays
+# valid and independently queryable. That is what makes a which-world read a
+# matter of which value you hold rather than a filter you could forget.
+#
+# Bumping the `rev` is a decision, not maintenance. What changed between two
+# commits of another repository is exactly what a pinned dependency exists to
+# make visible.
+[dependencies.xvpe-collections-persistent]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "a7eee3c6e361371b269217201233a2e7d7e36122"
+default-features = false
+
+[lints]
+workspace = true

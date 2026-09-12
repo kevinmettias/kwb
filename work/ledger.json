@@ -1233,6 +1233,64 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-24",
+      "title": "kwb-platform-xvpe is reserved in the manifest and does not exist, so D-012 decision that versioned state is adopted rather than written has never been acted on and liveness has nothing to be true of",
+      "why": "D-012 decided the mutable versioned graph is adopted from XVPE rather than built here, because xvpe-collections-persistent already ships structures whose old versions remain valid and independently queryable -- which makes D-008 which-world read and temporal reconstruction structural rather than a discipline. D-007 decided adoption is by git reference and commit SHA into a crate that quarantines it, never by path. Neither decision has been acted on, and the crate both of them name is a comment in the workspace manifest. That matters more than an unbuilt crate usually would, because two accepted records rest on a mechanism nobody had exercised until it was probed today: a SHA-pinned git dependency on an XVPE workspace member resolves and compiles in 37 seconds, measured against a7eee3c6e on origin/dev. The second half is the consumer. D-008 first requirement is that liveness is one expression, and it is the one this repository is most likely to violate by accident -- the prototype index enforced half the rule for three weeks and nothing failed, because a half-rule is a weaker constraint and weaker constraints raise no errors. A liveness expression needs versioned concept state to be true of, and there is none.",
+      "done_when": "kwb-platform-xvpe exists at band 1p, adopts the persistent map by git reference and commit SHA with no path edge anywhere, and has a row in the bands table so tests/contract passes both directions. kwb-domain has versioned concept state built on it, carrying a standing for each concept and exactly one liveness expression, with a current-concepts read and an every-version read that are different types rather than one type with a flag. Tests defend the properties: there is one liveness expression and no second copy of the rule, a superseded concept is absent from the current read and present in the every-version read, publishing a version leaves the previous version valid and queryable, and the two reads cannot be confused for one another by forgetting anything.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform",
+          "crates/domain/kwb-domain",
+          "README.md",
+          "Cargo.toml"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ed in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-platform-xvpe v0.1.0 (F:\\repos\\kwb\\crates\\platform\\kwb-platform-xvpe)\n   Compiling kwb-ingest v0.1.0 (F:\\repos\\kwb\\crates\\ingestion\\kwb-ingest)\n   Compiling kwb-retrieval v0.1.0 (F:\\repos\\kwb\\crates\\retrieval\\kwb-retrieval)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.01s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4de7aa57489f3731.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-1740151ea0c9a712.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-fc474af4ad382401.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_xvpe-5b031c4775ef2ea0.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-3fdd745cfc0b6199.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-5a7d6df53ef981c8.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-3245f4c681e8a862.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_platform_xvpe\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789257393,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "dcbc70f5dc3868dc4814739a5e0e163c5268fe7d"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

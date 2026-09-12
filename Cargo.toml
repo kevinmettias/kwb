@@ -22,6 +22,12 @@ members = [
     "crates/platform/kwb-platform",
     "crates/platform/kwb-platform-std",
 
+    # Band 1p — the one crate permitted to name XVPE. `D-007` decided adoption is by
+    # git reference and commit SHA rather than by path, and `D-012` decided what is
+    # adopted: the persistent map versioned state is built on, rather than a versioned
+    # map written here.
+    "crates/platform/kwb-platform-xvpe",
+
     # Band 2 — domain. The epistemic reasoning surface: claims, concepts,
     # argumentation, evidence, coverage and the derivation ledger. One crate for now,
     # mirroring the .NET prototype's single Domain project; splitting is a decision to
@@ -57,6 +63,7 @@ kwb-model = { path = "crates/kernel/kwb-model" }
 kwb-store = { path = "crates/kernel/kwb-store" }
 kwb-platform = { path = "crates/platform/kwb-platform" }
 kwb-platform-std = { path = "crates/platform/kwb-platform-std" }
+kwb-platform-xvpe = { path = "crates/platform/kwb-platform-xvpe" }
 kwb-domain = { path = "crates/domain/kwb-domain" }
 kwb-ingest = { path = "crates/ingestion/kwb-ingest" }
 kwb-retrieval = { path = "crates/retrieval/kwb-retrieval" }

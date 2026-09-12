@@ -9,6 +9,9 @@ publish.workspace = true
 
 [dependencies]
 kwb-model = { workspace = true }
+# Versioned concept state is adopted rather than written (D-012), and this is the
+# only crate in the workspace permitted to name XVPE (D-007).
+kwb-platform-xvpe = { workspace = true }
 
 [lints]
 workspace = true
