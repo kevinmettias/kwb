@@ -103,7 +103,7 @@ Counted mechanically: **143 of 161 rows are implemented; 55 reach end-to-end.**
 | **compile** | §1 ingestion, §2 embeddings, §4 concepts, §8 thoroughness, §13 admission, §13a code | **built**, 44 of 51 rows implemented |
 | **link** | §4 normalisation and identity judging, §7 taxonomy, §10 traversal | **built** |
 | **query** | §2 keyword/semantic/hybrid search, §10 neighbourhood and path, §12 MCP tools | **built** |
-| **synthesize** | §5 consensus, unique contributions, conflicts, misconceptions; §6 proofs and rigor | **built** — 26 of 27 rows, the strongest part of the tree |
+| **synthesize** | §5 consensus, unique contributions, conflicts, misconceptions; §6 proofs and rigor | **built at concept grain, absent at document grain** — see the correction below |
 | **check** | §8 structural recall audit and golden set, §10a coverage audit, §11 negative-knowledge check and unified findings | **partial**, and audit-shaped: it checks what a run did, not whether an argument holds |
 | **compare** | §10a pairwise reference overlap — **one row** | **absent in substance** |
 | **reconstruct** | — | **absent**; `kw reconstruct` is named absent in the prototype's own roadmap |
@@ -172,6 +172,101 @@ Naming that gap is this file's whole job. Deciding what to do about it — wheth
 grows, whether bands are added, whether a runtime/platform split is adopted — is a decision,
 and a decision belongs to a ledger item and a record, not here.
 
+## Correction, and a subsystem neither reading above found
+
+Added 2026-09-12 after reading `essay.txt` — the 78 KB file sitting beside the corpus,
+unsplit and absent from its `_index.md`, which the prototype inventory recorded as *present and
+unread*. It is the most recent design material in the corpus and it is explicitly about the
+Rust KWB, so it postdates `D-136`. Reading it changed two things in this file.
+
+### The correction: `synthesize` is built at the wrong grain
+
+The table above originally read `synthesize` as **built** — 26 of 27 rows, the strongest part
+of the tree. That was wrong, and the essay names why:
+
+> The search does find `ConceptSynthesis` and a `ConceptSynthesisPipeline`, but that is
+> synthesis **about a concept**, not document composition.
+
+The corpus's own definition of the verb (415) is *"generate grounded explanations, documents,
+curricula, and support content."* §5 generates none of those. It generates a consolidated
+definition, consensus statements, unique contributions, conflicts and misconceptions — all of
+them properties **of one concept**. So `synthesize` is built at concept grain and absent at
+document grain, and the count of five-of-nine implemented in this file was an overcount of one.
+
+This is `D-003`'s own rule turned on this artifact: a section being fully implemented is not
+evidence it implements the operation it was filed under.
+
+### The subsystem: composition and revision
+
+The essay's central claim is that the prototype's roadmap — the thing I read as authoritative
+about what was missing — **underrepresents composition and revision**. The implementation is
+only:
+
+```text
+source → semantic graph        and        semantic graph → concept synthesis
+```
+
+and there is no first-class equivalent of `DocumentIntent`, `Outline`, `SectionIntent`,
+`ClaimPlacement`, `EvidenceSelection`, `CompositionPlan`, `DraftArtifact`, `RevisionFinding`,
+`RevisionCandidate`, `RevisionDecision` or `RevisionLineage`. *"This is the biggest thing I
+would add to the design."*
+
+The boundary it draws is the load-bearing part, and it is one line:
+
+```text
+Enrichment     source    → knowledge
+Composition    knowledge → authored artifact
+```
+
+Which makes KWB two halves rather than one pipeline:
+
+```text
+KNOWLEDGE COMPILATION                 ARTIFACT ENGINEERING
+Sources                               Artifact Intent
+Documents                             Document Architecture
+Chunks                                Composition Plan
+Concepts / Claims        ────────→    Evidence Assignment
+Proof / Conflict                      Argument Plan
+Epistemic Graph                       Draft Artifact
+                                      Evaluation Findings
+                                      Revision Plan
+                                      Candidate Revision
+                                      Validation
+                                      Human Decision
+                                      Artifact Version
+```
+
+with provenance, derivation, coverage, execution traces, human decisions, versioning,
+snapshots, model routing and cost accounting running alongside both.
+
+The synthesis it states, which is the clearest one-sentence statement of KWB's shape anywhere
+in the corpus:
+
+> **KWB knows. Composition decides what knowledge belongs in an artifact and how it should be
+> structured. Evaluation diagnoses the artifact against explicit goals. Revision proposes
+> controlled transformations. Essay is one policy/plugin package that configures those general
+> mechanisms.**
+
+And the rule that keeps the halves apart: *"KWB core knows about knowledge and evidence, not
+essays."* An essay must not leak `ThesisParagraph` or `ConclusionSection` into the core
+semantic model; document type is a profile, not an engine. The essay lists fifteen further
+artifact types the same engine would serve — design documents, requirements, API docs,
+tutorials, manuals, reports — and treats the essay case as one specialization among them.
+
+**Everything in the right-hand column is absent from the bands table**, which has no crate on
+the artifact-engineering side at all. The essay proposes names for them (`kwb-composition`,
+`kwb-evaluation`, `kwb-revision`, or a `kwb-authoring` façade over the three). Those are
+recorded here as *what the corpus proposes*, not as a layout: `README.md` is the authority for
+bands, `tests/contract` asserts it, and changing it is a decision with its own item.
+
+### What this does to the central product loop
+
+The corpus's ten-step product loop (054) is entirely within the left-hand column. It ends at
+*"users compare current and historical interpretations"* — it never reaches an authored
+artifact. So the loop and the two-half architecture are not the same claim at different sizes:
+**the loop is the knowledge-compilation half, and the artifact-engineering half has no loop
+stated for it at all.** A reader who takes 054 as "the full KWB workflow" is taking half of it.
+
 ## What would falsify this file
 
 1. **A statement of the target already in this repository that the search missed.** The claim
@@ -187,4 +282,12 @@ and a decision belongs to a ledger item and a record, not here.
    weakens the central finding, and the finding is only as good as that mapping.
 4. **Corpus material contradicting the nine-operation framing.** The framing is taken from topic
    415 and corroborated by the prototype's own `ROADMAP.md` Part 0. 718 indexed topic files
-   exist and were navigated by index, not read exhaustively; `essay.txt` remains unread.
+   exist and were navigated by index, not read exhaustively. `essay.txt` has now been read and
+   is folded in above; it already falsified one row of the table, which is the best available
+   evidence that the remaining unread corpus can falsify others.
+5. **The two-half framing itself.** It comes from one source — `essay.txt` — which is unindexed,
+   undated in its own text, and was written about three repositories rather than as a statement
+   of KWB's architecture. It is corroborated by the nine operations needing somewhere for
+   `compare`, `reconstruct` and document-grain `synthesize` to live, and by the prototype having
+   none of them. It is not corroborated by a second independent source, and it should not
+   harden into a band boundary on one file's authority.

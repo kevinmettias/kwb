@@ -303,6 +303,29 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-14",
+      "title": "Steps 7 and 8 of the product loop are what make it a loop, and nothing in the prototype or on this board owns either",
+      "why": "The design corpus states KWB's central product loop in ten steps (topic 054 in the game plan): a passage is ingested, claims are extracted, claims are connected to normalized concepts, relation assertions are proposed, evidence and context are attached, existing assertions are corroborated or challenged, derived connections are recomputed, stale syntheses are invalidated, users inspect why a connection exists, and users compare current and historical interpretations. Measured against the prototype 2026-09-12, detail in docs/corpus/what-kwb-is-for.md: steps 1-4 and 6 are substantially built, and steps 7 and 8 are not partial but zero. `DerivationDependency` 0 files, `Staleness` 0 files, `Invalidate` 0 files, `GraphVersion` 0 files. DerivationLedger looks like it should cover them and does not: DerivationRecord is {RunId, ChunkId, NodeId, ModelVersion, PromptHash, ResponseHash, Rationale, Outcome}, which records that a node came from a chunk via a model. That is a provenance record, not a dependency edge — nothing anywhere says this synthesis depends on these claims, so a changed claim invalidates it. Without recompute-and-invalidate, steps 1-6 are a pipeline that runs once rather than a loop, which is the prototype's actual condition: it compiled a corpus and then had no mechanism to notice the corpus changing underneath it. Four independent readings land here. The nine operations (415) put `revise` among the absent. The prototype's own ROADMAP lists thirteen gaps verified absent from its source tree and `DerivationDependency` and staleness propagation are first. The corpus's own sequencing (topic 053) makes 'add derivation dependencies and staleness' its Phase 3. And essay.txt, reviewing the prototype independently, groups derivation dependencies with graph snapshots, identity transitions, destructive-operation preview, producer identity and coverage-on-answers as the most important group because 'those increase reliability of everything built afterward'. This item is unusual on this board in one respect worth stating: it is NOT on D-004's held list. The reference miner is generating requirements for the evidence ontology, admission, coverage and the confidence model — it is not generating any for dependency tracking and invalidation, which is a mechanical question about what depends on what. So this is specifiable now, while steps 5 and 10 are not. NOT CLAIMABLE ON ARRIVAL, and the reason is worth keeping rather than fixing: this item's territory is docs/records and docs/corpus, which is exactly what it must write, and both are held by KWB-7 and KWB-9 — two items whose work is finished and which are parked in Claimed because nothing can transition them to Done. Narrowing this item's territory would be drawing it against what is free rather than against what the change must edit, which is the authoring mistake OD-LEDGER-001 measures. So it stays correct and blocked. This is the third territory collision on this board in one session and the first one that blocks real design work rather than bookkeeping; under the lease model D-005 adopted, both holders would have lapsed and released automatically. KWB-13 is what unblocks this.",
+      "done_when": "A record here states what a derivation dependency must relate and what an invalidation must guarantee, derived from the failure it prevents rather than from the prototype's shape — including, at minimum: what a derived artifact declares it was derived FROM (not merely by which run and model, which is all DerivationRecord captures), what happens to a derived artifact when one of its inputs changes versus when one is retracted, whether invalidation marks or deletes (D17 answers this and the record must show its work), and how a consumer distinguishes a stale artifact from a current one without having to remember to ask. The record names which of the prototype's five recorded incidents its rules answer, and states explicitly what it does NOT cover — versioning and snapshots (loop step 10) depend on this and are not this.",
+      "territory": {
+        "resolution": "File",
+        "paths": ["docs/records", "docs/corpus"],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "timeout_seconds": 300
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
