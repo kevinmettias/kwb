@@ -533,7 +533,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -546,7 +546,30 @@
         ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4de7aa57489f3731.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-c0d6f93c24894481.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-ab9e7c1d97094637.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-fc474af4ad382401.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-5c67acaed72cc289.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-1820203d8aec4d65.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-14e429873bce8e9c.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789239559,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "7a843872e8555f94478105cd55ce86ceffe74523"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
