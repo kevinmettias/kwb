@@ -25,6 +25,24 @@
 //! required, so the property that makes `Identity` safe to feed to a union-find is the
 //! one the vocabulary cannot assert.
 //!
-//! Nothing is implemented yet.
+//! # What is here now
+//!
+//! `KWB-4`: [`Concept`], [`Claim`] and [`Coverage`]. The first two rest on `kwb-model`'s
+//! identity and on its two exclusions; the third is the anti-data-loss primitive the
+//! admission pipeline cannot be built safely without, which is why it comes before `KWB-5`
+//! rather than with it.
+//!
+//! Nothing else is implemented yet, and the universal kernel above is deliberately not.
 
 #![forbid(unsafe_code)]
+
+mod claim;
+mod concept;
+mod coverage;
+
+#[cfg(test)]
+mod tests;
+
+pub use claim::Claim;
+pub use concept::Concept;
+pub use coverage::Coverage;

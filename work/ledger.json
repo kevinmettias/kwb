@@ -191,7 +191,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [
         "KWB-3"
       ],
@@ -207,7 +207,31 @@
         ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 12 tests\ntest tests::Test_A_Changed_Claim_Should_Not_Keep_Its_Identity ... ok\ntest tests::Test_A_Yield_Of_Nothing_Should_Be_A_Barren_Rather_Than_A_Yield_Of_Zero ... ok\ntest tests::Test_A_Claim_Should_Depend_On_Its_Concepts_Identity_And_Not_Its_Name ... ok\ntest tests::Test_A_Reflowed_Claim_Should_Keep_Its_Identity ... ok\ntest tests::Test_A_Claim_Should_Carry_No_Scope_And_No_Confidence ... ok\ntest tests::Test_An_Outcome_Of_A_Run_Should_Be_Derived_From_What_It_Found ... ok\ntest tests::Test_Barren_And_Unmet_Should_Not_Be_Interchangeable ... ok\ntest tests::Test_Two_References_Naming_One_Concept_Should_Produce_One_Identity ... ok\ntest tests::Test_Only_A_Completed_Run_That_Found_Nothing_Should_Be_Evidence_Of_Absence ... ok\ntest tests::Test_Two_References_Asserting_One_Claim_Should_Produce_One_Claim ... ok\ntest tests::Test_Concepts_Differing_Only_In_Case_Should_Be_Two_Concepts ... ok\ntest tests::Test_Three_Outcomes_Have_No_Findings_And_Only_One_Means_There_Are_None ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-76e93b40c1c69cca.exe)\n   Doc-tests kwb_domain\n",
+        "verified_at": 1789253981,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "cc76697efc99c57c8ae5027175a1fbfe803b695c"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
