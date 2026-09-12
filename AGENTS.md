@@ -41,11 +41,13 @@ file.
 
 ## Operating hazards
 
-**No path dependency on `f:/repos/xvpe`.** Its foundations tier does not currently
-compile (`xvpe-dataflow` fails at 62 errors as of the last check from the Nomos side).
-Nomos's own `D-130` takes no XVPE dependency before its Phase 5 and never by path, and
-this repository takes the same caution for the same reason, without inheriting Nomos's
-phase numbers — this repository has not built anything yet to phase.
+**No path dependency on `f:/repos/xvpe`.** `D-007` is why, and it is worth reading
+before acting on this line, because the reason is not the one this file used to give.
+The premise stated here until 2026-09-12 — that XVPE's foundations tier does not
+compile — was false when it was read, and had been retired by Nomos's own source months
+earlier. What survives is a claim about coupling rather than breakage: a `path` edge
+binds this repository's reproducibility to another repository's working tree. Adoption
+is by git reference and commit SHA, into a crate that exists to quarantine it.
 
 **`nomos-contracts::KnowledgeReferenceId` is the one thing this repository must not
 silently redefine.** Nomos's `D-137` admits an opaque, KWB-minted identifier for a claim,

@@ -41,6 +41,7 @@ The operating contract is `AGENTS.md`. It is not repeated here.
 - `f:/repos/nomos` — Nomos, the software-engineering authority this product does not
   duplicate.
 - `f:/repos/xvpe` — XVPE, the shared application platform. No crate here depends on it
-  yet, for the same reason Nomos's own `D-130` gives: XVPE's foundations tier does not
-  currently compile, and a `path` dependency would make this repository's buildability a
-  function of another product's refactor.
+  yet, and `D-007` states the reason and what was measured. In short: not because XVPE is
+  broken — the crates this repository would want compile clean and pull no third-party
+  package between them — but because a `path` edge would make this repository's
+  reproducibility a function of another repository's working tree.
