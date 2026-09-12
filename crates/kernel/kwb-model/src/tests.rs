@@ -271,3 +271,122 @@ fn Test_Parse_Should_Refuse_Uppercase_So_One_Identity_Has_One_Rendering()
          comparison elsewhere would then disagree with this type"
     );
 }
+
+// ---- KWB-15: the opaque door, and the normalization it deliberately does not do ----
+
+#[test]
+fn Test_Two_Byte_Strings_Differing_Only_By_Whitespace_Should_Have_Different_Identities()
+{
+    let spaced = Derivation::Of("document").With_Bytes("content", b"fn main()  {}").Seal();
+    let tight = Derivation::Of("document").With_Bytes("content", b"fn main() {}").Seal();
+
+    assert_ne!(
+        spaced.Identity(),
+        tight.Identity(),
+        "a stored document is its octets; if a reflow derived one identity, the second write          would find the first already present, report success, and lose the bytes -- which is          D17 exactly"
+    );
+}
+
+#[test]
+fn Test_The_Same_Bytes_Should_Derive_One_Identity()
+{
+    let once = Derivation::Of("document").With_Bytes("content", b"a passage").Seal();
+    let twice = Derivation::Of("document").With_Bytes("content", b"a passage").Seal();
+
+    assert_eq!(
+        once.Identity(),
+        twice.Identity(),
+        "content addressing is the dedup mechanism; re-offering one document must be one row"
+    );
+}
+
+#[test]
+fn Test_A_Byte_Field_Should_Not_Collide_With_A_Text_Field_Of_The_Same_Content()
+{
+    let opaque = Derivation::Of("document").With_Bytes("content", b"a passage").Seal();
+    let text = Derivation::Of("document").With_Text("content", "a passage").Seal();
+
+    assert_ne!(
+        opaque.Identity(),
+        text.Identity(),
+        "normalized and not-normalized are different claims about the same octets, and a          caller that picked the wrong door must not silently land on the right identity"
+    );
+}
+
+#[test]
+fn Test_A_Byte_Field_Should_Not_Collide_With_An_Identity_Field()
+{
+    let referenced = Derivation::Of("chunk").With_Text("text", "anything").Seal().Identity();
+
+    let as_reference = Derivation::Of("synthesis").With_Identity("input", &referenced).Seal();
+    let as_bytes = Derivation::Of("synthesis").With_Bytes("input", referenced.As_Bytes()).Seal();
+
+    assert_ne!(
+        as_reference.Identity(),
+        as_bytes.Identity(),
+        "a field holding an artifact's identity bytes is not a reference to that artifact"
+    );
+}
+
+#[test]
+fn Test_Bytes_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
+{
+    let forged = Derivation::Of("document")
+        .With_Bytes("content", b"anextz")
+        .Seal();
+    let honest = Derivation::Of("document")
+        .With_Bytes("content", b"a")
+        .With_Text("next", "z")
+        .Seal();
+
+    assert_ne!(
+        forged.Identity(),
+        honest.Identity(),
+        "the outer layout separates its parts with a byte a raw value can contain, so the          value participates by a fixed-width digest instead"
+    );
+}
+
+#[test]
+fn Test_A_Byte_Field_Name_Should_Participate()
+{
+    let content = Derivation::Of("document").With_Bytes("content", b"z").Seal();
+    let preview = Derivation::Of("document").With_Bytes("preview", b"z").Seal();
+
+    assert_ne!(content.Identity(), preview.Identity());
+}
+
+#[test]
+fn Test_An_Empty_Byte_Field_Should_Not_Be_An_Absent_One()
+{
+    let empty = Derivation::Of("document").With_Bytes("content", b"").Seal();
+    let absent = Derivation::Of("document").With_Absent("content").Seal();
+
+    assert_ne!(
+        empty.Identity(),
+        absent.Identity(),
+        "a document that is zero bytes long is not a document that was never supplied"
+    );
+}
+
+#[test]
+fn Test_An_Absent_Field_Should_Still_Occupy_Its_Place_Among_Byte_Fields()
+{
+    let absent_then_valued = Derivation::Of("document")
+        .With_Absent("a")
+        .With_Bytes("b", b"1")
+        .Seal();
+    let valued_then_absent = Derivation::Of("document")
+        .With_Bytes("a", b"1")
+        .With_Absent("b")
+        .Seal();
+
+    assert_ne!(absent_then_valued.Identity(), valued_then_absent.Identity());
+}
+
+#[test]
+fn Test_A_Byte_Field_Should_Be_Recorded_As_Included()
+{
+    let sealed = Derivation::Of("document").With_Bytes("content", b"z").Seal();
+
+    assert_eq!(sealed.Included(), ["content"]);
+}

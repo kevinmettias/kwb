@@ -72,12 +72,16 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Claimed",
       "depends_on": [
         "KWB-1"
       ],
       "blocked": null,
-      "claim": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789250849,
+        "lease_expires_at": 1789258049
+      },
       "verification": {
         "argv": [
           "cargo",
@@ -593,6 +597,63 @@
           "exit_code": 0
         },
         "revision": "7a843872e8555f94478105cd55ce86ceffe74523"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-15",
+      "title": "kwb-model can derive an identity from normalized text and from nothing else, so the document store cannot address a document without either losing bytes or minting identity twice",
+      "why": "KWB-2 is the first consumer of KWB-1 and does not fit through it. Derivation offers With_Text, With_Identity and With_Absent; With_Text runs Normalize, which collapses every whitespace run and strips every C0/C1 control character. That is exactly right for a claim, where a reflow is not an edit, and it is destructive for a stored document. Two documents differing only in indentation derive one identity, so the second write finds the first already present, reports success, and the second document bytes are gone. That is a D17 incident in the precise shape D17 names: a write that reports success while destroying evidence it had no basis to destroy. The alternative open to kwb-store inside its own territory is to hash bytes itself with sha2, which AGENTS.md refuses as introducing a second authority for something already governed, and which would put two derivation layouts in one workspace with nothing asserting they agree. So identity for opaque bytes is kwb-model work, discovered by KWB-2, and it is a door on the existing Derivation rather than a new scheme.",
+      "done_when": "Derivation admits raw bytes as a participating field through one door that does not normalize them, documented where it is defined with what it does not do and why a caller must not reach for it when the field is text. The layout keeps every property KWB-1 paid for: the field name participates, the separator still cannot be forged from inside a value, and an absent field still occupies its place. Tests assert that two byte strings differing only in whitespace derive different identities, that a byte field and a text field of the same name and content do not collide, and that a value containing the separator byte cannot forge a field boundary through the bytes door. kwb-model builds and tests green, and no caller outside kwb-model is required for this item to close.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-model"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-model",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-model",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "d_Capitalisation_Should_Change_Identity ... ok\ntest tests::Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary ... ok\ntest tests::Test_A_Changed_Claim_Should_Not_Keep_Its_Identity ... ok\ntest tests::Test_Parse_Should_Refuse_A_Wrong_Length ... ok\ntest tests::Test_Reflowed_Text_Should_Not_Change_Identity ... ok\ntest tests::Test_An_Identity_Field_Should_Not_Collide_With_Its_Own_Rendering ... ok\ntest tests::Test_Bytes_Should_Not_Be_Able_To_Forge_A_Field_Boundary ... ok\ntest tests::Test_An_Empty_Byte_Field_Should_Not_Be_An_Absent_One ... ok\ntest tests::Test_Two_Byte_Strings_Differing_Only_By_Whitespace_Should_Have_Different_Identities ... ok\ntest tests::Test_Field_Order_Should_Be_Significant ... ok\ntest tests::Test_Included_Fields_Should_Be_Reported_In_Order ... ok\ntest tests::Test_Normalize_Should_Strip_Control_Characters ... ok\ntest tests::Test_Parse_Should_Recognize_What_Render_Produced ... ok\ntest tests::Test_Parse_Should_Refuse_Uppercase_So_One_Identity_Has_One_Rendering ... ok\ntest tests::Test_The_Kind_Should_Participate ... ok\ntest tests::Test_An_Absent_Field_Should_Still_Occupy_Its_Place_Among_Byte_Fields ... ok\ntest tests::Test_The_Same_Bytes_Should_Derive_One_Identity ... ok\ntest tests::Test_The_Source_Exclusion_Should_Be_Recorded_With_Its_Reason ... ok\ntest tests::Test_Two_Claims_Differing_Only_By_Source_Should_Have_One_Identity ... ok\ntest tests::Test_A_Rederived_Input_Should_Carry_The_Same_Identity ... ok\ntest tests::Test_A_Derived_Artifact_Should_Change_When_An_Input_Changes ... ok\ntest tests::Test_Render_Should_Produce_Lowercase_Hexadecimal_Of_The_Full_Digest ... ok\n\ntest result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n   Doc-tests kwb_model\n",
+        "verified_at": 1789251213,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "8a5479a365ed3b81f3a20a53b3be47e8163f3ad4"
       },
       "abandoned": [],
       "displaced": [],

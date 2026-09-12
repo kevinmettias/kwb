@@ -39,6 +39,12 @@ const ABSENT: &[u8] = b"<absent>";
 /// that artifact.
 const IDENTITY_TAG: &[u8] = b"<identity>";
 
+/// Marks a value that is opaque bytes, so that a byte field and a text field of the same
+/// name holding the same content cannot collide. `With_Text` normalizes and `With_Bytes`
+/// does not, so the two are genuinely different claims about the same octets and must not
+/// derive one identity.
+const OPAQUE_TAG: &[u8] = b"<opaque>";
+
 /// A field that was considered and deliberately left out of an identity, with the reason.
 ///
 /// Recording the exclusion is the point. `D-006` and the cross-source dedup mechanism both
@@ -118,6 +124,40 @@ impl Derivation
         return self;
     }
 
+    /// A field that participates as opaque bytes, normalized in no way at all.
+    ///
+    /// This is the door a content-addressed **document** goes through, and it is the exact
+    /// complement of [`With_Text`]: there, a reflow is not an edit, and here every octet is
+    /// the content. Reaching for this when the field is text silently opts that field out of
+    /// the dedup mechanism the whole workspace rests on, because two renderings of one claim
+    /// would stop being one claim.
+    ///
+    /// # Why the value is hashed before it participates
+    ///
+    /// The outer layout separates its parts with [`SEPARATOR`] and relies on no part being
+    /// able to contain one. [`With_Text`] earns that by construction — [`Normalize`] strips
+    /// every control character — and arbitrary bytes cannot. Written raw, a value of
+    /// `b"ayz"` in field `x` produces the identical byte stream to field `x` holding
+    /// `b"a"` followed by a field `y` holding `z`, which is precisely the field-boundary
+    /// forgery this layout exists to prevent.
+    ///
+    /// So the value participates by its own digest, which is a **fixed width**. A fixed-width
+    /// part cannot shift a boundary no matter what it contains, which is the same argument
+    /// [`With_Identity`] already rests on, and reaching the same guarantee a second way would
+    /// have been two arguments to keep in step. It also means a large document contributes 32
+    /// bytes to the outer digest rather than its whole length.
+    ///
+    /// [`With_Text`]: Self::With_Text
+    /// [`With_Identity`]: Self::With_Identity
+    pub fn With_Bytes(mut self, field: &'static str, value: &[u8]) -> Self
+    {
+        self.included.push(field);
+        self.Write(field.as_bytes());
+        self.Write(OPAQUE_TAG);
+        self.Write(&Digest_Of(value));
+        return self;
+    }
+
     /// A field that participates and has no value in this instance.
     pub fn With_Absent(mut self, field: &'static str) -> Self
     {
@@ -158,6 +198,18 @@ impl Derivation
         self.digest.update(part);
         self.digest.update([SEPARATOR]);
     }
+}
+
+/// The digest of an opaque value, as the fixed-width stand-in that participates for it.
+///
+/// A separate hash state rather than the derivation's own: folding the value straight into
+/// the running digest is what would let its content reach a field boundary, and that is the
+/// whole reason this function exists.
+fn Digest_Of(value: &[u8]) -> [u8; IDENTITY_BYTES]
+{
+    let mut digest = Sha256::new();
+    digest.update(value);
+    return digest.finalize().into();
 }
 
 /// A finished derivation: the identity, and a record of how it was reached.
