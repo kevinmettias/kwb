@@ -1,14 +1,18 @@
 {
-  "schema_version": 1,
+  "schema_version": 5,
   "items": [
     {
       "id": "KWB-1",
       "title": "kwb-model has no identity scheme, and every content-addressed thing above it is waiting on one",
       "why": "The .NET prototype's DeterministicId (SHA-256 into a UUIDv8, with a claim's SourceId deliberately excluded from the hash) is the actual cross-source dedup mechanism: two books asserting the same claim hash to the same id, so a second admission is an upsert rather than a duplicate. D17 and D18 in that prototype's own AGENTS.md are both failures that a stricter identity discipline at the type level would have made harder to reach — a merge that fused two distinct concepts, and a predicate fed into an algorithm that assumed a property it did not have. This item is the decision point for which of those become type-level invariants here rather than review conventions. Measured 2026-09-12 by KWB-9, detail in docs/corpus/prototype-inventory.md: the prototype's identity discipline was implemented once and applied almost nowhere — 87 types in Domain/ default their Id to Guid.NewGuid(), against 9 files that call DeterministicId, and the twelve byte-identical epistemic kernel nodes are all in the first group. DeterministicId.From(params string?[]) is itself the bare static this item's done_when forbids, which is how the discipline became forgettable. Four design details are worth carrying whole and are recorded in the inventory: the version-8 UUID tag rather than an impersonated v5, the 0x1F separator chosen because whitespace normalisation cannot produce it, case deliberately not normalised, and a null part kept distinct from an absent one. D20 belongs here too: the prototype declares `public double Confidence { get; set; } = 1.0` in 40 Domain types (41 counting one init), so an unset confidence reads as certain — the unfinished half of that prototype's own ADR 0001 follow-up, whose value objects (Confidence, RigorLevel, AccessibilityLevel) sit in Domain/Values alongside the 40 bare doubles.",
       "done_when": "kwb-model exposes a content-derived identity type whose construction requires the bytes it is derived from (no bare `new` that accepts an arbitrary string), documents which fields participate in the hash and why, and has tests demonstrating that two inputs differing only in an explicitly-excluded field (the source) produce the same identity.",
+      "kind": "Capability",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["crates/kernel/kwb-model"],
+        "paths": [
+          "crates/kernel/kwb-model"
+        ],
         "patterns": []
       },
       "state": "Ready",
@@ -16,7 +20,13 @@
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "-p", "kwb-model", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-model",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -29,17 +39,29 @@
       "title": "kwb-store has no write door, and D19/D20 in the prototype are exactly the failure a missing one allows",
       "why": "D19 (a scheduler defaulted queued work to Succeeded when its handler did not exist) and D20 (an enum's zero-value default read as success) are both failures of a status being assumed rather than derived from evidence. kwb-store's own write door is where a status becomes a property of what was actually written, not a value a caller could construct optimistically.",
       "done_when": "kwb-store exposes one write path whose result type cannot be constructed as successful without the bytes it wrote, mirroring the one-write-door discipline nomos-store documents in f:/repos/nomos.",
+      "kind": "Capability",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["crates/kernel/kwb-store"],
+        "paths": [
+          "crates/kernel/kwb-store"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-1"],
+      "depends_on": [
+        "KWB-1"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "-p", "kwb-store", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -52,17 +74,30 @@
       "title": "The universal epistemic type kernel is named in every document about this product and designed in none of them",
       "why": "The .NET prototype's Domain/Universal — a discipline-neutral type and relation hierarchy that domain-specific YAML packs specialize — is the piece the prototype's own architecture treats as most load-bearing. Porting its type *tree* (the ~30 hardcoded UniversalType entries) without re-deriving why its relation kinds are the closed set would be porting the easy half and leaving the actual design decision unmade here. CORRECTED 2026-09-12 by KWB-9, measured in docs/corpus/prototype-inventory.md: this item previously said 'nine relation kinds'. UniversalRelationKind has 21 members — nine cross-domain discovery discriminations plus twelve structural families (Taxonomic, Compositional, Dependency, Logical, Evidential, Normative, Representational, Functional, Temporal, Contextual, Contradiction, Contrast). An implementer who re-derives only the nine re-derives the vocabulary of discovery and inherits unexamined the vocabulary that types every relation the packs actually declare. Three further measurements bear on this item. First, the prototype's real answer to D18 is not the nine kinds but UniversalRelationKindExtensions.Constraint() — a per-kind algebra commitment checked by AlgebraViolations on the pack-load path (DomainPackValidator.cs:196 from DomainPackRegistry.cs:86) — and that is Exercised, whereas the node types are only Declared and Implemented per D-003. Second, twelve types implementing IEpistemicNode are byte-identical apart from the type name, and six of them reach no consumer at all, so they are one hypothesis expressed twelve times rather than twelve concepts. Third, nine hand-written IDomainModule implementations (1,430 lines) have zero consumers outside their own directory and are kept in sync with the YAML packs by a drift test that is their only reader — do not rebuild the twin. Of a pack's seven declared contributions only the relation algebra reaches the runtime, and ValidationConstraint carries a prose Description with no predicate, so no pack validation constraint can fire.",
       "done_when": "kwb-domain states, as a record, what a UniversalType hierarchy must guarantee (closed under IsA, one KnowledgeLayer per type) and what the relation vocabulary must guarantee — for all 21 kinds, not only the nine discovery discriminations: that they are complete and mutually exclusive, or a documented reason they are not, and what algebra each kind commits its specializations to — before any domain pack format is designed against it.",
+      "kind": "Decision",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["crates/domain/kwb-domain", "docs/records"],
+        "paths": [
+          "crates/domain/kwb-domain",
+          "docs/records"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-1"],
+      "depends_on": [
+        "KWB-1"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "-p", "kwb-domain", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -75,17 +110,29 @@
       "title": "kwb-domain has no claim, concept, or coverage types yet, and kwb-ingest cannot be built without them",
       "why": "The prototype's CoverageOutcome (Yielded/Barren/Skipped/Unmet) is its central anti-data-loss primitive: distinguishing a rule that ran and found nothing from one that never ran. Building admission (KWB-5) before this exists would repeat the prototype's own D19, where a run-that-never-happened had no way to say so and reported clean.",
       "done_when": "kwb-domain has Claim and Concept types built on kwb-model's identity, and a coverage type that cannot represent Barren and Skipped as the same value.",
+      "kind": "Capability",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["crates/domain/kwb-domain"],
+        "paths": [
+          "crates/domain/kwb-domain"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-3"],
+      "depends_on": [
+        "KWB-3"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "-p", "kwb-domain", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -98,17 +145,30 @@
       "title": "kwb-ingest has no admission pipeline, and the prototype's own D18 is what happens when one is built without re-deriving its algorithm's assumptions",
       "why": "D18 fed a pairwise-correct IsVariantOf predicate into union-find, which assumes transitivity the predicate did not have, and fused distinct concepts through bridge terms in 25% of merges — undetected by 1,878 passing tests, because they tested the predicate and not the consuming structure. Building admission here is the point to re-derive, for every algorithm used, what property it actually needs from its input rather than assuming one that happens to hold on the test corpus.",
       "done_when": "kwb-ingest implements link-concepts, normalize-concepts and admit in that order, and each stage's tests exercise the algorithmic property that stage's design depends on, not only its typical-case output.",
+      "kind": "Capability",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["crates/ingestion/kwb-ingest"],
+        "paths": [
+          "crates/ingestion/kwb-ingest"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-2", "KWB-4"],
+      "depends_on": [
+        "KWB-2",
+        "KWB-4"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "-p", "kwb-ingest", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -121,17 +181,30 @@
       "title": "kwb-retrieval and kwb-mcp have no query surface, and the prototype's mutation-exclusion decision (its own D10) is not yet a property of this workspace's types",
       "why": "The prototype's MCP host exposes nine read-only tools with every reply bounded so an agent cannot exhaust its own context, and excludes mutation from that surface entirely. Read this as a contract worth preserving independent of the protocol carrying it: the type an MCP tool handler is built against should not have a mutating method to call by mistake. The nine tools are confirmed by measurement (search, get_concept, neighbours, path, proofs_for, claims_for, code_for, gaps_in_source, list_connection_hypotheses). KWB-9 attaches a second incident to this item, detailed in docs/corpus/prototype-incidents.md as D19-B: the prototype's AGENTS.md carries two distinct incidents both numbered D19, and the second one — 'a filter that applies itself is a check nobody asked for' — is the one its own ROADMAP does not carry forward. Its subject is which world a read returns. A global query filter rewrote every query including ones written by people who had never heard of it, so merge-audit resolved none of the merge log's ids against the current view, printed 'nothing has been merged away' and exited 0 — every merge on record could have been wrong and the gate would have passed. No filter at all failed the other way. The prototype's answer is two interfaces (IConceptRepository current, IConceptHistory every version) so that needing retired rows is a dependency visible in a constructor, liveness is one expression rather than three hand-written copies, and an audit carries an independent expectation and throws rather than reporting a zero. That is the same structural discipline this item already states for mutation, applied to temporality; two read types, not one type with a flag. A second observation, measured against nomos 2026-09-12 and detailed in docs/corpus/nomos-as-precedent.md, bears on the second half of this item: nomos-mcp holds a tool CATALOGUE and no protocol. Its ServedTool names which tools exist, the sentence each publishes and the schema each accepts, while the whole initialize/tools-list/tools-call/ping handshake, notification suppression and framing come from xvpe-remote-call-backend-json — its own band entry states the test that the split was drawn correctly, that 'this crate names no protocol library at all'. The prototype's nine tools are a catalogue in exactly that sense. Whether this repository may take that edge is KWB-8's question, not this item's; what this item can take from it either way is that the protocol is not the part worth owning, and read-only-ness is.",
       "done_when": "kwb-retrieval exposes keyword, semantic and neighbourhood queries whose types have no write path, the current-version and all-versions reads are distinct types rather than one type with a flag, and kwb-mcp's tool surface is built only against those types.",
+      "kind": "Capability",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["crates/retrieval/kwb-retrieval", "crates/host/kwb-mcp"],
+        "paths": [
+          "crates/retrieval/kwb-retrieval",
+          "crates/host/kwb-mcp"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-4"],
+      "depends_on": [
+        "KWB-4"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "-p", "kwb-retrieval", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-retrieval",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -142,24 +215,54 @@
     {
       "id": "KWB-7",
       "title": "This repository has a work/ledger.json and no tool that operates on it",
-      "why": "AGENTS.md documents claim, finish, and territory as this repository's coordination mechanism, but nomos-ledger — the crate that actually implements those verbs in f:/repos/nomos — is Nomos-specific by location, not by semantics; ARC-ECOSYSTEM-001 already names it a candidate whose subject does not require the thing being coordinated to be software. D-135's new default-to-XVPE policy for genuinely domain-neutral code makes this the first real test of that policy in practice, not a hypothetical. The absence now has a concrete victim: KWB-9 ran to completion and could not be finished through the ledger, because AGENTS.md forbids hand-editing an item to Done and no tool exists to transition it any other way. It is therefore parked in Claimed with its artifacts delivered — which is exactly the state this item exists to stop being the only available one. Measured against nomos 2026-09-12, detail in docs/corpus/nomos-as-precedent.md: this decision has a cheaper fourth option than the three named above, and a different governing record than the one named below. The fourth option is to adopt nomos-ledger's SCHEMA without adopting any dependency. Running nomos's own binary against this board — `nomos work validate` from this repository's root — reads this file, parses it, and refuses it at exit 5 with `missing field kind`. Field by field the two schemas are one: Territory is identical (resolution/paths/patterns), ItemState already includes Claimed, and abandoned/displaced/declined are already here. The entire gap is two closed-set fields (kind: capability|decision|validation|correction|cleanup, origin: required|proposed) and schema_version 1 against nomos's 5. Both containers use serde(deny_unknown_fields) per OD-LEDGER-008, which is why the refusal is total rather than partial. On the governing record: D-135 decides where NEW domain-neutral code is authored and is explicit that it does not weaken the proof requirement for code moving after the fact, so evaluating D-135's admission test against nomos-ledger evaluates the wrong test — nomos-ledger is 14,008 lines of existing code, and the clause that governs moving it is D-122 as adopted into ARC-ECOSYSTEM-001: two products demonstrating materially identical domain-neutral semantics. This board being nomos's schema minus two fields is close to that proof and is materially stronger than the hypothetical D-122 exists to refuse. Two bounds: XVPE has no work-ledger crate today (xvpe-frame-ledger is timing, xvpe-task-* is runtime concurrency), and nomos already measured Territory as a migration candidate and rejected it under OD-PLATFORM-003's criterion — no XVPE site was found doing it worse. That criterion asks what XVPE is missing and is silent on what a second product needs, which is this item's actual question. Finally, the mechanism this repository most concretely lacks is the lease: nomos's claim lapses, `list` reports it lapsed rather than claimed, and Take_Over recovers it while preserving the displaced claim. KWB-9 being unfinishable is that absence, measured.",
+      "why": "AGENTS.md documents claim, finish, and territory as this repository's coordination mechanism, but nomos-ledger — the crate that actually implements those verbs in f:/repos/nomos — is Nomos-specific by location, not by semantics; ARC-ECOSYSTEM-001 already names it a candidate whose subject does not require the thing being coordinated to be software. D-135's new default-to-XVPE policy for genuinely domain-neutral code makes this the first real test of that policy in practice, not a hypothetical. The absence now has a concrete victim: KWB-9 ran to completion and could not be finished through the ledger, because AGENTS.md forbids hand-editing an item to Done and no tool exists to transition it any other way. It is therefore parked in Claimed with its artifacts delivered — which is exactly the state this item exists to stop being the only available one. Measured against nomos 2026-09-12, detail in docs/corpus/nomos-as-precedent.md: this decision has a cheaper fourth option than the three named above, and a different governing record than the one named below. The fourth option is to adopt nomos-ledger's SCHEMA without adopting any dependency. Running nomos's own binary against this board — `nomos work validate` from this repository's root — reads this file, parses it, and refuses it at exit 5 with `missing field kind`. Field by field the two schemas are one: Territory is identical (resolution/paths/patterns), ItemState already includes Claimed, and abandoned/displaced/declined are already here. The entire gap is two closed-set fields (kind: capability|decision|validation|correction|cleanup, origin: required|proposed) and schema_version 1 against nomos's 5. Both containers use serde(deny_unknown_fields) per OD-LEDGER-008, which is why the refusal is total rather than partial. On the governing record: D-135 decides where NEW domain-neutral code is authored and is explicit that it does not weaken the proof requirement for code moving after the fact, so evaluating D-135's admission test against nomos-ledger evaluates the wrong test — nomos-ledger is 14,008 lines of existing code, and the clause that governs moving it is D-122 as adopted into ARC-ECOSYSTEM-001: two products demonstrating materially identical domain-neutral semantics. This board being nomos's schema minus two fields is close to that proof and is materially stronger than the hypothetical D-122 exists to refuse. Two bounds: XVPE has no work-ledger crate today (xvpe-frame-ledger is timing, xvpe-task-* is runtime concurrency), and nomos already measured Territory as a migration candidate and rejected it under OD-PLATFORM-003's criterion — no XVPE site was found doing it worse. That criterion asks what XVPE is missing and is silent on what a second product needs, which is this item's actual question. Finally, the mechanism this repository most concretely lacks is the lease: nomos's claim lapses, `list` reports it lapsed rather than claimed, and Take_Over recovers it while preserving the displaced claim. KWB-9 being unfinishable is that absence, measured. CLAIM NOTE, moved here by KWB-13 because nomos-ledger's Claim carries holder and timestamps only: Claimed 2026-09-12, territory narrowed from [docs/records, work] to [docs/records] on release: `work` was needed only to claim this item and to add KWB-13, and holding it afterwards blocked KWB-13 — the item that finishes this one. That is OD-LEDGER-001's authoring mistake, made for the second time in one session on this board, which is itself evidence for what D-005 decided. Decision recorded as D-005: adopt nomos-ledger's schema, use its binary as the interim tool, and defer ownership. The three options this item named are all about owning ledger code; measurement showed the question was wrong-shaped, and the two options it did not name are the ones that answer it. KWB-13 is the follow-on the decision implies. Parked in Claimed rather than Done for the same reason KWB-9 is: no tool exists to transition it, which is this item's own subject. KWB-13 landing is what makes both transitionable.",
       "done_when": "A decision exists, recorded here, on whether this repository's ledger tooling vendors nomos-ledger, depends on a shared XVPE crate D-135 would place it in, or forks one — made by evaluating D-135's own admission test against this concrete case, not by defaulting to whichever is easiest to start.",
+      "kind": "Decision",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/records"],
+        "paths": [
+          "docs/records"
+        ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
-      "claim": {
-        "note": "Claimed 2026-09-12, territory narrowed from [docs/records, work] to [docs/records] on release: `work` was needed only to claim this item and to add KWB-13, and holding it afterwards blocked KWB-13 — the item that finishes this one. That is OD-LEDGER-001's authoring mistake, made for the second time in one session on this board, which is itself evidence for what D-005 decided. Decision recorded as D-005: adopt nomos-ledger's schema, use its binary as the interim tool, and defer ownership. The three options this item named are all about owning ledger code; measurement showed the question was wrong-shaped, and the two options it did not name are the ones that answer it. KWB-13 is the follow-on the decision implies. Parked in Claimed rather than Done for the same reason KWB-9 is: no tool exists to transition it, which is this item's own subject. KWB-13 landing is what makes both transitionable."
-      },
+      "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4de7aa57489f3731.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-c0d6f93c24894481.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-ab9e7c1d97094637.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-fc474af4ad382401.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-5c67acaed72cc289.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-1820203d8aec4d65.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-14e429873bce8e9c.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789239423,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "b2fde1ebe0824714cec1135fea86b5fd426977a9"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
@@ -169,17 +272,29 @@
       "title": "The XVPE dependency hazard rests on a compile failure that no longer reproduces, and a stale premise is not permission to take the dependency",
       "why": "AGENTS.md refuses a path dependency on f:/repos/xvpe because its foundations tier does not compile, citing xvpe-dataflow at 62 errors as of the last check from the Nomos side. Measured 2026-09-12 from the xvpe workspace, `cargo check -p <crate>` exits 0 for xvpe-primitives, xvpe-serialization, xvpe-sync-primitives, xvpe-collections, xvpe-algorithms, xvpe-dataflow, xvpe-math, xvpe-formula and xvpe-json-text — xvpe-dataflow itself finishing with 106 warnings and no errors. That measurement covers libraries only: no tests, no --all-targets, and no doctests, which `check` never compiles. So the hazard's stated premise no longer reproduces, and that says nothing about whether the position it supports is still right: Nomos's own D-130 may rest on reasons the compile failure never carried, and a build observation is not an architecture decision. The failure this item exists to prevent is someone reading a green `cargo check` as permission. The observation this item carries — that the premise is stale — is settled, and measurement against nomos on 2026-09-12 found it stale a SECOND way, which the compile-check never touched. Detail in docs/corpus/nomos-as-precedent.md. AGENTS.md and README.md here both refuse the dependency 'for the same reason Nomos's own D-130 gives', and OD-PLATFORM-003 retired that clause for this crossing: 'No, for the XVPE crossing. Nomos is built on top of XVPE. XVPE is the engine. This workspace is an application over it, in the same sense the knowledge workbench is.' That record characterises THIS repository's relationship to XVPE, not only its own. It closes exactly one crossing and names it — nomos may not reach a `kwb-` prefix, enforced by Test_No_Crate_May_Name_The_Sibling_Knowledge_Workbench with an empty allowlist — and that direction is nomos to kwb. Nothing found in nomos's record set closes kwb to xvpe; a reader who takes 'the KWB crossing is still closed' as bearing on this item has read the direction backwards. Complicating rather than settling it: D-130 itself still reads status accepted, version 2, and still says adoption is by git reference and commit SHA into one quarantined crate and is 'never a path dependency', while nomos's own AGENTS.md records six crates naming xvpe by relative path and ten reaching one transitively. OD-PLATFORM-003's relations target AGT-006 and not D-130, and ARC-CONNECTOR-001 still says 'D-130 is untouched'. That divergence is nomos's to resolve; what belongs here is that this repository is citing the side of it that practice left behind. Mechanically the option is costed: kwb, nomos and xvpe are siblings under /f/repos, nomos spells its edges path = '../../../../xvpe/crates/...', and cargo metadata --no-deps on nomos exits 0, so the same spelling resolves from here — at the cost OD-PLATFORM-003 accepted deliberately, that the workspace stops building without the sibling checkout present and fails at manifest resolution in a way that reads nothing like the real cause. Separately, the adoption SHAPE is now observed rather than imagined and it bears on KWB-6: XVPE owns the mechanism and the backend, nomos owns the catalogue, and nomos-mcp's own band entry says the whole MCP handshake and framing are XVPE's so 'this crate names no protocol library at all'. The decision it gates is not: whether this repository should depend on XVPE turns on what the Rust KWB is actually going to require, and on which of those requirements XVPE is the right authority for under D-135, and both are what the prototype requirement inventory exists to establish. Deciding it before then decides it in a vacuum.",
       "done_when": "Not resolvable until KWB-9 has closed. That precondition was previously prose, because no item on this board represented the prototype requirement inventory; KWB-9 now does, and the sentence it asked to be replaced has been replaced by the depends_on edge below. Note that KWB-9 closing does not by itself settle this item: half of what this decision turns on — which requirements XVPE is the right authority for under D-135 — is on D-004's held list until the reference miner's relevant experiments close. Then: a record here states the reasons the no-XVPE-dependency position rests on once the compile-failure premise is set aside, reached by evaluating D-130's reasoning against this repository rather than inheriting its conclusion, and AGENTS.md's hazard either cites a premise that currently reproduces or routes to that record instead of restating one. Whichever way the position lands, the record names what was measured — command, crate list, date — and what that measurement does not cover.",
+      "kind": "Decision",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/records", "AGENTS.md"],
+        "paths": [
+          "docs/records",
+          "AGENTS.md"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-9"],
+      "depends_on": [
+        "KWB-9"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -190,24 +305,54 @@
     {
       "id": "KWB-9",
       "title": "Nothing on this board says the prototype has been read, so 'the prototype requirement inventory has closed' had no technical meaning",
-      "why": "KWB-1 through KWB-8 were written from a partial read of the .NET prototype, and nothing recorded how partial. KWB-8 makes its own resolution conditional on that inventory closing, which is a condition no artifact could satisfy while 'closed' meant nothing checkable. Completeness is a classification claim, not a feeling: it needs a denominator that says what counted as a scoped surface, a classification of every one of them, and a destination for every artifact in a retained class — otherwise it is a coverage report that cannot say what it skipped. Per D-003 each extracted requirement also carries the evidentiary level it actually reached, because implementation presence is not evidence of semantic validity.",
+      "why": "KWB-1 through KWB-8 were written from a partial read of the .NET prototype, and nothing recorded how partial. KWB-8 makes its own resolution conditional on that inventory closing, which is a condition no artifact could satisfy while 'closed' meant nothing checkable. Completeness is a classification claim, not a feeling: it needs a denominator that says what counted as a scoped surface, a classification of every one of them, and a destination for every artifact in a retained class — otherwise it is a coverage report that cannot say what it skipped. Per D-003 each extracted requirement also carries the evidentiary level it actually reached, because implementation presence is not evidence of semantic validity. CLAIM NOTE, moved here by KWB-13 because nomos-ledger's Claim carries holder and timestamps only: Artifacts delivered 2026-09-12: docs/corpus/prototype-inventory.md (104 scoped surfaces, denominator command, class and level per surface, destination for all 89 retained rows, seven falsification conditions), docs/corpus/prototype-incidents.md (six incidents answered four ways, including the second incident numbered D19 that the prototype's own roadmap drops), D-003, D-004, corrections to KWB-1/3/6/7/8, and the new items KWB-10/11/12. Parked in Claimed rather than Done because AGENTS.md forbids hand-editing an item to Done and KWB-7's tooling does not exist to transition it otherwise. That blocker is recorded on KWB-7. A session holding this item should transition it, not redo it. Territory narrowed 2026-09-12 from [docs/corpus, docs/records, work] to [docs/corpus]: the records and board edits are committed, so the item no longer needed that ground, and while it held it this item excluded KWB-7 — the item that would build the tool that could finish this one — leaving 1 of 12 items claimable. That is OD-LEDGER-001's measured authoring mistake, an item named where the thinking would happen rather than where the writing would. Also recorded rather than hidden: a second pass on 2026-09-12 reviewed f:/repos/nomos for the XVPE crossing and its work ledger, and wrote docs/corpus/nomos-as-precedent.md. That is inside this item's territory but outside its done_when, which is about the .NET prototype. It was performed as observation under D-004 and its output is evidence attached to KWB-6, KWB-7 and KWB-8; it decides nothing.",
       "done_when": "docs/corpus/ holds an inventory that states its denominator as a command a later reader can re-run, classifies every scoped prototype surface into exactly one of the eight classes, gives every surface in a retained class a destination (a record here, a ledger item, a corpus artifact, or a KWB-domain finding parked for P11-ECOSYSTEM-UPWARD), carries an evidentiary level per D-003, answers every incident in the prototype's own register four ways, and states what would falsify it. Existing items gain the evidence that bears on them rather than being duplicated, and genuinely uncovered ground becomes new items.",
+      "kind": "Validation",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/corpus"],
+        "paths": [
+          "docs/corpus"
+        ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
-      "claim": {
-        "note": "Artifacts delivered 2026-09-12: docs/corpus/prototype-inventory.md (104 scoped surfaces, denominator command, class and level per surface, destination for all 89 retained rows, seven falsification conditions), docs/corpus/prototype-incidents.md (six incidents answered four ways, including the second incident numbered D19 that the prototype's own roadmap drops), D-003, D-004, corrections to KWB-1/3/6/7/8, and the new items KWB-10/11/12. Parked in Claimed rather than Done because AGENTS.md forbids hand-editing an item to Done and KWB-7's tooling does not exist to transition it otherwise. That blocker is recorded on KWB-7. A session holding this item should transition it, not redo it. Territory narrowed 2026-09-12 from [docs/corpus, docs/records, work] to [docs/corpus]: the records and board edits are committed, so the item no longer needed that ground, and while it held it this item excluded KWB-7 — the item that would build the tool that could finish this one — leaving 1 of 12 items claimable. That is OD-LEDGER-001's measured authoring mistake, an item named where the thinking would happen rather than where the writing would. Also recorded rather than hidden: a second pass on 2026-09-12 reviewed f:/repos/nomos for the XVPE crossing and its work ledger, and wrote docs/corpus/nomos-as-precedent.md. That is inside this item's territory but outside its done_when, which is about the .NET prototype. It was performed as observation under D-004 and its output is evidence attached to KWB-6, KWB-7 and KWB-8; it decides nothing."
-      },
+      "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4de7aa57489f3731.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-c0d6f93c24894481.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-ab9e7c1d97094637.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-fc474af4ad382401.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-5c67acaed72cc289.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-1820203d8aec4d65.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-14e429873bce8e9c.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789239424,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "b2fde1ebe0824714cec1135fea86b5fd426977a9"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
@@ -217,17 +362,29 @@
       "title": "The bands table names kwb-store a content-addressed document store and names no database, while the prototype's retrieval was Postgres-native and measured",
       "why": "The prototype's retrieval is the most thoroughly measured thing in that tree: a vector(768) column with an HNSW cosine index (m=16, ef_construction=64), full-text as a GIN expression index over to_tsvector, ts_rank_cd scoring, and an EXPLAIN-based test asserting the plan rather than the result. Measured live at 7,914 chunks: 38 ms keyword against 1.3 ms vector (PostgresKeywordSearchTests.cs:146). That is not evidence that persistence should change, and it is not permission to port EF and Postgres either. The question this item holds is: what storage semantics did the prototype prove are required? Answer that and the mechanism — Postgres and pgvector, an XVPE abstraction over them, or something else — follows from a requirement rather than from inherited implementation. Three pieces of prototype evidence bear on it and pull in different directions. First, Infrastructure/Repositories runs three backends (in-memory, JSON, EF) behind one Expression<Func<T,bool>> interface, which is the single strongest argument ADR 0001 gives for C#. Second, that repository's own successor analysis contradicts it: KWB_database_depth_assessment topic 03 names the generic repository as what 'flattens PostgreSQL into a key-value store', says the specialized repositories are the better direction, and argues the end state needs more in the database, not less — recursive CTEs, window functions, LATERAL joins, materialized views, SKIP LOCKED, advisory locks, row versioning. Third, EfCore/Queries and EfCore/Repositories hold what was actually built against that ambition. This is held ground under D-004: the item reserves it and produces a requirement record, not a schema.",
       "done_when": "A record here states what storage semantics the prototype proved are required — separating what must be true of any store (durability, atomicity, temporal reads, uniqueness under a liveness expression, ranked retrieval) from what happened to be Postgres — citing the prototype measurement behind each, and says explicitly which of those requirements the bands table's current description of kwb-store does and does not cover. It names no implementation and proposes no crate.",
+      "kind": "Decision",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/records", "docs/corpus"],
+        "paths": [
+          "docs/records",
+          "docs/corpus"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-9"],
+      "depends_on": [
+        "KWB-9"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -240,17 +397,29 @@
       "title": "The design corpus calls the Knowledge IR the biggest idea in it, the prototype has zero files implementing one, and neither fact is a licence to invent one",
       "why": "Corpus topics 84, 105 and 315 propose staged, independently inspectable representations between source and graph — Source IR, Extraction IR, Claim IR, Knowledge IR, Normalized IR, Ontology IR, Graph IR — on the compiler argument that a wrong merge should be localised to a named stage by inspecting that stage, not by reading SQL rows. The prototype implements none of it: KWB-9 found zero files. But it is not unrecorded there either, and the difference matters: the prototype's own ROADMAP.md carries it as item I1, with that stage list and that closing predicate, deliberately placed in its last phase because a language and an IR must not define the architecture accidentally. So the evidence available is a design argument and a deferral, with no implementation on either side to verdict. The failure to avoid is building a compiler because 'knowledge compiler' sounds right. What this item establishes is narrower and answerable: which representations actually have to survive between stages, and whether that is a record, an item, or explicitly out of scope for now. Held ground under D-004: a canonical Knowledge IR is one of the subjects the reference miner is still generating requirements for.",
       "done_when": "A record here names, for each boundary between stages this repository will actually have, what must be inspectable at that boundary and why — or states that the answer is out of scope until a named condition is met, and names the condition. A stage list copied from topics 84 or 315 without that derivation does not close this item.",
+      "kind": "Decision",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/records", "docs/corpus"],
+        "paths": [
+          "docs/records",
+          "docs/corpus"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-9"],
+      "depends_on": [
+        "KWB-9"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -263,17 +432,29 @@
       "title": "A user's preference and a theorem would enter this repository's graph as the same kind of thing, and the corpus says that is how KWB gets contaminated",
       "why": "XVPE/video 6.txt §17 proposes a hierarchy of knowledge scopes — universal mathematics, physical and hardware theory, programming-language theory, domain engineering knowledge, toolchain-specific knowledge, hardware-specific evidence, XVPE experimental evidence, project-specific evidence, user preferences — with the rule that preserving scope is essential and a more general claim outranks a more specific one. §16 gives the mechanism it exists to prevent: choosing static dispatch for one scheduler is a ProjectDecision, not UniversalEngineeringKnowledge, and KWB may record the case as evidence under stated conditions (workload, target, constraints) but only accumulated evidence forms a broader conditional claim. Without a scope, an arbitrary historical choice and a proven result are the same row. This is absent from the prototype entirely and absent from this board, and it is load-bearing for the ecosystem seam in particular: ARC-ECOSYSTEM-001 gives KWB long-term epistemic memory, and D-135 sends genuinely domain-neutral code to XVPE, so a KWB claim that silently carried project scope would cross both boundaries wearing the wrong label. Held ground under D-004 — it sits directly on promotion and authorization, which the reference miner is still generating requirements for.",
       "done_when": "A record here states whether a scope is a property of a claim, of an assertion of a claim, or of a context the claim is scoped to, and what promotion from a narrower scope to a broader one requires as evidence — or states why the question is deferred and names what would reopen it. It defines no scope enumeration: naming the levels is the easy half and the corpus already did it.",
+      "kind": "Decision",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/records", "docs/corpus"],
+        "paths": [
+          "docs/records",
+          "docs/corpus"
+        ],
         "patterns": []
       },
       "state": "Ready",
-      "depends_on": ["KWB-9"],
+      "depends_on": [
+        "KWB-9"
+      ],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
@@ -286,20 +467,53 @@
       "title": "D-005 decided the board adopts nomos-ledger's schema, and until the migration lands no item on this board can be finished at all",
       "why": "D-005 is a decision and changes nothing by itself. Two items — KWB-7 and KWB-9 — are parked in Claimed with their work delivered because AGENTS.md forbids hand-editing an item to Done and nothing exists to transition them otherwise, and every other item on this board would reach the same wall on completion. This item is the migration that makes AGENTS.md's own loop completable for the first time. Measured 2026-09-12 against a throwaway copy, detail in docs/corpus/nomos-as-precedent.md: the whole gap is kind and origin per item drawn from nomos's closed sets (Capability|Decision|Validation|Correction|Cleanup, Required|Proposed, capitalized — the refusal names the set), schema_version 1 against 5, and a Claim that is {holder, acquired_at, lease_expires_at} with integer epoch timestamps rather than the prose note KWB-7 and KWB-9 currently carry, so that prose moves into each item's why. Two further facts the probe established. First, `nomos work finish` refuses at exit 4 when .github/workflows/gate.yml cannot be read, on the grounds that an item finished against a check weaker than the gate is the defect the refusal exists to prevent — this repository has no CI at all, so the workflow is a precondition of the decision working and not an extra. Second, the probe's `work list` reported KWB-9 as lapsed rather than claimed, which is the lease behaviour whose absence caused this board's deadlock; it arrives with the schema at no extra cost. Nothing in the build graph changes: no Cargo.toml gains an edge, no crate names nomos- or xvpe-, and tests/contract's bands table is untouched.",
       "done_when": "work/ledger.json is at schema_version 5 with kind and origin on every item and no hand-written claim shape; .github/workflows/gate.yml exists and runs at least cargo test --workspace and a lint step; `nomos work validate` run from this repository's root exits 0 and reports that the build understands the schema; and `nomos work finish` has been used to transition KWB-7 and KWB-9, so the first items closed on this board are closed through the tool rather than by hand. The prose currently held in KWB-7's and KWB-9's claim objects survives the migration in their why fields; losing it is a failure of this item, not a detail of the format.",
+      "kind": "Correction",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["work", ".github"],
+        "paths": [
+          "work",
+          ".github"
+        ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4de7aa57489f3731.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-c0d6f93c24894481.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-ab9e7c1d97094637.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-fc474af4ad382401.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-5c67acaed72cc289.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-1820203d8aec4d65.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-14e429873bce8e9c.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789239431,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "b2fde1ebe0824714cec1135fea86b5fd426977a9"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
@@ -309,9 +523,14 @@
       "title": "Steps 7 and 8 of the product loop are what make it a loop, and nothing in the prototype or on this board owns either",
       "why": "The design corpus states KWB's central product loop in ten steps (topic 054 in the game plan): a passage is ingested, claims are extracted, claims are connected to normalized concepts, relation assertions are proposed, evidence and context are attached, existing assertions are corroborated or challenged, derived connections are recomputed, stale syntheses are invalidated, users inspect why a connection exists, and users compare current and historical interpretations. Measured against the prototype 2026-09-12, detail in docs/corpus/what-kwb-is-for.md: steps 1-4 and 6 are substantially built, and steps 7 and 8 are not partial but zero. `DerivationDependency` 0 files, `Staleness` 0 files, `Invalidate` 0 files, `GraphVersion` 0 files. DerivationLedger looks like it should cover them and does not: DerivationRecord is {RunId, ChunkId, NodeId, ModelVersion, PromptHash, ResponseHash, Rationale, Outcome}, which records that a node came from a chunk via a model. That is a provenance record, not a dependency edge — nothing anywhere says this synthesis depends on these claims, so a changed claim invalidates it. Without recompute-and-invalidate, steps 1-6 are a pipeline that runs once rather than a loop, which is the prototype's actual condition: it compiled a corpus and then had no mechanism to notice the corpus changing underneath it. Four independent readings land here. The nine operations (415) put `revise` among the absent. The prototype's own ROADMAP lists thirteen gaps verified absent from its source tree and `DerivationDependency` and staleness propagation are first. The corpus's own sequencing (topic 053) makes 'add derivation dependencies and staleness' its Phase 3. And essay.txt, reviewing the prototype independently, groups derivation dependencies with graph snapshots, identity transitions, destructive-operation preview, producer identity and coverage-on-answers as the most important group because 'those increase reliability of everything built afterward'. This item is unusual on this board in one respect worth stating: it is NOT on D-004's held list. The reference miner is generating requirements for the evidence ontology, admission, coverage and the confidence model — it is not generating any for dependency tracking and invalidation, which is a mechanical question about what depends on what. So this is specifiable now, while steps 5 and 10 are not. NOT CLAIMABLE ON ARRIVAL, and the reason is worth keeping rather than fixing: this item's territory is docs/records and docs/corpus, which is exactly what it must write, and both are held by KWB-7 and KWB-9 — two items whose work is finished and which are parked in Claimed because nothing can transition them to Done. Narrowing this item's territory would be drawing it against what is free rather than against what the change must edit, which is the authoring mistake OD-LEDGER-001 measures. So it stays correct and blocked. This is the third territory collision on this board in one session and the first one that blocks real design work rather than bookkeeping; under the lease model D-005 adopted, both holders would have lapsed and released automatically. KWB-13 is what unblocks this.",
       "done_when": "A record here states what a derivation dependency must relate and what an invalidation must guarantee, derived from the failure it prevents rather than from the prototype's shape — including, at minimum: what a derived artifact declares it was derived FROM (not merely by which run and model, which is all DerivationRecord captures), what happens to a derived artifact when one of its inputs changes versus when one is retracted, whether invalidation marks or deletes (D17 answers this and the record must show its work), and how a consumer distinguishes a stale artifact from a current one without having to remember to ask. The record names which of the prototype's five recorded incidents its rules answer, and states explicitly what it does NOT cover — versioning and snapshots (loop step 10) depend on this and are not this.",
+      "kind": "Decision",
+      "origin": "Proposed",
       "territory": {
         "resolution": "File",
-        "paths": ["docs/records", "docs/corpus"],
+        "paths": [
+          "docs/records",
+          "docs/corpus"
+        ],
         "patterns": []
       },
       "state": "Ready",
@@ -319,7 +538,12 @@
       "blocked": null,
       "claim": null,
       "verification": {
-        "argv": ["cargo", "test", "--workspace", "--no-fail-fast"],
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
         "timeout_seconds": 300
       },
       "verified": null,
