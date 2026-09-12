@@ -961,6 +961,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-20",
+      "title": "D-004 sorts eleven subjects into two piles and needs four, because some of them are waiting on an instrument that cannot answer them",
+      "why": "D-004 says its held list is released when the reference miner closes its relevant experiments, and revises by moving entries from the second list to the first. Measured 2026-09-12, that sort has the wrong number of categories and several entries are in the wrong one. Some have closed. Some are genuinely pending and being fed. At least three are waiting on an event the named instrument will not produce, which under a record promising revision means they wait forever while reading as progress -- the AdmitChunk shape, an obligation that looks handled because nothing is complaining. And at least one was answered by this repository months ago and the record still holds it. D-009 and D-010 were written against entries of this list and each carries evidence for one, explicitly as evidence rather than as the amendment, because docs/records was reserved wholesale by open items at the time and the correction could not be authored. That reservation has since cleared.",
+      "done_when": "D-004 is at version 2. It distinguishes closed, pending, stranded and answered-elsewhere rather than held and safe, every entry that moves cites the measurement that moves it, and every entry left stranded names what instrument or change would unstrand it so the record cannot be read as promising a revision nothing will trigger. Its governing rule -- observation proceeds and a decision that depends on an open input does not -- is unchanged, because nothing measured contradicts it and only the dependencies were wrong. No held subject acquires a type, schema or vocabulary here.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-004-observation-proceeds-and-a-decision-that-depends-on-an-open-inventory-does-not.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ult: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-ingest v0.1.0 (F:\\repos\\kwb\\crates\\ingestion\\kwb-ingest)\n   Compiling kwb-retrieval v0.1.0 (F:\\repos\\kwb\\crates\\retrieval\\kwb-retrieval)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4de7aa57489f3731.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-76e93b40c1c69cca.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-b64bac7e8ff53426.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-fc474af4ad382401.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-4a505d24feee9951.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-5a7d6df53ef981c8.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-3245f4c681e8a862.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789253761,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "9549181540bce5f5f9f374af286ef67ccaf92e92"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
