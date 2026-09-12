@@ -132,7 +132,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [
         "KWB-1"
       ],
@@ -148,7 +148,31 @@
         ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-76e93b40c1c69cca.exe)\n   Doc-tests kwb_domain\n",
+        "verified_at": 1789253633,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "0818fc8ac88f66a9e27f2bf44245e5ac214ba19b"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
