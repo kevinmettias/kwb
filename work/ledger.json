@@ -15,7 +15,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -29,7 +29,31 @@
         ],
         "timeout_seconds": 300
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-model",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 19 tests\ntest tests::Test_A_Changed_Claim_Should_Not_Keep_Its_Identity ... ok\ntest tests::Test_A_Derived_Artifact_Should_Change_When_An_Input_Changes ... ok\ntest tests::Test_A_Field_Name_Should_Participate ... ok\ntest tests::Test_A_Rederived_Input_Should_Carry_The_Same_Identity ... ok\ntest tests::Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary ... ok\ntest tests::Test_Normalize_Should_Strip_Control_Characters ... ok\ntest tests::Test_Parse_Should_Refuse_A_Wrong_Length ... ok\ntest tests::Test_Included_Fields_Should_Be_Reported_In_Order ... ok\ntest tests::Test_Changed_Capitalisation_Should_Change_Identity ... ok\ntest tests::Test_An_Absent_Field_Should_Hold_Its_Place ... ok\ntest tests::Test_Two_Claims_Differing_Only_By_Source_Should_Have_One_Identity ... ok\ntest tests::Test_Parse_Should_Refuse_Uppercase_So_One_Identity_Has_One_Rendering ... ok\ntest tests::Test_Reflowed_Text_Should_Not_Change_Identity ... ok\ntest tests::Test_Render_Should_Produce_Lowercase_Hexadecimal_Of_The_Full_Digest ... ok\ntest tests::Test_The_Kind_Should_Participate ... ok\ntest tests::Test_Parse_Should_Recognize_What_Render_Produced ... ok\ntest tests::Test_Field_Order_Should_Be_Significant ... ok\ntest tests::Test_An_Identity_Field_Should_Not_Collide_With_Its_Own_Rendering ... ok\ntest tests::Test_The_Source_Exclusion_Should_Be_Recorded_With_Its_Reason ... ok\n\ntest result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n   Doc-tests kwb_model\n",
+        "verified_at": 1789240001,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "750dad92e114c1712c329166f70ee5d21b897161"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
