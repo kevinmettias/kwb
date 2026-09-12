@@ -1064,6 +1064,40 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-21",
+      "title": "D-008 said the second store decision was blocked on the domain types, and KWB-3 and KWB-4 have closed",
+      "why": "D-008 measured that the bands table names one store where the prototype evidence describes two: an immutable artifact store, which kwb-store is, and a mutable versioned graph, which nothing here has and no row names. Seven of the eight storage requirements the prototype proved -- one liveness expression, uniqueness under it, which-world reads, temporal reconstruction, contradiction refusal, the lease, ranked retrieval -- land on the second, and kwb-domain names the types without saying where they live. D-008 deliberately stopped at naming the gap and recorded that deciding it was blocked on what those types are, which is KWB-3 and KWB-4. Both have now closed, so the blocker has cleared and the decision is owed. It is also blocking work already on the board: KWB-6 requires that current-version and all-versions reads be distinct types rather than one type with a flag, which is D19-B translated into this workspace, and over a content-addressed store where every document is immutable and there is exactly one version of everything that distinction is two names for identical behaviour. Building it now would produce a gate that passes because there is nothing for it to catch, which is the defect rather than the requirement. Durability is the other half: kwb-store holds documents in memory for the length of a process, recorded by KWB-2 as a deferral to this question and not an oversight.",
+      "done_when": "A record decides what holds the mutable versioned graph and what holds durable bytes -- whether that is one crate, two, a set of port traits, or a decision that this repository does not need mutable storage and the seven requirements are met another way. It answers against D-008s eight requirements explicitly, requirement by requirement, saying which the decision meets, which it defers and which it declines, because a storage decision that does not say that is a decision nobody can check. It names no database and no library, and where it defers it names what would settle the deferral. D-008s warning attaches: the cost of a retrieval shape is invisible to correctness tests, measured at 38 ms against 1.3 ms on byte-identical rows, so a choice made here cannot be validated by the tests passing.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-4"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
