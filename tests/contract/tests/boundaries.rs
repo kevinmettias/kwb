@@ -6,42 +6,10 @@
 //! is new and has one such check, not the five Nomos accumulated over its own history.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::PathBuf;
 
-fn Repository_Root() -> PathBuf
-{
-    return PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .expect("tests/contract has a parent directory")
-        .parent()
-        .expect("the repository root is two levels above tests/contract")
-        .to_path_buf();
-}
-
-/// Every workspace member's crate name, read from the root `Cargo.toml`'s `members`
-/// list. `tests/contract` names itself and is excluded: it asserts the table, it is not
-/// a row in it.
-fn Workspace_Member_Crate_Names() -> BTreeSet<String>
-{
-    let manifest = std::fs::read_to_string(Repository_Root().join("Cargo.toml"))
-        .expect("the root Cargo.toml should be readable");
-
-    let mut names = BTreeSet::new();
-    for line in manifest.lines()
-    {
-        let trimmed = line.trim();
-        let Some(after_quote) = trimmed.strip_prefix('"') else { continue };
-        let Some(path) = after_quote.split('"').next() else { continue };
-        if path == "tests/contract" || path == "tests/integration"
-        {
-            continue;
-        }
-        let Some(name) = path.rsplit('/').next() else { continue };
-        names.insert(name.to_owned());
-    }
-
-    return names;
-}
+use kwb_contract_tests::Quoted_After;
+use kwb_contract_tests::Repository_Root;
+use kwb_contract_tests::Workspace_Members;
 
 /// Every crate name named in `README.md`'s Bands table.
 fn Readme_Band_Table_Crate_Names() -> BTreeSet<String>
@@ -83,7 +51,7 @@ fn Readme_Band_Table_Crate_Names() -> BTreeSet<String>
 #[test]
 fn Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table()
 {
-    let workspace = Workspace_Member_Crate_Names();
+    let workspace = Workspace_Members();
     let readme = Readme_Band_Table_Crate_Names();
 
     let missing_from_readme: Vec<&String> = workspace.difference(&readme).collect();
@@ -97,7 +65,7 @@ fn Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table()
 #[test]
 fn Test_Every_Readme_Table_Row_Should_Name_A_Real_Workspace_Member()
 {
-    let workspace = Workspace_Member_Crate_Names();
+    let workspace = Workspace_Members();
     let readme = Readme_Band_Table_Crate_Names();
 
     let missing_from_workspace: Vec<&String> = readme.difference(&workspace).collect();
@@ -251,16 +219,6 @@ fn Collect_Manifests(directory: &std::path::Path, found: &mut BTreeMap<String, S
             found.insert(name, description);
         }
     }
-}
-
-/// The double-quoted value on the first line beginning with `prefix`.
-fn Quoted_After(text: &str, prefix: &str) -> Option<String>
-{
-    return text
-        .lines()
-        .find(|line| return line.starts_with(prefix))
-        .and_then(|line| return line.split('"').nth(1))
-        .map(str::to_owned);
 }
 
 /// Every crate row in `README.md`'s Bands table, as `crate -> what it owns`.
@@ -1099,5 +1057,113 @@ fn Test_Every_Record_Should_Declare_A_Status()
         silent.is_empty(),
         "these records declare no status, so a reader cannot tell whether they still stand: \
          {silent:?}"
+    );
+}
+
+// ---- KWB-79: a reader the library owns is not declared a second time ----
+
+/// Every reader `kwb_contract_tests` exports, by name.
+fn Library_Readers() -> BTreeSet<String>
+{
+    let library = std::fs::read_to_string(Repository_Root().join("tests/contract/src/lib.rs"))
+        .expect("tests/contract/src/lib.rs should be readable");
+
+    let mut names = BTreeSet::new();
+    for line in library.lines()
+    {
+        let Some(after) = line.trim_start().strip_prefix("pub fn ")
+        else
+        {
+            continue;
+        };
+        let Some((name, _)) = after.split_once('(')
+        else
+        {
+            continue;
+        };
+        names.insert(name.to_owned());
+    }
+
+    return names;
+}
+
+/// Every test file under `tests/contract/tests`, as `name -> text`.
+fn Test_Files() -> BTreeMap<String, String>
+{
+    let directory = Repository_Root().join("tests/contract/tests");
+    let entries = std::fs::read_dir(&directory).expect("tests/contract/tests should be readable");
+
+    let mut files = BTreeMap::new();
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if !path.extension().is_some_and(|extension| return extension == "rs")
+        {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .and_then(|name| return name.to_str())
+            .unwrap_or_default()
+            .to_owned();
+        files.insert(name, std::fs::read_to_string(&path).expect("a readable test file"));
+    }
+
+    return files;
+}
+
+/// No test file declares a reader the library already owns.
+///
+/// # Why a duplicate reader is a correctness problem and not untidiness
+///
+/// Each file under `tests/` is its own binary, so nothing stops a second copy compiling, and
+/// nothing makes the two agree. `KWB-79` consolidated four `Repository_Root` bodies and two
+/// `Quoted_After`s -- and the `Quoted_After` pair **were not the same function**. One searched
+/// the whole text for the prefix, the other required a line to begin with it. They returned the
+/// same answers on every manifest this repository has, so the divergence was invisible while two
+/// files each read manifests believing they called one reader.
+///
+/// That is the shape this repository keeps finding: two things claim to be one fact and nothing
+/// proves they agree. A guard that only removed today's copies would leave the arrangement that
+/// produced them, so this one fails when a copy comes back.
+///
+/// It matches on the declaration rather than on any use, because importing a reader and calling
+/// it is exactly what these files should do.
+#[test]
+fn Test_No_Test_File_Should_Declare_A_Reader_The_Library_Owns()
+{
+    let readers = Library_Readers();
+    let files = Test_Files();
+
+    assert!(
+        readers.len() >= 4,
+        "only {} readers were found in the library, so this guard compares against almost \
+         nothing",
+        readers.len()
+    );
+    assert!(
+        files.len() >= 4,
+        "only {} test files were read, so this guard covers almost nothing",
+        files.len()
+    );
+
+    let mut duplicated: Vec<String> = Vec::new();
+    for (name, text) in &files
+    {
+        for reader in &readers
+        {
+            let declaration = format!("fn {reader}(");
+            if text.contains(&declaration)
+            {
+                duplicated.push(format!("{name} declares its own {reader}"));
+            }
+        }
+    }
+
+    assert!(
+        duplicated.is_empty(),
+        "these are second copies of readers `kwb_contract_tests` already owns -- import them \
+         instead, because two bodies behind one name is where a divergence lives unobserved: \
+         {duplicated:#?}"
     );
 }

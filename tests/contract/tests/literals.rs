@@ -29,15 +29,7 @@
 use std::path::Path;
 use std::path::PathBuf;
 
-/// The repository root, from this test's own manifest.
-fn Repository_Root() -> PathBuf
-{
-    return PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .expect("tests/contract sits two levels below the root")
-        .to_path_buf();
-}
+use kwb_contract_tests::Repository_Root;
 
 /// How many spaces in a row are a gap rather than an alignment.
 ///

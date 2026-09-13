@@ -4351,6 +4351,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-79",
+      "title": "Four functions in tests/contract share two names and one pair does not share its behaviour, while the library that exists to hold them says so is owed",
+      "why": "KWB-75 created tests/contract/src/lib.rs to stop Repository_Root being written a fifth time, and its own module doc names the rest as owed and not done: boundaries.rs, literals.rs and commands.rs still carry their own copies. Measured now, that debt is real -- four Repository_Root bodies, and boundaries.rs additionally carries a Workspace_Member_Crate_Names identical to the library's Workspace_Members. But the measurement found something the debt note did not say. There are two Quoted_After functions and they are NOT the same function. The library's splits on the prefix anywhere in the text; boundaries.rs's requires a line to BEGIN with it. On today's manifests they agree, which is why nothing noticed, but a prefix appearing in a comment or mid-line parts them -- and boundaries.rs and projections.rs each read manifests believing they are calling the same reader. That is the session's own dominant defect wearing a name instead of a document: two things claim to be one fact and nothing proves they agree. A note saying work is owed is also the phantom-debt shape KWB-76 found, except this one is true, and it stops being true only when the work is done or the note is corrected.",
+      "done_when": "tests/contract has one Repository_Root, one Workspace_Members and one Quoted_After, all in the library, and boundaries.rs, literals.rs and commands.rs use them. The two Quoted_After semantics are reconciled deliberately rather than by whichever body survived the move: which one is kept is stated with the reason, and the discarded one's behaviour is named so a later reader knows the choice was made and not defaulted into. A guard fails when a test file under tests/contract defines its own copy of a reader the library already owns, proven by adding one to a real file and watching it fail, so the duplication cannot regrow silently. The module doc's owed paragraph is replaced by what is actually true once it is done, rather than left describing debt that has been paid.",
+      "kind": "Cleanup",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789288798,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "d164ed770fbec4c0cad84ce16524e35fa62737a3"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

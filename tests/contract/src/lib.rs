@@ -7,10 +7,23 @@
 //! `KWB-75`'s bands projection — in an item whose whole subject is that one fact should have one
 //! home.
 //!
-//! So the shared readers live here. `projections.rs` uses them; `boundaries.rs`, `literals.rs`
-//! and `commands.rs` still carry their own copies, which is **owed and not done** rather than
-//! overlooked — moving them is a mechanical change to three files that have nothing to do with
-//! the bands table, and bundling it here would mean one item doing two things.
+//! So the shared readers live here, and `KWB-79` finished the move: every file under `tests/`
+//! reads the workspace through this one, and `boundaries.rs` carries a guard that fails when a
+//! test file declares a reader this library already owns, so the copies cannot come back
+//! quietly.
+//!
+//! # What the move found, which the debt note had not said
+//!
+//! It was recorded as mechanical. It was not. `boundaries.rs` and this library each had a
+//! `Quoted_After`, and **they were not the same function** — see that function's own note. On
+//! the manifests this repository has today they return the same answers, which is exactly why
+//! nobody noticed, and two files read manifests believing they called one reader.
+//!
+//! The general form is this repository's most common defect, one level down from documents: two
+//! things claim to be one fact and nothing proves they agree. A duplicate is not only a
+//! maintenance cost, it is a place where a divergence can live unobserved — so consolidating is
+//! a correctness move and not tidying, and the reconciliation was made deliberately rather than
+//! by keeping whichever body happened to survive the merge.
 
 #![forbid(unsafe_code)]
 
@@ -35,18 +48,36 @@ pub fn Repository_Root() -> PathBuf
         .to_path_buf();
 }
 
-/// The first double-quoted value after a prefix, which is how a manifest states a scalar.
+/// The double-quoted value on the first line that *is* `prefix`, which is how a manifest states
+/// a scalar.
 ///
 /// Deliberately not a TOML parser. This crate reads manifests to check claims about them, and a
 /// parser would be a dependency taken to answer a question that a prefix and a quote already
 /// answer — `KWB-62` recorded the same reasoning for the board.
+///
+/// # Which of the two readers this is, and why
+///
+/// Until `KWB-79` there were two functions with this name. This one searched the whole text for
+/// the prefix; `boundaries.rs`'s required a *line* to begin with it. They agreed on every
+/// manifest in this repository, which is why the difference went unrecorded for as long as it
+/// did, and they part on two inputs a manifest can easily hold:
+///
+/// - a commented key — `# name = "old"` above `name = "kwb-cli"` — where searching the whole
+///   text finds the comment first and answers `old`;
+/// - a longer key ending in the prefix — `package-name = "a"` above `name = "b"` — where
+///   searching finds the tail of the longer key and answers `a`.
+///
+/// The line-anchored reading is right in both, so that is what survived. It is anchored to the
+/// *trimmed* line rather than to column zero, which the discarded reader was not: a key indented
+/// under a table is still that key, and nothing about being indented makes it a comment.
 #[must_use]
 pub fn Quoted_After(text: &str, prefix: &str) -> Option<String>
 {
-    let after = text.split_once(prefix)?.1;
-    let (value, _) = after.trim_start().trim_start_matches('"').split_once('"')?;
-
-    return Some(value.to_owned());
+    return text
+        .lines()
+        .find(|line| return line.trim_start().starts_with(prefix))
+        .and_then(|line| return line.split('"').nth(1))
+        .map(str::to_owned);
 }
 
 /// Every workspace member's crate name, from the root manifest's `members` list.

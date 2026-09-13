@@ -23,6 +23,8 @@
 use std::path::Path;
 use std::path::PathBuf;
 
+use kwb_contract_tests::Repository_Root;
+
 /// How many spaces in a row are damage rather than layout.
 ///
 /// # Measured for *this* subject, after inheriting the wrong number
@@ -43,16 +45,6 @@ use std::path::PathBuf;
 /// The general lesson is `KWB-52`'s own: a threshold carried from one subject to another is a
 /// guess wearing a measurement's clothes.
 const GAP: usize = 2;
-
-/// The repository root, from this test's own manifest.
-fn Repository_Root() -> PathBuf
-{
-    return PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .expect("tests/contract sits two levels below the root")
-        .to_path_buf();
-}
 
 /// Whether a command line has a hole in it.
 ///
