@@ -68,6 +68,7 @@ version = "0.1.0"
 dependencies = [
  "kwb-domain",
  "kwb-ingest",
+ "kwb-platform-std",
  "kwb-store",
 ]
 

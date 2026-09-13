@@ -1644,6 +1644,63 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-31",
+      "title": "Documents can survive a process now and kwb admit still loses every byte it writes",
+      "why": "KWB-30 built the durable store behind kwb-store existing door and nothing selects it, because choosing an implementation is a composition root job and the composition root has not been asked to. So the capability exists and the only program in this repository does not use it -- complete tested code connected to nothing, one crate away from the thing it was built for, which is the defect KWB-25 closed between two other crates on the same day. The CLI also currently tells a reader that nothing survives the process, and that will stop being true the moment this is wired, so the same edit has to correct it or it becomes the sixth stale premise this session has found.",
+      "done_when": "kwb admit writes durably when told where, in memory when not, and says which it did rather than leaving a reader to guess. The composition root is where the implementation is named, and the library still names only the port. A document admitted in one run is readable by the next, demonstrated by running it twice rather than by a test asserting it. The help no longer claims nothing survives the process, and says what is still true instead -- that the graph does not survive, which D-014 decided separately and nothing has built.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-cli v0.1.0 (F:\\repos\\kwb\\crates\\host\\kwb-cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-d8c7c4d70edd203d.exe)\n",
+        "verified_at": 1789258788,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "c29c7e950d7b3fb2b8cc8bd5a08b90b297969cb9"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

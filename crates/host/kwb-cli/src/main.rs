@@ -12,15 +12,18 @@
 //! infer it from an empty result. A tool that implied it had read the file would be the
 //! prototype's `chunks admitted 0` printed under the heading *Admitted*.
 //!
-//! **Nothing survives the process.** The store and the graph are in memory. `D-012` deferred
-//! durability and named the condition that would settle it — a consumer that actually loses
-//! something when the process ends — and this is now that consumer. It does not answer the
-//! question; it is the thing whose absence made it unanswerable.
+//! **Documents survive when told where; the graph does not survive at all.** `--store <dir>`
+//! selects the durable content store `D-014` decided on, and this file is where that choice is
+//! made — the library names the port and never an implementation, which is the whole reason a
+//! composition root exists. The graph half of `D-014` — an append-only record of what was
+//! published, replayed — is decided and unbuilt, so what a run learned is still lost even when
+//! the bytes it read are kept.
 
 use std::process::ExitCode;
 
 use kwb_domain::KnowledgeGraph;
 use kwb_ingest::{Admit, AdmissionReport, Extraction};
+use kwb_platform_std::DirectoryContentStore;
 use kwb_store::DocumentStore;
 
 /// A wrong command line, which is not the same as a run that failed.
@@ -62,6 +65,7 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
         return ExitCode::from(USAGE_EXIT);
     };
 
+    let (store_root, rest) = Store_Root_From(rest);
     let extractions = match Extractions_From(rest)
     {
         Ok(extractions) => extractions,
@@ -83,7 +87,16 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
         }
     };
 
-    let mut store = DocumentStore::Empty();
+    let mut store = match Store_For(store_root)
+    {
+        Ok(store) => store,
+        Err(complaint) =>
+        {
+            eprintln!("kwb admit: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+    let durable = store.Is_Durable();
     let report = match Admit(bytes, &extractions, &mut store)
     {
         Ok(report) => report,
@@ -104,6 +117,7 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
     println!("concepts   {}", graph.Current().Concepts().len());
     println!("claims     {}", graph.Current().Claims().len());
     println!("refused    {}", report.Normalized().Linked().Refused());
+    println!("documents  {}", if durable { "kept" } else { "in memory only" });
 
     if !report.Coverage().Was_Run()
     {
@@ -113,6 +127,41 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
     }
 
     return ExitCode::SUCCESS;
+}
+
+/// `--store <dir>`, if it leads the remaining arguments.
+///
+/// Read before the extractions so that a misplaced `--store` is an unexpected argument rather
+/// than a concept named `--store`, which is the kind of quiet misreading a hand-written command
+/// line invites.
+fn Store_Root_From<'arguments>(
+    arguments: &'arguments [&'arguments str],
+) -> (Option<&'arguments str>, &'arguments [&'arguments str])
+{
+    return match arguments
+    {
+        [flag, root, rest @ ..] if *flag == "--store" => (Some(root), rest),
+        _ => (None, arguments),
+    };
+}
+
+/// The store a run writes through: durable when told where, in memory when not.
+///
+/// This function is the entire reason this crate exists. `kwb-store` names
+/// `ContentStoreStrategy` and never an implementation of it, so somebody has to choose one, and
+/// a composition root is where that choice is visible in one place rather than spread through
+/// the code that writes.
+fn Store_For(root: Option<&str>) -> Result<DocumentStore, String>
+{
+    let Some(root) = root
+    else
+    {
+        return Ok(DocumentStore::Empty());
+    };
+
+    let durable = DirectoryContentStore::Under(root)
+        .map_err(|cause| return format!("cannot use {root} as a store: {cause}"))?;
+    return Ok(DocumentStore::Backed_By(Box::new(durable)));
 }
 
 /// The address the source was written under, rendered.
@@ -152,7 +201,7 @@ fn Extractions_From(arguments: &[&str]) -> Result<Vec<Extraction>, String>
 /// What this tool does, including the half it does not have.
 fn Print_Usage()
 {
-    eprintln!("usage: kwb admit <file> [--says <concept> <claim>]...");
+    eprintln!("usage: kwb admit <file> [--store <dir>] [--says <concept> <claim>]...");
     eprintln!();
     eprintln!("  Admits a file: the bytes are written to the content-addressed store and");
     eprintln!("  whatever is supplied by --says is linked, normalized and published.");
@@ -162,5 +211,11 @@ fn Print_Usage()
     eprintln!("  coverage `unmet` -- it was never given anything to examine -- which is not");
     eprintln!("  the same as `barren`, which means it looked and found nothing.");
     eprintln!();
-    eprintln!("  Nothing survives the process. Durability is undecided; see D-012.");
+    eprintln!("  --store <dir> keeps the document bytes there, one file per address, and a");
+    eprintln!("  document admitted in one run is readable by the next. Without it the bytes");
+    eprintln!("  live only as long as this process.");
+    eprintln!();
+    eprintln!("  What a run learned is lost either way. D-014 decided how the graph becomes");
+    eprintln!("  durable -- an append-only record of what was published, replayed -- and");
+    eprintln!("  nothing has built it.");
 }
