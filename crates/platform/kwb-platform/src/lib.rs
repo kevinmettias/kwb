@@ -27,8 +27,20 @@
 //! [`RecordLogStrategy`]: an append-only sequence of records. `D-014`'s other half — a graph
 //! is a fold over what was published, so recording the publications records the graph.
 //!
-//! The clock, lock and process ports the prototype's platform had are not here yet. They will
-//! arrive when something needs them, one at a time, rather than as a set nothing consumes.
+//! The lock and process ports the prototype's platform had are not here. They will arrive when
+//! something needs them, one at a time, rather than as a set nothing consumes.
+//!
+//! **The clock is not among them, and will not be.** This paragraph said it was, until
+//! `KWB-76`. A clock has no knowledge-domain semantics — its definition never mentions a claim,
+//! a concept or a source — so `D-135` puts it in XVPE, and XVPE has one. `KWB-64` adopted it
+//! through `kwb-platform-xvpe` as `PublicationClock`, the way the persistent map is adopted as
+//! `VersionedMap`. Declaring a clock port here would be a second authority for something XVPE
+//! already owns, which is the defect `KWB-49`, `KWB-55` and `KWB-61` each removed from
+//! somewhere else.
+//!
+//! The old sentence mattered because of what it invited. A reader following *they will arrive
+//! when something needs them* would have built the port the decision exists to prevent, and
+//! nothing here would have stopped them.
 
 #![forbid(unsafe_code)]
 

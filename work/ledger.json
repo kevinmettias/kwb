@@ -4184,6 +4184,47 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-76",
+      "title": "Five records and a module doc state obligations that are discharged or were decided against, so a reader scanning for outstanding work finds phantom debts",
+      "why": "KWB-75 established the limit of every guard here: a projection removes the agreement question and leaves the truth question untouched, and two agreeing copies of a stale sentence pass every check. Applying that as a truth pass over what the records say is still owed, rather than over whether their copies match. Five are discharged and say otherwise. D-008 says a second storage decision is owed and is blocked on the domain types; D-012 made that decision and KWB-3 and KWB-4 closed. D-009 says D-004's held list is owed a correction and that whoever closes KWB-3 should know a boundary design waits on it; the correction is D-004's Two Lists Were Not Enough amendment and KWB-3 is closed. D-010 says the same held list is owed a correction distinguishing its entry as pending from D-009's as stranded, which that amendment made. D-012 says liveness must be one expression and it is owed; Standing::Is_Current is that expression, one definition, guarded by a test that fails on a second. D-014's KWB-63 amendment says KWB has no clock, which KWB-64 falsified an hour later. And kwb-platform's module documentation says the clock, lock and process ports are not here yet and will arrive when something needs them -- the clock never will, because KWB-64 decided to adopt XVPE's through kwb-platform-xvpe rather than declare a rival, which is what D-135 requires. That last one is the dangerous one: a reader following it would build the port the decision exists to prevent. This is the mirror of the stale-premise defect the session has chased. Not a false claim about what the repository can do, but a false claim about what it still has to do, which is worse for a reader deciding what to work on.",
+      "done_when": "Each of the five records says the obligation is discharged and by what, in the checkable Condition met form where an item discharged it, so the board guard holds the claim rather than a reader having to trust it. The sentences are corrected in place rather than deleted, because a record that quietly stops saying something owed leaves no trace that it was. kwb-platform's documentation says the clock is adopted rather than pending, and why -- that a clock has no knowledge-domain semantics so D-135 puts it in XVPE, and that declaring one here would be the rival authority KWB-49, KWB-55 and KWB-61 each removed. It says nothing about the lock and process ports beyond what is true, since neither has been decided either way. Nothing about any decision changes; only the statements of what remains.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform",
+          "docs/records/D-008-what-the-prototype-proved-a-store-must-do-and-which-store-it-was-talking-about.md",
+          "docs/records/D-009-what-must-be-inspectable-between-stages-and-why-the-stage-list-is-not-the-answer.md",
+          "docs/records/D-010-a-scope-belongs-to-the-assertion-and-promotion-is-never-a-relabelling.md",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md",
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789286963,
+        "lease_expires_at": 1789294163
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

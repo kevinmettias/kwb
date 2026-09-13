@@ -231,6 +231,13 @@ what `kwb-domain`'s types are, which is `KWB-3` and `KWB-4`.
   warning that should attach to whatever decides it.
 - A second storage decision is owed, and is blocked on the domain types rather than on more
   prototype reading. The prototype has been read for this question and the reading is above.
+  **Discharged.**
+
+  **Condition met:** `KWB-3`, `KWB-4`
+
+  Those were the domain types that blocked it, and `D-012` then made the decision: the second store is a persistent graph value plus a journal,
+  not a database. Left visible rather than deleted, because a record that quietly stops saying
+  something is owed leaves no trace that it was.
 - Requirement 1 is the one most likely to be violated by accident here, because this
   repository will have at least two ways to ask whether something is current the moment it
   has a second representation of anything.

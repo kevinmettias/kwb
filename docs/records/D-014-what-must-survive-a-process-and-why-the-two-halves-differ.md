@@ -171,9 +171,18 @@ record.Text(EVENT, kind).Number(AT, Unix_Seconds(clock))
 ```
 
 so **every record carries a timestamp by construction**, and the crate imports
-`xvpe_clock::WallClockStrategy` to get it. KWB has no clock: this record's own consequences say
-`kwb-platform` is owed *a clock for the record's own timestamps*, and `kwb-platform`'s module
-documentation says the clock, lock and process ports are not here yet.
+`xvpe_clock::WallClockStrategy` to get it. KWB had no clock when this was written: this record's
+own consequences said `kwb-platform` was owed *a clock for the record's own timestamps*.
+
+**That stopped being true within the hour.**
+
+**Condition met:** `KWB-64`
+
+It adopted XVPE's clock through `kwb-platform-xvpe` rather than declaring one here, because a clock has no
+knowledge-domain semantics and `D-135` puts it in XVPE. So `kwb-platform` is **not** owed a clock
+port and never was owed *that* — it was owed a clock, and the clock arrived by adoption. The
+paragraph below is left as written because the amendment under `KWB-72` supersedes its
+conclusion for a different reason entirely.
 
 So KWB cannot write a record of that shape at all. **Adoption is blocked on the clock port, not
 on fit.**

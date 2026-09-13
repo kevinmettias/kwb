@@ -148,6 +148,12 @@ already telling us something that would have made an early answer wrong.
   an owner, that is not this item.
 - `D-004`'s held list is owed a correction distinguishing this entry, which is pending and
   being fed, from `D-009`'s, which is stranded. Both records now carry the evidence for it.
+  **Discharged.**
+
+  **Condition met:** `KWB-20`
+
+  It introduced exactly that distinction — closed, pending, stranded and answered elsewhere —
+  and placed both entries.
 
 ## Alternatives Considered
 

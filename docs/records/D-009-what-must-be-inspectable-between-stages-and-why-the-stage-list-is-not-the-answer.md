@@ -159,8 +159,18 @@ on.
   on the stage decision.
 - `KWB-3` and `KWB-5` are now named as this subject's actual predecessors. Whoever closes
   `KWB-3` should know that a boundary design is waiting on it.
+  **Both closed.**
+
+  **Condition met:** `KWB-3`, `KWB-5`
+
+  This record's own amendment is where what that unstranded, and what it did not, is recorded.
 - `D-004`'s held list is owed a correction, and this record is the evidence for one entry of
-  it. At least one other entry — cross-source corroboration — appears to be stranded for a
+  it. **Discharged.**
+
+  **Condition met:** `KWB-20`
+
+  Its *Two Lists Were Not Enough* amendment gave that list four categories where it had two,
+  and used this record as the evidence for the Knowledge IR entry exactly as anticipated. At least one other entry — cross-source corroboration — appears to be stranded for a
   related reason: the miner's finding identity includes the citation, so two sources
   asserting the same thing never meet within it. That is not established here and should be
   measured by the item that amends the record.

@@ -95,6 +95,15 @@ the prototype's index enforced half the rule for three weeks and nothing failed,
 half-rule is a weaker constraint. It is owed, and it is `KWB-4`'s successor rather than this
 record's.
 
+**Discharged.**
+
+**Condition met:** `KWB-5`
+
+`KWB-4`'s successor built it. `Standing::Is_Current` is that one expression — a single definition, and `kwb-domain/tests/one_liveness.rs` scans this crate's own
+source and fails on a second. The composed form is the graph's: a claim is current when its own
+standing is current **and its concept's is**, which `KWB-65` found a renderer getting wrong and
+is the half-rule this paragraph warns about, caught rather than shipped.
+
 Refusing contradictory states was six SQL `CHECK` constraints in the prototype. Here it is what
 this repository already does twice: `Coverage` cannot represent *never ran* as *ran and found
 nothing* without fabricating a number, and `Written` cannot exist without the bytes it
