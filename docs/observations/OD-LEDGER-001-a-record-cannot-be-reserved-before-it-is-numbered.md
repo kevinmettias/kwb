@@ -3,7 +3,7 @@ id: OD-LEDGER-001
 type: observation
 title: A record cannot be reserved before it is numbered, so decision items reserve the directory and the board serialises
 status: open
-version: 1
+version: 2
 authority: observation
 tags:
   - ledger
@@ -102,28 +102,44 @@ is not `decline`.
 
 ## Three smaller findings, measured the same day
 
-### `work show` advertises prose and prints none
+### `work show` does not show three fields a session needs, and this section used to say something stronger and wrong
 
-Its own help says: *"one item in full: its claim, every claim given up on it with the reason
-given, and its verification. `list` is a column per item and cannot carry prose."*
+**Corrected 2026-09-12, after 23 further items.** This section previously said the tool
+*"advertises prose and prints none"*. That is false. Asked about `KWB-6` it returns all three
+abandon reasons, each several hundred words, in full.
 
-What it printed for a claimed item:
+What it shows is exactly what its help enumerates — the claim, every claim given up on with the
+reason given, and the verification. The phrase *"one item in full"* is what oversells it; the
+implementation does what the list says. **The first version of this section blamed the
+implementation for the summary line and overstated the defect, in a document whose whole subject
+is a tool advertising more than it does.** Left visible rather than quietly restated, for the
+reason this repository leaves every superseded claim visible.
 
-```
-KWB-2 kwb-store has no write door, and D19/D20 in the prototype are exactly the failure...
-state: claimed
-kind: Capability  origin: Proposed
-held by fable since unix 1789250849 until unix 1789258049
-```
+The narrower statement is also the more useful one. Three fields are not shown, and each is
+something `AGENTS.md`'s own loop asks a session to use:
 
-No `why`, no `done_when`, no `territory`, no verification predicate. Reproduced against a
-different repository's board, so it is the tool rather than this board's data.
+| Not shown | Which step needs it |
+|---|---|
+| `why` | 4 — *read only the authorities your item needs* |
+| `territory` | 5 — *implement inside your territory, and nothing else* |
+| `done_when`, and the predicate | 6 — *run the item's predicate yourself* |
 
-The cost is specific. `AGENTS.md` step 6 says *"run the item's predicate yourself"*, and step 5
-says implement inside your territory — and neither the predicate nor the territory is visible
-through the tool that is supposed to be the interface to them. Every session must read
-`work/ledger.json` directly, which is a second way to read the board, and a second way to read
-something is what a board exists to prevent.
+So the loop asks for three things the tool that is supposed to be the interface to the board
+cannot supply, and a session must read `work/ledger.json` directly to get them — a second way to
+read the board, which is what a board exists to prevent.
+
+### Abandon reasons accumulate, and every one of them is shown
+
+Recorded because it is a strength, and because it was not known when this document was written.
+
+`KWB-6` has been claimed and given up three times, each with a statement of what had been built
+and what was left. `show` prints all three, oldest first, so a reader sees not only where the
+item stands but how its remaining scope narrowed. Nothing replaced anything.
+
+That bears on this document's own subject. The root cause above is about work the board cannot
+express; this is the board expressing something well — a partial result handed forward in the
+item's own record, rather than in a commit message somebody has to know to go looking for.
+
 
 ### `--amends` refuses the identifier a record declares for itself
 
@@ -167,6 +183,12 @@ restated in the ledger, then the item's own predicate, and records the item done
 exit zero. An item whose predicate passes while the gate is red does not finish. That closes
 the gap this repository's `KWB-13` was written for and it is the single most valuable property
 the board has: *done* is not a thing a session can assert.
+
+**Measured again since.** It has now refused a finish twice more — `KWB-5` and `KWB-34`, both on
+clippy errors the session had not run yet, both reported as *"the work may be right and still
+cannot land"*, with the item's own predicate deliberately not run. Three refusals across 43
+items is the property working rather than a rough edge.
+
 
 The lease works. Claiming one item moved four overlapping items to `held` immediately, and
 `takeover` exists for a lapsed claim and records what it displaced.
