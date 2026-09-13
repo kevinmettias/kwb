@@ -1167,3 +1167,306 @@ fn Test_No_Test_File_Should_Declare_A_Reader_The_Library_Owns()
          {duplicated:#?}"
     );
 }
+
+// ---- KWB-81: the band constrains something, and the quarantine holds ----
+
+/// One crate, as its manifest declares it: its band and the crates here it depends on.
+struct Crate
+{
+    band: String,
+    depends_on: BTreeSet<String>,
+    names_xvpe: bool,
+}
+
+/// Where a band sits in the order, from the label rather than from a second field.
+///
+/// The same derivation `projections.rs` uses for the table's row order, and for the same reason:
+/// `1p` is the platform tier beside band 1, so comparing the strings would put `10` before `1p`
+/// before `2`. Only the leading digits decide *depends on*, because `1p` and `1` are one tier —
+/// a port and its adapters sit beside the crates they serve, not above them.
+fn Tier_Of(band: &str) -> u32
+{
+    let digits: String = band.chars().take_while(char::is_ascii_digit).collect();
+
+    return digits.parse().unwrap_or(u32::MAX);
+}
+
+/// Every crate in `crates/`, read from the manifests that declare it.
+fn Crates() -> BTreeMap<String, Crate>
+{
+    let mut found = BTreeMap::new();
+    Collect_Crates(&Repository_Root().join("crates"), &mut found);
+
+    return found;
+}
+
+/// Walk for manifests, reading the band and the in-workspace dependencies out of each.
+fn Collect_Crates(directory: &std::path::Path, found: &mut BTreeMap<String, Crate>)
+{
+    let Ok(entries) = std::fs::read_dir(directory)
+    else
+    {
+        return;
+    };
+
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if path.is_dir()
+        {
+            Collect_Crates(&path, found);
+            continue;
+        }
+        if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+        {
+            continue;
+        }
+
+        let text = std::fs::read_to_string(&path).expect("a readable manifest");
+        let (Some(name), Some(band)) =
+            (Quoted_After(&text, "name = "), Quoted_After(&text, "band = "))
+        else
+        {
+            continue;
+        };
+
+        let mut depends_on = BTreeSet::new();
+        let mut names_xvpe = false;
+        for dependency in Declared_Dependencies(&text)
+        {
+            if dependency.starts_with("kwb-") && dependency != name
+            {
+                depends_on.insert(dependency.clone());
+            }
+            if Names_An_Xvpe_Crate(&dependency)
+            {
+                names_xvpe = true;
+            }
+        }
+
+        found.insert(name, Crate { band, depends_on, names_xvpe });
+    }
+}
+
+/// Every dependency a manifest declares, in either spelling TOML allows.
+///
+/// # Why both spellings, found the hard way
+///
+/// The first version of this read `name = ` lines only, and reported that `kwb-platform-xvpe`
+/// depends on no XVPE crate — which would have made the quarantine guard below pass on every
+/// crate in the workspace, for no work. It was the guard's own floor that caught it, because
+/// `kwb-platform-xvpe` declares each adoption as `[dependencies.xvpe-clock]` with the git
+/// reference beneath, which the inline form cannot express.
+///
+/// So a manifest states a dependency two ways and a reader of manifests must know both, or it
+/// reports a clean result for a file it did not understand. `KWB-81`.
+fn Declared_Dependencies(manifest: &str) -> Vec<String>
+{
+    let mut found = Vec::new();
+    for line in manifest.lines()
+    {
+        let trimmed = line.trim();
+
+        // `[dependencies.name]`, and the dev, build and target-specific tables that end the
+        // same way. The name is the last segment, so the prefix does not need enumerating.
+        if let Some(inner) = trimmed.strip_prefix('[').and_then(|rest| return rest.strip_suffix(']'))
+        {
+            if inner.contains("dependencies.")
+            {
+                if let Some(name) = inner.rsplit('.').next()
+                {
+                    found.push(name.to_owned());
+                }
+            }
+            continue;
+        }
+
+        // `name = { … }` or `name = "1.0"`, which is every ordinary entry.
+        if let Some((name, _)) = trimmed.split_once(" = ")
+        {
+            found.push(name.to_owned());
+        }
+    }
+
+    return found;
+}
+
+/// Whether an identifier names an XVPE crate, rather than merely containing the letters.
+///
+/// `kwb-platform-xvpe` and `kwb_platform_xvpe` contain them and are not XVPE crates — they are
+/// the quarantine. A grep that misses this reports every consumer of the quarantine as a breach,
+/// which is the probe failing rather than the invariant, and is why this is a function with a
+/// name instead of a pattern written at each call site.
+fn Names_An_Xvpe_Crate(identifier: &str) -> bool
+{
+    return identifier.starts_with("xvpe-") || identifier.starts_with("xvpe_");
+}
+
+/// A crate depends only on crates in its own tier or below.
+///
+/// # Why the rule is measured and not invented
+///
+/// `AGENTS.md` routes *which band may depend on which* to `README.md`, and until `KWB-81` the
+/// README did not say. The band had been machine-readable since `KWB-75` and constrained nothing
+/// — a field that looks like a signal and carries none, which is `KWB-78`'s finding one tier
+/// down, in the architecture rather than in a record's frontmatter.
+///
+/// So the rule is what the workspace already does rather than a position taken here. Every edge
+/// lands in the same tier or below; the two same-tier edges are an adapter on its port
+/// (`kwb-platform-std` on `kwb-platform`) and a reader on the seam it implements (`kwb-extract`
+/// on `kwb-ingest`). An upward edge is a decision to record, and this test is what makes adding
+/// one require that rather than a commit.
+#[test]
+fn Test_No_Crate_Should_Depend_On_A_Higher_Band()
+{
+    let crates = Crates();
+
+    assert!(
+        crates.len() >= 10,
+        "only {} crates were read, so this guard covers almost nothing",
+        crates.len()
+    );
+    assert!(
+        crates.values().any(|one| return !one.depends_on.is_empty()),
+        "no crate was found to depend on any other, so this guard would pass on a graph it never \
+         read"
+    );
+
+    let mut upward: Vec<String> = Vec::new();
+    for (name, one) in &crates
+    {
+        for dependency in &one.depends_on
+        {
+            let Some(target) = crates.get(dependency)
+            else
+            {
+                continue;
+            };
+            if Tier_Of(&target.band) > Tier_Of(&one.band)
+            {
+                upward.push(format!(
+                    "{name} [band {}] depends on {dependency} [band {}]",
+                    one.band, target.band
+                ));
+            }
+        }
+    }
+
+    assert!(
+        upward.is_empty(),
+        "these edges point up the bands, which inverts the order README.md states -- adding one \
+         is a decision to record rather than a dependency to add: {upward:#?}"
+    );
+}
+
+/// Only `kwb-platform-xvpe` names an XVPE crate.
+///
+/// # What rests on this
+///
+/// The bands table calls it *the one crate permitted to name XVPE*, and `D-007` decides adoption
+/// happens by git reference and commit SHA into a crate that exists to quarantine it. Both were
+/// prose until `KWB-81`. Measured then, the invariant held — and it held while nothing checked
+/// it, which is the condition under which it quietly stops holding.
+#[test]
+fn Test_Only_The_Quarantine_Crate_Should_Name_Xvpe()
+{
+    let crates = Crates();
+
+    assert!(
+        crates.contains_key("kwb-platform-xvpe"),
+        "the quarantine crate was not found, so this guard does not know what it is excepting"
+    );
+    assert!(
+        crates
+            .get("kwb-platform-xvpe")
+            .is_some_and(|one| return one.names_xvpe),
+        "the quarantine crate's manifest names no XVPE crate, so either adoption has been removed \
+         or this guard has stopped recognising it -- and either way it would now pass on every \
+         crate in the workspace"
+    );
+
+    let breaches: Vec<&String> = crates
+        .iter()
+        .filter(|(name, one)| return one.names_xvpe && *name != "kwb-platform-xvpe")
+        .map(|(name, _)| return name)
+        .collect();
+
+    assert!(
+        breaches.is_empty(),
+        "these crates name an XVPE crate directly, so the dependency is no longer quarantined \
+         where D-007 put it: {breaches:?}"
+    );
+
+    // The manifest is only half of it. A crate could reach an XVPE type through a re-export it
+    // did not declare, and the rule is about naming XVPE, not about declaring it.
+    let mut using: Vec<String> = Vec::new();
+    let mut sources: Vec<(std::path::PathBuf, String)> = Vec::new();
+    Rust_Sources(&Repository_Root().join("crates"), &mut sources);
+
+    assert!(
+        sources.len() >= 20,
+        "only {} source files were read, so the source half of this guard covers almost nothing",
+        sources.len()
+    );
+
+    for (path, text) in &sources
+    {
+        let display = path.display().to_string().replace('\\', "/");
+        if display.contains("/kwb-platform-xvpe/")
+        {
+            continue;
+        }
+        for line in text.lines()
+        {
+            let Some(position) = line.find("xvpe_")
+            else
+            {
+                continue;
+            };
+            // `kwb_platform_xvpe::` ends in the same letters. What distinguishes a direct use is
+            // that `xvpe_` begins the identifier, so the character before it is not one that can
+            // sit inside a Rust name.
+            let preceding = line
+                .get(..position)
+                .and_then(|before| return before.chars().next_back());
+            if preceding.is_some_and(|character| {
+                return character.is_alphanumeric() || character == '_';
+            })
+            {
+                continue;
+            }
+            using.push(format!("{display} uses {}", line.trim()));
+        }
+    }
+
+    assert!(
+        using.is_empty(),
+        "these files reach an XVPE crate without going through the quarantine, so what the bands \
+         table calls the one crate permitted to name XVPE is no longer the one: {using:#?}"
+    );
+}
+
+/// Every Rust source file under a directory, as `path -> text`.
+fn Rust_Sources(directory: &std::path::Path, into: &mut Vec<(std::path::PathBuf, String)>)
+{
+    let Ok(entries) = std::fs::read_dir(directory)
+    else
+    {
+        return;
+    };
+
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if path.is_dir()
+        {
+            Rust_Sources(&path, into);
+            continue;
+        }
+        if path.extension().is_some_and(|extension| return extension == "rs")
+        {
+            let text = std::fs::read_to_string(&path).expect("a readable source file");
+            into.push((path, text));
+        }
+    }
+}

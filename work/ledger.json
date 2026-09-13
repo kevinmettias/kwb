@@ -4462,6 +4462,62 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-81",
+      "title": "AGENTS.md routes which band may depend on which to a README that never says, and the one crate permitted to name XVPE is permitted by prose alone",
+      "why": "AGENTS.md's routing table promises README.md answers what exists, what owns what, which band may depend on which. Measured: the word depend appears twice in README.md, in a crate description and in the ecosystem section, and nowhere is there a rule, a table or a sentence about band ordering. The route leads to an answer that is not there -- the KWB-40 family, where the file that routes every question to an authority sends a reader somewhere silent. KWB-75 put a band in every manifest and projected the table from them, so the band is now machine-readable and still constrains nothing. A field that looks like a signal and carries none is KWB-78's finding one tier down, in the architecture rather than in a record's frontmatter. The rule is measurable rather than inventable, because the workspace already obeys one. Every dependency edge in crates/ lands on a crate in the same band or lower, with no upward edge and no cycle; two edges are same-band and both are legitimate -- kwb-platform-std on kwb-platform, which is an adapter on its port, and kwb-extract on kwb-ingest, which is a reader on the seam it implements. Separately, the bands table calls kwb-platform-xvpe the one crate permitted to name XVPE and D-007 rests on it, and nothing enforces it. Measured, it holds: no other manifest names an XVPE crate and no other source file uses one. A naive grep says otherwise because kwb-platform-xvpe's own name contains the string, which is the probe failing rather than the invariant -- and is the reason this is worth a guard rather than a periodic grep.",
+      "done_when": "README.md states the band rule where AGENTS.md sends a reader for it: a crate depends only on crates in its own band or lower, with the two same-band edges named and why each is legitimate, and with it said plainly that an upward edge is a decision to record and not a thing to add. A guard builds the dependency graph from the manifests and fails on an upward edge, naming the edge. A second guard fails when any crate other than kwb-platform-xvpe names an XVPE crate, in a manifest or in source, and does not confuse kwb-platform-xvpe's own name for one. Both are proven by mutating a real manifest -- an upward edge added, and an XVPE dependency added to a crate that may not have one -- and both carry a floor so they cannot pass by reading nothing. Nothing about any decision changes; the rule is what the workspace already does.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789289337,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "0c4404bf6d4832665e48dcaee2fe38629ebf9732"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

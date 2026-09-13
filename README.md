@@ -150,6 +150,27 @@ drifts.
 The authoritative statement of what each crate owns. `tests/contract` asserts this table
 against the real workspace, both directions.
 
+**A crate depends only on crates in its own band or a lower one.** The band label decides
+the tier by its leading digits, so `1p` — the platform tier, where a port and its adapters
+live — sits beside band 1 rather than above it: an implementation of a seam is not a layer
+over the crates it serves.
+
+Two edges are same-band, and both are the pattern rather than an exception to it.
+`kwb-platform-std` depends on `kwb-platform` because an adapter depends on its port, which
+is what band `1p` is for. `kwb-extract` depends on `kwb-ingest` because the extraction seam
+is declared there and a reader depends on the seam it implements — the direction that keeps
+`kwb-ingest` able to admit a reading without knowing a model exists.
+
+**An upward edge is a decision to record, not a dependency to add.** `tests/contract` fails
+on one and names it, which is what makes that true rather than aspirational. Until `KWB-81`
+this rule was not written anywhere, though `AGENTS.md` had been routing readers here for it
+since this file was created, and the band — machine-readable in every manifest since
+`KWB-75` — constrained nothing.
+
+The same file enforces the one other rule the table states in prose: **`kwb-platform-xvpe`
+is the only crate that may name an XVPE crate**, in a manifest or in source. `D-007` is why
+the quarantine exists.
+
 <!-- generated from crate manifests -->
 | Band | Crate | Owns |
 |---|---|---|
