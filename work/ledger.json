@@ -2978,6 +2978,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-54",
+      "title": "Whether a reading's location and protocol belong on the assertion, when corroboration is counted by assertions",
+      "why": "KWB-47 declared a contract carrying where in a source something was read and under what protocol, and KWB-53 established that admission discards both -- so the invariant that every admitted claim identifies its source occurrence and extraction protocol is unmet, and there is no record of the decision that would settle how. The obvious move is to put them on the Assertion, and it is the wrong one in a way that is only visible once corroboration is counted: this repository counts corroboration by assertions. The test that exercises the mechanism every identity decision here was made to support says so -- two different documents, the same claim text, one claim and two assertions, each naming the address of the document it was read out of. If lineage entered an assertion's identity, re-reading one book under a new prompt would produce a second assertion for the same claim from the same source, and the count that says two sources agree would say two when one source was read twice. That is the reference miner's measured failure reached from the other direction: its claim identity absorbs the source path and page window, so two sources' assertions can never meet. And carrying them without identifying by them is the other failure, KWB-32's: two readings meeting at one assertion that holds one of their lineages is a value disagreeing with itself.",
+      "done_when": "A record decides where a reading's location and protocol live and what may never absorb them, with the corroboration-count argument as its measurement rather than as a preference. It states the consequence of each rejected placement in terms of something this repository already measured. If the answer is that provenance about a reading is its own thing rather than a field on an existing one, the record says what that costs, what it does not decide, and the condition that settles the rest -- the shape D-012 and D-014 use, where a decision names the consumer whose absence defers the build. It does not build it: nothing here reads a source yet, every reading is a person through Stated, and a mechanism built before its consumer is what D-009 and the queue in D19 are both about. Relations are declared so the contract test finds them from both ends.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789274531,
+        "lease_expires_at": 1789281731
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
