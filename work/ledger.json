@@ -1821,6 +1821,68 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-34",
+      "title": "Publications can be recorded and replayed and kwb admit still starts from an empty graph every time",
+      "why": "KWB-33 built the record and the replay and nothing emits one, so the third run of kwb admit knows exactly as much as the first. Documents have accumulated since KWB-31 and knowledge has not, which is the half a knowledge base is for. This is the same one-crate-away gap as KWB-25 and KWB-31, for the third time, and the reason it keeps happening is worth naming: each capability was built to a decision that named its consumer, and the consumer was always in another crate whose item had already closed. The fix each time is a small item; the pattern is that a decision naming a consumer should probably name the item that wires it too.",
+      "done_when": "An admission report can say what it published, as publications rather than as a graph, so a caller can record them without reconstructing anything. kwb admit replays the log before admitting and appends after, so a concept admitted in one run is current in the next and the counts it prints accumulate rather than restart. Running it three times over two files demonstrates it rather than a test asserting it. A run without a store still works and still says what it keeps, because a durable path that had become the only path would make the in-memory case untested.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest",
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ting_Nothing_Should_Be_Unmet_Rather_Than_Barren ... ok\ntest tests::Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current ... ok\ntest tests::Test_Examining_Extractions_And_Finding_None_Admissible_Should_Be_Barren ... ok\ntest tests::Test_Publishing_Should_Leave_The_Graph_It_Was_Given_Unchanged ... ok\ntest tests::Test_Admitting_The_Same_Source_Twice_Should_Not_Duplicate_It ... ok\ntest tests::Test_The_Report_Should_Not_Count_More_Than_It_Holds ... ok\ntest tests::Test_The_Grouping_Relation_Should_Be_Transitive_Over_A_Chain ... ok\ntest tests::Test_An_Incomplete_Extraction_Should_Be_Refused_And_Counted ... ok\ntest tests::Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct ... ok\ntest tests::Test_Normalization_Should_Remove_No_Claim ... ok\ntest tests::Test_A_Published_Concept_Should_Be_Addressed_By_Its_Content ... ok\ntest tests::Test_Repeated_Mentions_Of_One_Concept_Should_Become_One_Concept ... ok\ntest tests::Test_An_Admitted_Source_Should_Be_Readable_Back_From_The_Store ... ok\ntest tests::Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts ... ok\ntest tests::Test_Case_Differences_Should_Not_Be_Grouped ... ok\ntest tests::Test_Every_Claims_Concept_Should_Be_Among_The_Concepts ... ok\ntest tests::Test_Admission_Should_Queue_Nothing_For_A_Consumer_That_Does_Not_Exist ... ok\ntest tests::Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds ... ok\n\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-ingest v0.1.0 (F:\\repos\\kwb\\crates\\ingestion\\kwb-ingest)\n   Compiling kwb-cli v0.1.0 (F:\\repos\\kwb\\crates\\host\\kwb-cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-38f77df29d8226f3.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-1ea03b34c0548482.exe)\n   Doc-tests kwb_ingest\n",
+        "verified_at": 1789259271,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "db441fe5955ec9e0ecfcc3847482f739cd7ac02f"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

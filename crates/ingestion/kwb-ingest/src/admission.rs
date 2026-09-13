@@ -4,6 +4,8 @@ use core::num::NonZeroUsize;
 
 use kwb_domain::Coverage;
 use kwb_domain::KnowledgeGraph;
+use kwb_domain::Publication;
+use kwb_domain::Standing;
 use kwb_domain::Versioned;
 use kwb_store::Document;
 use kwb_store::DocumentStore;
@@ -71,6 +73,41 @@ impl AdmissionReport
     pub const fn Source(&self) -> Option<&Written>
     {
         return self.source.as_ref();
+    }
+
+    /// What this admission published, as publications.
+    ///
+    /// The same things [`Published_Into`] adds to a graph, in the same order, expressed as the
+    /// transitions `D-014` records rather than as the graph they produce. A caller recording
+    /// them does not have to take a graph apart to find out what changed — which it could not
+    /// do correctly anyway, since a graph is a fold and a fold does not remember its inputs.
+    ///
+    /// Concepts precede claims, because a claim is about a concept and replay refuses a claim
+    /// naming one no earlier record published. That ordering is a property of this method and
+    /// not an accident of iteration; the replay tests are what would catch it changing.
+    ///
+    /// [`Published_Into`]: Self::Published_Into
+    #[must_use]
+    pub fn Publications(&self) -> Vec<Publication>
+    {
+        let mut publications = Vec::new();
+
+        for concept in self.normalized.Concepts()
+        {
+            publications.push(Publication::Concept {
+                concept: concept.clone(),
+                standing: Standing::Asserted,
+            });
+        }
+        for claim in self.normalized.Linked().Claims()
+        {
+            publications.push(Publication::Claim {
+                claim: claim.clone(),
+                standing: Standing::Asserted,
+            });
+        }
+
+        return publications;
     }
 
     /// Publish what was admitted into a graph, returning the new graph.

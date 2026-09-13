@@ -12,18 +12,20 @@
 //! infer it from an empty result. A tool that implied it had read the file would be the
 //! prototype's `chunks admitted 0` printed under the heading *Admitted*.
 //!
-//! **Documents survive when told where; the graph does not survive at all.** `--store <dir>`
-//! selects the durable content store `D-014` decided on, and this file is where that choice is
-//! made — the library names the port and never an implementation, which is the whole reason a
-//! composition root exists. The graph half of `D-014` — an append-only record of what was
-//! published, replayed — is decided and unbuilt, so what a run learned is still lost even when
-//! the bytes it read are kept.
+//! **`--store <dir>` keeps both halves.** The bytes go to a content-addressed file store and
+//! the publications go to an append-only log, and a run replays that log before it admits — so
+//! what the third run knows includes what the first two learned. `D-014` decided both, and this
+//! file is where the implementations are named: the library names ports and never an
+//! implementation of one, which is the whole reason a composition root exists.
+//!
+//! Without `--store`, nothing is kept and the run says so.
 
 use std::process::ExitCode;
 
-use kwb_domain::KnowledgeGraph;
+use kwb_domain::{KnowledgeGraph, Publication, Replay};
 use kwb_ingest::{Admit, AdmissionReport, Extraction};
-use kwb_platform_std::DirectoryContentStore;
+use kwb_platform::RecordLogStrategy;
+use kwb_platform_std::{DirectoryContentStore, FileRecordLog};
 use kwb_store::DocumentStore;
 
 /// A wrong command line, which is not the same as a run that failed.
@@ -97,6 +99,24 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
         }
     };
     let durable = store.Is_Durable();
+    let log = match Log_For(store_root)
+    {
+        Ok(log) => log,
+        Err(complaint) =>
+        {
+            eprintln!("kwb admit: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+    let known = match Known_So_Far(log.as_ref())
+    {
+        Ok(known) => known,
+        Err(complaint) =>
+        {
+            eprintln!("kwb admit: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
     let report = match Admit(bytes, &extractions, &mut store)
     {
         Ok(report) => report,
@@ -107,17 +127,26 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
         }
     };
 
-    let graph = report.Published_Into(&KnowledgeGraph::Empty());
+    let published = match Record_Into(log.as_ref(), &report)
+    {
+        Ok(()) => report.Published_Into(&known),
+        Err(complaint) =>
+        {
+            eprintln!("kwb admit: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
 
     // The library's own vocabulary, not a second one. `Name` is the same string a journal
     // would carry, so a person reading a terminal and a report reading a file are told the
     // same thing about the same run.
     println!("source     {}", Address_Of(&report));
     println!("coverage   {}", report.Coverage().Name());
-    println!("concepts   {}", graph.Current().Concepts().len());
-    println!("claims     {}", graph.Current().Claims().len());
+    println!("concepts   {}", published.Current().Concepts().len());
+    println!("claims     {}", published.Current().Claims().len());
     println!("refused    {}", report.Normalized().Linked().Refused());
     println!("documents  {}", if durable { "kept" } else { "in memory only" });
+    println!("knowledge  {}", if log.is_some() { "kept" } else { "in memory only" });
 
     if !report.Coverage().Was_Run()
     {
@@ -162,6 +191,62 @@ fn Store_For(root: Option<&str>) -> Result<DocumentStore, String>
     let durable = DirectoryContentStore::Under(root)
         .map_err(|cause| return format!("cannot use {root} as a store: {cause}"))?;
     return Ok(DocumentStore::Backed_By(Box::new(durable)));
+}
+
+/// The publication log a run records into, when it was told where.
+fn Log_For(root: Option<&str>) -> Result<Option<FileRecordLog>, String>
+{
+    let Some(root) = root
+    else
+    {
+        return Ok(None);
+    };
+
+    let log = FileRecordLog::At(std::path::Path::new(root).join("publications.log"))
+        .map_err(|cause| return format!("cannot open the publication log: {cause}"))?;
+    return Ok(Some(log));
+}
+
+/// The graph a run starts from: what earlier runs published, replayed.
+///
+/// `D-014`: a graph is a fold over its publications, so replaying the log *is* loading the
+/// graph. There is no second representation to keep in step with the log, which is the reason
+/// transitions were recorded rather than versions.
+fn Known_So_Far(log: Option<&FileRecordLog>) -> Result<KnowledgeGraph, String>
+{
+    let Some(log) = log
+    else
+    {
+        return Ok(KnowledgeGraph::Empty());
+    };
+
+    let records = log
+        .Records()
+        .map_err(|cause| return format!("cannot read the publication log: {cause}"))?;
+    return Replay(&records)
+        .map_err(|cause| return format!("the publication log cannot be replayed: {cause}"));
+}
+
+/// Record what this admission published, before reporting that it did.
+///
+/// Before, deliberately. `D19`: a report must not outrun the work, and a run that printed its
+/// counts and then failed to record them would have told a reader about knowledge the next run
+/// will not have.
+fn Record_Into(log: Option<&FileRecordLog>, report: &AdmissionReport) -> Result<(), String>
+{
+    let Some(log) = log
+    else
+    {
+        return Ok(());
+    };
+
+    for publication in report.Publications()
+    {
+        log.Append(&Publication::Record(&publication))
+            .map_err(|cause| return format!("cannot record a publication: {cause}"))?;
+    }
+
+    return Ok(());
 }
 
 /// The address the source was written under, rendered.
@@ -211,11 +296,9 @@ fn Print_Usage()
     eprintln!("  coverage `unmet` -- it was never given anything to examine -- which is not");
     eprintln!("  the same as `barren`, which means it looked and found nothing.");
     eprintln!();
-    eprintln!("  --store <dir> keeps the document bytes there, one file per address, and a");
-    eprintln!("  document admitted in one run is readable by the next. Without it the bytes");
-    eprintln!("  live only as long as this process.");
+    eprintln!("  --store <dir> keeps both halves: the document bytes as one file per address,");
+    eprintln!("  and what was published as an append-only log. A run replays that log before");
+    eprintln!("  it admits, so the counts below include what earlier runs learned.");
     eprintln!();
-    eprintln!("  What a run learned is lost either way. D-014 decided how the graph becomes");
-    eprintln!("  durable -- an append-only record of what was published, replayed -- and");
-    eprintln!("  nothing has built it.");
+    eprintln!("  Without it nothing is kept and the run says so.");
 }

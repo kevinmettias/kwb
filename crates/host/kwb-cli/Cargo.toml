@@ -19,6 +19,7 @@ kwb-ingest = { workspace = true }
 kwb-store = { workspace = true }
 # The composition root is where an implementation of a port is named. The library
 # names the port and nothing else, which is the whole reason this layer exists.
+kwb-platform = { workspace = true }
 kwb-platform-std = { workspace = true }
 
 [lints]
