@@ -4865,6 +4865,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-89",
+      "title": "The root manifest explains its one host dependency in a sentence that lost both crates it names, and the scanner for a sentence that lost content has a floor four times the damage",
+      "why": "Measured 2026-09-13. Cargo.toml line 66 reads `# The hosts.  is here because  projects its tool registry into the` - two two-space gaps where two backtick-delimited crate names were. `git log -L66,66:Cargo.toml` shows the line was born that way in cdd0caa (KWB-70) and no later edit touched it, so the authoring write is what ate them; backticks survived on twelve other added lines in that same commit, so the cause is that one file write and not the commit.\n\nWhat the sentence said is recoverable and true. `tests/contract` is the only crate in the workspace that depends on `kwb-mcp` - one edge, tests/contract/Cargo.toml line 17 - and tests/contract/tests/projections.rs uses `kwb_mcp::TOOLS` to project the README tool table, which is why a composition root is in `[workspace.dependencies]` at all.\n\nNothing here can see the damage. tests/contract/tests/literals.rs is this workspace's one instrument for a sentence that lost content, and its `GAP` is 8 - a floor its own doc comment justifies structurally as sitting above every legitimate run, measured at 5. This damage carries 2. Sweeping every tracked .rs, .toml, .md, .json and .yml file for mid-line runs of two to seven spaces returns this line and about forty legitimate ones: column layout in the README sample output, println! alignment in kwb-cli, and deliberate double-space fixtures in kwb-domain. A threshold low enough to catch this fires on all of them, so run length is the wrong instrument for damage this shallow and lowering the number is not the fix. No guard is proposed, on the same ground the Band 0 note in kwb-contracts/src/lib.rs was left alone: one instance, and no measured rule to hold it to.\n\nOne reading was checked and dropped rather than carried into this item: the -- in the same comment is not damage. It appears 234 times in work/ledger.json and in nearly every file in the tree, beside em dashes throughout.",
+      "done_when": "Cargo.toml no longer carries a sentence that names neither crate it is about. The two lost names are restored, and the reasoning that sentence went on to duplicate is not: tests/contract/Cargo.toml already states why that edge exists, beside the edge, and AGENTS.md step 5 forbids introducing a second authority for something already governed. So the root manifest keeps only what is its own - that a composition root depended on by a check is an unusual workspace shape - and points at the manifest holding the rest. `cargo test -p kwb-contract-tests` passes, which shows the manifest still parses and every boundary guard still reads it. That is not evidence the sentence is true; both names in it were verified against the workspace separately, as recorded above.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "Cargo.toml"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.86s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789315157,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "26d562a1373ff8b5ad9be17265a59b2e7877f58b"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

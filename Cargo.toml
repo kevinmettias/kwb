@@ -63,9 +63,10 @@ kwb-domain = { path = "crates/domain/kwb-domain" }
 kwb-extract = { path = "crates/ingestion/kwb-extract" }
 kwb-ingest = { path = "crates/ingestion/kwb-ingest" }
 kwb-retrieval = { path = "crates/retrieval/kwb-retrieval" }
-# The hosts.  is here because  projects its tool registry into the
-# README rather than restating it; a composition root being depended on by a check is unusual
-# and is the point -- the check reads the canonical value.
+# The hosts. `kwb-mcp` is here because `tests/contract` depends on it, and nothing else does:
+# a composition root depended on by a check is an unusual shape for a workspace, and it is
+# deliberate. Why that edge exists is stated in `tests/contract/Cargo.toml`, beside the edge,
+# rather than a second time here.
 kwb-mcp = { path = "crates/host/kwb-mcp" }
 
 serde = { version = "1", default-features = false, features = ["derive", "std"] }
