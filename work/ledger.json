@@ -3404,6 +3404,47 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-62",
+      "title": "Two records hold a subject whose stated condition was satisfied eight minutes after one of them warned this would happen",
+      "why": "D-009 states its condition mechanically: the condition is therefore KWB-3 and KWB-5 closed. D-004's stranded entry for the same subject says unstranded by KWB-3, now closed, and KWB-5. Both items are done. KWB-5 finished at unix 1789254256; D-004's amendment landed at 1789253761, four hundred and ninety-five seconds earlier. So the record was correct when written and went stale eight minutes later -- and the thing it went stale about is the sentence in its own amendment saying a list of held subjects goes stale in both directions, and this one went stale silently because nothing re-reads it against the board. It then asks for exactly that: the next revision should be triggered by something re-reading this list against the board, because the failure this amendment corrects was not a wrong judgement, it was a list nobody checked. Nothing was built. A third copy is in kwb-ingest, where ProposedReading's documentation says D-009 records that a canonical Knowledge IR is stranded, which is the reasoning the extraction contract was shaped against. Measured across every record: four passages state a condition and name items, and only these two state it as the condition rather than mentioning an item in passing -- D-008's is prose and was answered by D-012, reachable from its own back-link, so a guard that flagged it would be wrong half the time and would be switched off.",
+      "done_when": "The two records say the condition is met and what the subject now is, without claiming the subject is decided, because a condition being satisfied makes it decidable here and does not decide it. The kwb-ingest documentation stops asserting the subject is stranded and says what is true, since that reasoning is why ProposedReading is shaped as it is and a reader who checks it must not find a premise that has moved. A condition stated as items is written one way, marked so a machine can find it, and a guard fails when every item a marked condition names is done -- which is the mechanism D-004 asked for and did not get. The guard reads only marked conditions and says why: an item named in passing is not a condition, and a guard that flagged the two passages that merely mention one would be wrong half the time. Shown to discriminate by mutating the real records rather than a fixture, and the marked conditions are asserted to be found, because a reader that finds none passes on anything.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest",
+          "tests/contract",
+          "docs/records/D-004-observation-proceeds-and-a-decision-that-depends-on-an-open-inventory-does-not.md",
+          "docs/records/D-009-what-must-be-inspectable-between-stages-and-why-the-stage-list-is-not-the-answer.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789278101,
+        "lease_expires_at": 1789285301
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "-p",
+          "kwb-ingest"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

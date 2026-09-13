@@ -126,11 +126,17 @@ impl ExtractionLineage
 ///
 /// # This is not an intermediate representation, and the name is chosen to keep it that way
 ///
-/// `D-009` records that a canonical Knowledge IR is **stranded** — the corpus calls it the
-/// biggest idea in the design and the prototype has zero files implementing one, and the
-/// instrument that was supposed to inform it cannot. The risk this type is shaped against is
-/// that a local representation which happened to ship first quietly becomes the canonical one
-/// because nothing else existed.
+/// A canonical Knowledge IR is **undecided**, and until `KWB-62` this paragraph said `D-009`
+/// records it as *stranded*. That was true when written and stopped being true eight minutes
+/// later: `D-009` states its condition as `KWB-3` and `KWB-5` closed, and `KWB-5` closed 495
+/// seconds after the record holding it was amended. Both records now say so.
+///
+/// **The risk this type is shaped against is unchanged, and the unstranding sharpens it.** The
+/// corpus calls a Knowledge IR the biggest idea in the design and the prototype has zero files
+/// implementing one, so the danger was always that a local representation which happened to
+/// ship first quietly becomes the canonical one because nothing else existed. While the subject
+/// was stranded, that could not happen by decision — only by drift. Now that it is decidable,
+/// the drift is the only way it *would* happen, because a decision would be written down.
 ///
 /// So: source-local, named for the act rather than the architecture, and carrying only what one
 /// reading of one source knows. If a multi-stage representation is ever decided, this is one

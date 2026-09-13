@@ -191,6 +191,15 @@ none bears on what representations must survive between *this repository's* inge
 and no length of run would change that. *Unstranded by:* `KWB-3`, now closed, and `KWB-5`.
 Both internal, both reachable without the miner.
 
+**Condition met:** `KWB-3`, `KWB-5`
+
+**No longer stranded, as of `KWB-62`.** `KWB-5` closed at unix `1789254256`, **495 seconds after
+this amendment was written** — so this entry was correct when authored and false eight minutes
+later. That is the failure this amendment predicts by name, arriving faster than anyone could
+have re-read the list by hand, which is the argument for the guard `KWB-62` built rather than an
+argument about care. The subject is decidable here and is not decided; `D-009`'s own amendment
+says what it now is.
+
 ### Answered elsewhere — closed by this repository while this record still held it
 
 **Canonical claim identity.** `KWB-1` shipped `ContentIdentity` and `Derivation`, with the

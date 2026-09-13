@@ -181,3 +181,27 @@ predicate proves nothing about the structure consuming it.
 **Recording the stranding finding as a separate observation** was rejected as a second
 authority for something `D-004` governs. It is written here as evidence, explicitly not as an
 amendment, and the amendment remains owed.
+
+## Amendment: The Condition Is Met, 2026-09-12
+
+This record states its condition mechanically — **the condition is therefore `KWB-3` and
+`KWB-5` closed** — and both are done. `KWB-5` finished at unix `1789254256`.
+
+**Condition met:** `KWB-3`, `KWB-5`
+
+So the subject is **no longer stranded**. The instrument objection above stands unchanged and is
+still the reason it was never *pending*: the miner cannot answer what representations must
+survive between this repository's ingestion stages, and no length of run would change that.
+What has changed is that the answer never needed the miner, and its two internal predecessors
+have closed.
+
+**It is decidable here. It is not decided.** A condition being satisfied removes the reason a
+subject could not be worked on; it does not supply the work. Nothing in this repository is a
+canonical intermediate representation, and `KWB-47` deliberately kept it that way —
+`ProposedReading` is named for the act of reading rather than for an architecture, precisely so
+a local representation that happened to ship first could not become the canonical one by
+default.
+
+That reasoning survives the unstranding and changes its footing. It was *this subject cannot be
+answered yet*; it is now *this subject has not been answered yet, and shipping a representation
+is not the same as deciding one*.

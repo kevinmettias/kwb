@@ -761,3 +761,113 @@ fn Test_No_Record_Should_Claim_A_Reference_Nobody_Declared()
          the authority of a list this repository calls checked: {invented:#?}"
     );
 }
+
+// ---- KWB-62: a condition stated as items is checked against the board ----
+
+/// Every item a record names as a met condition, as `(record, item)`.
+///
+/// # The marker, and why there is one
+///
+/// `D-004`'s amendment says *a list of held subjects goes stale in both directions, and this one
+/// went stale silently because nothing re-reads it against the board*, and asks for exactly that
+/// mechanism. This is it.
+///
+/// It reads only a line beginning `**Condition met:**`, because a record that merely *mentions*
+/// an item is not stating a condition. Measured across every record when this was written: four
+/// passages name an item near a condition-like phrase and only two are conditions —
+/// `D-008`'s is prose and was answered by `D-012`, reachable from its own back-link, and
+/// `D-004`'s coverage entry names `KWB-4` for something it *owes*, not for what would unstrand
+/// it. A guard reading all four would be wrong half the time, and a guard that is wrong half the
+/// time is switched off.
+fn Conditions_Named(records: &BTreeMap<String, String>) -> Vec<(String, String)>
+{
+    let mut named = Vec::new();
+    for (identifier, text) in records
+    {
+        for line in text.lines()
+        {
+            let Some(rest) = line.trim().strip_prefix("**Condition met:**")
+            else
+            {
+                continue;
+            };
+            for item in rest.split(',')
+            {
+                let item = item.trim().trim_matches('`').trim();
+                if !item.is_empty()
+                {
+                    named.push((identifier.clone(), item.to_owned()));
+                }
+            }
+        }
+    }
+
+    return named;
+}
+
+/// Every item named in a met condition is actually done on the board.
+///
+/// # Why this direction
+///
+/// The record claims the condition is satisfied. That claim is checkable, and it is the one that
+/// rots: `D-004`'s entry was correct when written and false **495 seconds later**, because
+/// `KWB-5` closed eight minutes after the amendment holding it was authored. No amount of care
+/// re-reads a list inside eight minutes; a test does it on every run.
+///
+/// It also catches the reverse mistake — a record announcing a condition met before the item
+/// closes, which would be a subject declared workable while its predecessor is still open.
+#[test]
+fn Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board()
+{
+    let records = Records();
+    let named = Conditions_Named(&records);
+
+    assert!(
+        !named.is_empty(),
+        "no record states a condition in the checkable form, so this guard proves nothing"
+    );
+
+    let board = std::fs::read_to_string(Repository_Root().join("work/ledger.json"))
+        .expect("the board should be readable");
+
+    let mut unmet: Vec<String> = Vec::new();
+    for (record, item) in named
+    {
+        // Read from the board, anchored on the field rather than on a substring near it. The
+        // first attempt looked for `"done"` after the identifier and reported four defects that
+        // did not exist, because the board writes `"Done"`. A guard whose parser is wrong does
+        // not report nothing -- it reports something false, with the authority of a test.
+        let done = State_Of(&board, &item).is_some_and(|state| return state.eq_ignore_ascii_case("done"));
+
+        if !done
+        {
+            unmet.push(format!("{record} calls {item} met and the board does not"));
+        }
+    }
+
+    assert!(
+        unmet.is_empty(),
+        "a record says a condition is satisfied and the board disagrees, so a subject is \
+         declared workable while what it waits on is still open: {unmet:#?}"
+    );
+}
+
+/// An item's `state` on the board, read from the field and not from text near it.
+///
+/// The board is JSON and this reads it as text, which is a choice: `tests/contract` depends on
+/// nothing, and a check that exists to catch a stale claim should not be the reason a
+/// serialization crate enters this workspace. What that costs is exactly the mistake made
+/// above, so the anchor is the field name and the object boundary rather than a hopeful
+/// substring.
+fn State_Of(board: &str, item: &str) -> Option<String>
+{
+    let after_identifier = board.split(&format!("\"id\": \"{item}\"")).nth(1)?;
+    // Stop at the next object, so a later item's state cannot be read as this one's.
+    let within = after_identifier.split("\"id\":").next().unwrap_or_default();
+    let value = within.split("\"state\":").nth(1)?;
+
+    return value
+        .split('"')
+        .nth(1)
+        .map(str::to_owned);
+}
