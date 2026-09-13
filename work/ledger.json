@@ -3863,14 +3863,10 @@
         ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
-      "claim": {
-        "holder": "fable",
-        "acquired_at": 1789282605,
-        "lease_expires_at": 1789289805
-      },
+      "claim": null,
       "verification": {
         "argv": [
           "cargo",
@@ -3880,7 +3876,30 @@
         ],
         "timeout_seconds": 600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "st_Every_Tool_The_Surface_Declares_Should_Be_One_The_Readme_Names ... ok\ntest Test_No_Record_Should_Claim_A_Reference_Nobody_Declared ... ok\ntest Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends ... ok\ntest Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places ... ok\ntest Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 2 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.57s\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-260e2d91569700cd.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-fa8bc04366479385.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-e3187300973bc230.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-229f6c2866435acc.exe)\n",
+        "verified_at": 1789282789,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "cdd0caad985db9bd79410647455ae6c586e71b44"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
