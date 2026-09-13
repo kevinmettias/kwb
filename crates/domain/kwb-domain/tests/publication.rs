@@ -47,7 +47,7 @@ fn Corpus() -> (KnowledgeGraph, Vec<String>)
         .With_Claim(Versioned::Asserted(claim))
         .With_Assertion(Versioned::Asserted(assertion));
 
-    let records = publications.iter().map(Publication::Record).collect();
+    let records = publications.iter().map(|publication| return publication.Record(None)).collect();
     return (graph, records);
 }
 
@@ -113,7 +113,7 @@ fn Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record()
             concept: keeper.clone(),
             standing: Standing::Asserted,
         }
-        .Record(),
+        .Record(None),
         Publication::Concept {
             concept: loser,
             standing: Standing::Superseded {
@@ -121,7 +121,7 @@ fn Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record()
             because: "the two names denote one concept".to_owned(),
         },
         }
-        .Record(),
+        .Record(None),
     ];
 
     let replayed = Replay(&records).expect("replays");
@@ -150,7 +150,7 @@ fn Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
         concept,
         standing: Standing::Asserted,
     }
-    .Record();
+    .Record(None);
 
     assert_eq!(
         Fields(&record),
@@ -173,7 +173,7 @@ fn Test_A_Claim_Whose_Concept_Was_Never_Published_Should_Be_Refused()
             claim,
             standing: Standing::Asserted,
         }
-        .Record(),
+        .Record(None),
     ];
 
     let refusal = Replay(&records).expect_err("must refuse");
@@ -220,7 +220,7 @@ fn Recorded(name: &str) -> String
         concept: Concept::Named(name),
         standing: Standing::Asserted,
     }
-    .Record();
+    .Record(None);
 }
 
 /// How many fields a record splits into.
@@ -269,7 +269,7 @@ fn Test_A_Stated_Scope_And_An_Unstated_One_Should_Not_Write_The_Same_Record()
             assertion: Assertion::By("Callen 1985", &claim, scope),
             standing: Standing::Asserted,
         }
-        .Record();
+        .Record(None);
     };
 
     let stated = recorded_with(Scope::Named("physical theory").expect("a named scope"));
@@ -311,7 +311,7 @@ fn Test_An_Unstated_Scope_Should_Survive_A_Replay_As_Unstated()
         },
     ]
     .iter()
-    .map(Publication::Record)
+    .map(|publication| return publication.Record(None))
     .collect();
 
     let replayed = Replay(&records).expect("a run's own publications must replay");

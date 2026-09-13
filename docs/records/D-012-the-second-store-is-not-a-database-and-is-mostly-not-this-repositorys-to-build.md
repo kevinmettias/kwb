@@ -244,6 +244,27 @@ looked like before it. Together they are the audit that incident could not perfo
 *Settled by, for a real instant:* the clock port. A time on a record needs one, and a timestamp
 invented without a clock is a field that reports the good case until somebody notices — `D20`.
 
+**Condition met:** `KWB-64`
+
+`KWB-64` adopted it rather than declaring one. A clock has no knowledge-domain semantics — its
+definition never mentions a claim, a concept or a source — so `D-135` puts it in XVPE and XVPE
+has one; `kwb-platform-xvpe` re-exports `xvpe-clock`'s as `PublicationClock` and its hosted
+implementation as `SystemClock`, the way it already re-exports the persistent map. No clock port
+was declared here, because declaring a second authority for something XVPE owns is the defect
+this repository spent `KWB-49`, `KWB-55` and `KWB-61` removing from three other places.
+
+A publication now carries the time it was published, and `kwb history --as-of <unix seconds>`
+answers a real instant. **So the sentence above — that an instant cannot be asked for in any
+form — is no longer true**, and the paragraph it sits in should be read as the state before
+`KWB-64` rather than as a description of this repository.
+
+The time is a *trailing, optional* field. `Replay` dispatches on how many fields a record has,
+so appending kept every log written before `KWB-64` replayable, and `Option` rather than a zero
+keeps *unknown* distinguishable from *a value* — the distinction `Coverage` is this
+repository's long argument about. A log in which nothing is timestamped refuses `--as-of`
+rather than answering it, because every answer would otherwise be the same answer whatever was
+asked.
+
 What this record decided is untouched. Requirement 4's answer is narrowed to what it always
 was, and now has a consumer.
 

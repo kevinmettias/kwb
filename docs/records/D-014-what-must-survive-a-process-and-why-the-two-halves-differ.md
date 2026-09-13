@@ -213,6 +213,25 @@ missing — so the port, the adoption and the temporal read are one piece of wor
 the log together. A port with no implementation and no caller is what this repository has a name
 for.
 
+**Condition met:** `KWB-64`
+
+### The bundle was split, and the reason for bundling is what settles it
+
+`KWB-64` adopted the clock and did **not** adopt the journal. The advice above bundled the three
+for one reason: a port with no implementation and no caller. That reason is discharged — the
+clock arrived with `SystemClock` composed in by `kwb-cli` and with two callers, a timestamp on
+every publication and `kwb history --as-of`.
+
+What is left is a *format* decision, and it is not the clock's. Adopting the journal turns a
+publication from a separator-delimited positional record into a JSON object with named fields,
+which is a change to what `D-014` decided a publication **is** — and the thing `Replay` refuses
+malformed records against. Bundling it with the clock would have meant one item both gaining a
+capability and migrating a format, so that if the migration proved wrong the capability went
+with it.
+
+*Still settled by:* an item that adopts the journal and migrates the log. The cost is unchanged
+and stated above; what has changed is that it no longer has to carry the clock as well.
+
 ## Referenced By
 
 

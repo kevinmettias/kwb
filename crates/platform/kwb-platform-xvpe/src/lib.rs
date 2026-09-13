@@ -40,3 +40,28 @@
 /// *a map whose previous versions stay valid*, and the fact that it is a hash array mapped
 /// trie is `xvpe-collections-persistent`'s business.
 pub use xvpe_collections_persistent::HamtMap as VersionedMap;
+
+/// The clock a published record is timestamped by.
+///
+/// Named for its role here rather than for its implementation, like the map above. What a
+/// caller in this workspace wants is *the wall time a publication happened*; that XVPE spells
+/// it `WallClockStrategy` and can also hand out a monotonic clock is `xvpe-clock`'s business.
+///
+/// # Why this is adopted and not declared
+///
+/// `D-014` said `kwb-platform` is owed *a clock for the record's own timestamps*. It is not
+/// owed a clock *port*: a clock has no knowledge-domain semantics — its definition never
+/// mentions a claim, a concept or a source — so `D-135` puts it in XVPE, and XVPE has one.
+/// Declaring a second here would be the rival authority `KWB-49`, `KWB-55` and `KWB-61` each
+/// removed from somewhere else.
+pub use xvpe_clock::WallClockStrategy as PublicationClock;
+
+/// The time a clock reports.
+pub use xvpe_clock::Timestamp as PublicationTime;
+
+/// The implementation a host composes in, for a process that has an operating system.
+///
+/// Behind `xvpe-clock`'s `std` feature, which is why this crate takes that crate with default
+/// features on: adopting the port without it would leave `kwb-cli` with nothing to pass, which
+/// is a port with no implementation and no caller.
+pub use xvpe_clock::HostedWallClock as SystemClock;

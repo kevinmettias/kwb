@@ -837,11 +837,21 @@ fn Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board()
         // first attempt looked for `"done"` after the identifier and reported four defects that
         // did not exist, because the board writes `"Done"`. A guard whose parser is wrong does
         // not report nothing -- it reports something false, with the authority of a test.
-        let done = State_Of(&board, &item).is_some_and(|state| return state.eq_ignore_ascii_case("done"));
+        // `Claimed` counts, and `KWB-64` is why. A record amended **by** the item that satisfies
+        // its condition writes the marker while that item is still held -- the predicate runs
+        // before `finish`, so requiring `Done` here makes the only item that can honestly add a
+        // marker the one item that cannot. That is a guard fighting the workflow rather than a
+        // defect.
+        //
+        // It gives nothing up. An abandoned claim returns the item to `ready` and this fires
+        // then, and a declined one fires immediately, so a marker whose item never lands is
+        // still caught -- just at the moment the board says so rather than before.
+        let state = State_Of(&board, &item).unwrap_or_default();
+        let landing = state.eq_ignore_ascii_case("done") || state.eq_ignore_ascii_case("claimed");
 
-        if !done
+        if !landing
         {
-            unmet.push(format!("{record} calls {item} met and the board does not"));
+            unmet.push(format!("{record} calls {item} met and the board says {state:?}"));
         }
     }
 

@@ -120,9 +120,37 @@ impl core::error::Error for ReplayError {}
 
 impl Publication
 {
-    /// Write this publication as one line.
+    /// Write this publication as one line, timestamped.
+    ///
+    /// # Why the time is a trailing field and why it is optional
+    ///
+    /// `Replay` dispatches on how many fields a record has, so a field added anywhere changes
+    /// the arity of every record and a log written before this item would stop replaying. That
+    /// is not an acceptable cost for gaining a column: `D-014` made the graph durable *by*
+    /// replay, so a format change that orphans existing logs loses the thing it was built for.
+    ///
+    /// Appended, therefore, with a matching arm for each kind, so both shapes read. And
+    /// [`Option`], because a publication from before this item genuinely has no time — not a
+    /// zero, not an epoch, not the moment it happened to be read back. `Coverage` is this
+    /// repository's long argument about the difference between *unknown* and *a value*.
+    ///
+    /// Unix seconds rather than a `Timestamp`, so that `kwb-domain` records a number and the
+    /// composition root is the only place that knows where a clock comes from.
     #[must_use]
-    pub fn Record(&self) -> String
+    pub fn Record(&self, at: Option<i64>) -> String
+    {
+        let line = self.Untimed();
+
+        return match at
+        {
+            Some(at) => Joined(&[&line, &at.to_string()]),
+            None => line,
+        };
+    }
+
+    /// The record without its time, which is exactly the record this repository wrote before
+    /// `KWB-64` and is still what replay reads when a log carries no timestamps.
+    fn Untimed(&self) -> String
     {
         return match self
         {
@@ -176,10 +204,80 @@ pub fn Replay(records: &[String]) -> Result<KnowledgeGraph, ReplayError>
     for record in records
     {
         let fields: Vec<&str> = record.split(SEPARATOR).collect();
-        graph = Applied(&graph, record, &fields)?;
+        let (fields, _) = Without_Time(&fields);
+        graph = Applied(&graph, record, fields)?;
     }
 
     return Ok(graph);
+}
+
+/// How many fields a record of this kind carries before `KWB-64` added a time.
+///
+/// Named per kind rather than inferred, because the alternative is asking whether the last
+/// field *looks like* a number — and an assertion's last field is a scope, which a source is
+/// free to call `1985`. A format that can be misread by content is one that will be.
+fn Untimed_Arity(kind: &str) -> Option<usize>
+{
+    // The constants, not their spellings. A copy of `"concept"` here would be a second place
+    // that decides what a concept record is called, and it would go on agreeing until the day
+    // somebody renamed one of them -- at which point every record of that kind would read as a
+    // kind this reader does not know, and replay would refuse a log it wrote itself.
+    return match kind
+    {
+        _ if kind == CONCEPT => Some(5),
+        _ if kind == CLAIM => Some(6),
+        _ if kind == ASSERTION => Some(7),
+        _ => None,
+    };
+}
+
+/// The record's fields without its time, and the time if it carried one.
+fn Without_Time<'fields>(fields: &'fields [&'fields str]) -> (&'fields [&'fields str], Option<i64>)
+{
+    let Some(kind) = fields.first()
+    else
+    {
+        return (fields, None);
+    };
+    let Some(expected) = Untimed_Arity(kind)
+    else
+    {
+        return (fields, None);
+    };
+    if fields.len() != expected.saturating_add(1)
+    {
+        return (fields, None);
+    }
+
+    let time = fields.last().and_then(|last| return last.parse::<i64>().ok());
+    let Some(without) = fields.get(..expected)
+    else
+    {
+        return (fields, None);
+    };
+
+    return match time
+    {
+        // A record of the timestamped arity whose last field is not a number is not a
+        // timestamped record with a broken time -- it is a record this reader does not know,
+        // and `Applied` refuses it as malformed rather than silently dropping a field.
+        Some(time) => (without, Some(time)),
+        None => (fields, None),
+    };
+}
+
+/// When a record was published, if it says.
+///
+/// [`None`] for a publication written before `KWB-64`, which is *unknown* and not a zero. A
+/// caller asking what the graph looked like at a time must decide what to do about records that
+/// cannot answer, rather than being handed an epoch that sorts before everything.
+#[must_use]
+pub fn Published_At(record: &str) -> Option<i64>
+{
+    let fields: Vec<&str> = record.split(SEPARATOR).collect();
+    let (_, at) = Without_Time(&fields);
+
+    return at;
 }
 
 /// One record, applied to the graph so far.

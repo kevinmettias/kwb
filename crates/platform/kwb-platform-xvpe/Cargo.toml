@@ -29,3 +29,17 @@ default-features = false
 
 [lints]
 workspace = true
+
+# The wall clock, adopted rather than designed. `D-135`: code with no knowledge-domain
+# semantics is proposed in XVPE the first time it is written, and a clock is the clearest
+# case there is -- its definition never mentions a claim, a concept or a source. Declaring a
+# second clock port in `kwb-platform` would be a rival authority for something XVPE already
+# owns, which is the defect this repository has spent six items removing.
+#
+# `default-features` stays on, deliberately. `HostedWallClock` is behind `std`, and without it
+# this crate would adopt a port with no implementation -- measured at this commit, proved by
+# naming the types rather than by this manifest listing the crate. The cost is `web-time`,
+# which `D-012` already measured as arriving through `xvpe-clock` and accepted.
+[dependencies.xvpe-clock]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "a7eee3c6e361371b269217201233a2e7d7e36122"

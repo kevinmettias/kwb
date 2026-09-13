@@ -546,7 +546,7 @@ fn Test_Publications_Should_Order_Assertions_After_The_Claims_They_Name()
     let records: Vec<String> = report
         .Publications()
         .iter()
-        .map(kwb_domain::Publication::Record)
+        .map(|publication| return publication.Record(None))
         .collect();
 
     let replayed = kwb_domain::Replay(&records).expect("a run's own publications must replay");

@@ -21,6 +21,9 @@ kwb-store = { workspace = true }
 # names the port and nothing else, which is the whole reason this layer exists.
 kwb-platform = { workspace = true }
 kwb-platform-std = { workspace = true }
+# The clock. `KWB-64`: it is adopted from XVPE rather than declared here, so the implementation
+# this root composes in arrives through the one crate permitted to name XVPE.
+kwb-platform-xvpe = { workspace = true }
 
 [lints]
 workspace = true

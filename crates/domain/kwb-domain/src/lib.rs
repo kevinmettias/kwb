@@ -63,6 +63,7 @@ pub use knowledge_graph::EveryVersion;
 pub use knowledge_graph::KnowledgeGraph;
 pub use knowledge_graph::Versioned;
 pub use coverage::Coverage;
+pub use publication::Published_At;
 pub use publication::Publication;
 pub use publication::Replay;
 pub use publication::ReplayError;

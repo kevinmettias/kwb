@@ -22,13 +22,16 @@
 
 use std::process::ExitCode;
 
-use kwb_domain::{Concept, KnowledgeGraph, Publication, Replay, Scope, Standing, Versioned};
+use kwb_domain::{
+    Concept, KnowledgeGraph, Publication, Published_At, Replay, Scope, Standing, Versioned,
+};
 use kwb_ingest::{
     Admit, AdmissionReport, Extraction, ExtractionLineage, ExtractionRefused, ExtractionStrategy,
     ReadingKind, SourceLocation, Stated,
 };
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::{DirectoryContentStore, FileRecordLog};
+use kwb_platform_xvpe::{PublicationClock, SystemClock};
 use kwb_store::DocumentStore;
 
 /// A wrong command line, which is not the same as a run that failed.
@@ -148,7 +151,7 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
         }
     };
 
-    let published = match Record_Into(log.as_ref(), &report)
+    let published = match Record_Into(log.as_ref(), &report, Some(Now()))
     {
         Ok(()) => report.Published_Into(&known),
         Err(complaint) =>
@@ -232,7 +235,7 @@ fn History_Command(arguments: &[&str]) -> ExitCode
         }
     };
 
-    let through = match Through_From(rest, records.len())
+    let through = match Through_From(rest, &records)
     {
         Ok(through) => through,
         Err(complaint) =>
@@ -279,8 +282,9 @@ fn History_Command(arguments: &[&str]) -> ExitCode
 /// A count past the end of the log. Refused rather than clamped: a run that asked for more
 /// history than exists and was quietly given everything would be told the corpus is older than
 /// it is, and would have no way to tell that from a corpus that really is that old.
-fn Through_From(arguments: &[&str], held: usize) -> Result<usize, String>
+fn Through_From(arguments: &[&str], records: &[String]) -> Result<usize, String>
 {
+    let held = records.len();
     let through = match arguments
     {
         [flag, count, rest @ ..] if *flag == "--through" =>
@@ -293,6 +297,17 @@ fn Through_From(arguments: &[&str], held: usize) -> Result<usize, String>
                 .parse::<usize>()
                 .map_err(|_| return format!("--through takes a count, and {count:?} is not one"))?
         }
+        [flag, time, rest @ ..] if *flag == "--as-of" =>
+        {
+            if !rest.is_empty()
+            {
+                return Err(format!("unexpected argument {:?}", rest.first()));
+            }
+            let asked = time.parse::<i64>().map_err(|_| {
+                return format!("--as-of takes a time in unix seconds, and {time:?} is not one");
+            })?;
+            return Through_Time(records, asked);
+        }
         [] => held,
         _ => return Err(format!("unexpected argument {:?}", arguments.first())),
     };
@@ -303,6 +318,47 @@ fn Through_From(arguments: &[&str], held: usize) -> Result<usize, String>
             "--through {through} was asked for and the log holds {held} publications"
         ));
     }
+
+    return Ok(through);
+}
+
+/// How many publications had happened by a time.
+///
+/// # Why a log with no timestamps is refused rather than answered
+///
+/// A publication written before `KWB-64` carries no time, and `Published_At` reports that as
+/// unknown rather than as an epoch. A log made entirely of those cannot place anything in time,
+/// so every answer would be the same answer whatever was asked — which is a tool agreeing with
+/// the question instead of answering it. `D-012`'s amendment is about exactly this distinction
+/// between a value and the absence of one.
+///
+/// A log that carries *some* times answers for those, and the untimed prefix stays included:
+/// those publications did happen before the first timed one, which is the only thing about them
+/// that is known.
+///
+/// # Errors
+///
+/// A log in which nothing is timestamped.
+fn Through_Time(records: &[String], asked: i64) -> Result<usize, String>
+{
+    let timed = records.iter().filter(|record| return Published_At(record).is_some()).count();
+    if timed == 0
+    {
+        return Err(format!(
+            "nothing in this log carries a time, so as-of {asked} cannot be answered. Every \
+             publication here predates timestamps; --through takes a count, which this log can \
+             answer"
+        ));
+    }
+
+    // The log is append-only and written in order, so the publications that had happened by a
+    // time are a prefix. Counting them rather than filtering keeps that true: `Replay` refuses a
+    // record naming something no earlier record published, and a filter could drop a concept
+    // while keeping the claim about it.
+    let through = records
+        .iter()
+        .take_while(|record| return Published_At(record).is_none_or(|at| return at <= asked))
+        .count();
 
     return Ok(through);
 }
@@ -428,7 +484,7 @@ fn Close_Command(arguments: &[&str], merging: Option<()>) -> ExitCode
     // closure announced but not recorded is one the next run will not know about.
     if let Some(log) = log.as_ref()
     {
-        if let Err(cause) = log.Append(&publication.Record())
+        if let Err(cause) = log.Append(&publication.Record(None))
         {
             eprintln!("kwb: cannot record the closure: {cause}");
             return ExitCode::from(FAILURE_EXIT);
@@ -594,7 +650,11 @@ fn Known_So_Far(log: Option<&FileRecordLog>) -> Result<KnowledgeGraph, String>
 /// Before, deliberately. `D19`: a report must not outrun the work, and a run that printed its
 /// counts and then failed to record them would have told a reader about knowledge the next run
 /// will not have.
-fn Record_Into(log: Option<&FileRecordLog>, report: &AdmissionReport) -> Result<(), String>
+fn Record_Into(
+    log: Option<&FileRecordLog>,
+    report: &AdmissionReport,
+    at: Option<i64>,
+) -> Result<(), String>
 {
     let Some(log) = log
     else
@@ -604,11 +664,24 @@ fn Record_Into(log: Option<&FileRecordLog>, report: &AdmissionReport) -> Result<
 
     for publication in report.Publications()
     {
-        log.Append(&Publication::Record(&publication))
+        log.Append(&publication.Record(at))
             .map_err(|cause| return format!("cannot record a publication: {cause}"))?;
     }
 
     return Ok(());
+}
+
+/// The wall time, from the clock this composition root chose.
+///
+/// # Why the clock is named here and nowhere else
+///
+/// `kwb-platform-xvpe` adopts the port and an implementation of it; this file picks which. That
+/// is what a composition root is for, and it is why `kwb-domain` takes a number rather than a
+/// clock — a library that knew where the time came from would be a library with an opinion
+/// about the host.
+fn Now() -> i64
+{
+    return SystemClock.Now().Unix_Seconds();
 }
 
 /// The address the source was written under, rendered.

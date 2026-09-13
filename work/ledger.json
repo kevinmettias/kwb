@@ -3521,6 +3521,45 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-64",
+      "title": "A publication carries no time, so the instant two records defer to cannot be asked for in any form",
+      "why": "D-012's amendment under KWB-60 says temporal reconstruction is met in mechanism and that an instant is a publication position and not a time, because no record carries one and no clock port exists; it names the clock port as what would settle a real instant. D-014's amendment under KWB-63 says adopting xvpe-event-journal is blocked on the same port, because EventJournal::Event is generic over WallClockStrategy and writes a timestamp into every record. Two records, two deferrals, one missing port. Measured at a7eee3c6e, the commit kwb-platform-xvpe already pins, and proved by use in a scratch crate rather than by the manifest: xvpe-clock exports WallClockStrategy with Now returning Timestamp, and HostedWallClock implements it behind feature std, which pulls exactly one third-party crate, web-time 1.1.0 -- the crate D-012 already measured and accepted as arriving through xvpe-clock. So KWB does not need to design a clock. Under D-135 it must not: a clock is domain-neutral, xvpe owns one, and declaring a second port for it here would be the rival authority this repository has spent six items removing.",
+      "done_when": "kwb-platform-xvpe adopts xvpe-clock at the commit it already pins and re-exports the port, the timestamp and the hosted implementation, the way it already re-exports the persistent map as VersionedMap; no clock trait is declared in kwb-platform, because xvpe owns that and KWB does not restate what xvpe owns. A publication record carries the time it was published. Replay reads a record without one as what it is -- a publication from before this item -- so existing logs still replay and the field is additive rather than a format break; a test fixes that using a log written before the change rather than one constructed to pass. kwb history answers a real instant, not only a position, and refuses a time the log cannot answer rather than returning the nearest thing. A test drives the built binary and fails if the time is ignored. D-012's amendment stops saying an instant cannot be asked for in any form and says what now answers it. D-014's says why adopting the journal is still a separate item: its reason for bundling was that a port with no implementation and no caller is what this repository has a name for, and that reason is discharged by this item's caller, while changing a publication from positional to JSON remains a format decision of its own.",
+      "kind": "Capability",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/domain/kwb-domain",
+          "crates/host/kwb-cli",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md",
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789279159,
+        "lease_expires_at": 1789286359
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
