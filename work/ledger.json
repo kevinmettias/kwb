@@ -3144,6 +3144,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-57",
+      "title": "The eaten-continuation scanner reads Rust only, and the fifth instance landed in the one command a reader is told to type",
+      "why": "KWB-52 built a scanner for a literal whose line continuation was eaten by a scripted edit, and it reads .rs files under crates/. KWB-56 found the fifth instance outside that reach: both kwb admit lines in README.md's Trying it section carried seven spaces before --says, in the only command a new reader is asked to run. The scanner would never have seen it. The damage is a property of an edit, not of a language -- anything a scripted edit writes can lose a continuation, and a console block is the worst place for it to land because a reader copies it. Markdown is not Rust, so the Rust rule does not transfer: indentation is meaningful in markdown, tables are aligned deliberately, and a fenced block holds text whose layout is its content. A scan that flagged those would be turned off, which is the failure mode KWB-52's own exemptions were written against.",
+      "done_when": "A guard fails on a run of spaces in the middle of a command line inside a fenced console block anywhere under docs/ and in README.md and AGENTS.md. It reads only the command lines of console fences, because that is where the damage lands and where a reader copies from, and it says why it does not scan markdown generally -- deliberate alignment, meaningful indentation, and fenced content whose layout is the point. Each exemption is demonstrated by a real shape from these files rather than described. It is shown to detect the instance KWB-56 fixed, reconstructed, and the reader is asserted to have found the files and the fences, because a scanner that reads nothing passes everywhere. If it flags anything else in the tree, that is a finding and is fixed rather than exempted.",
+      "kind": "Validation",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789275718,
+        "lease_expires_at": 1789282918
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
