@@ -8,6 +8,13 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+# The tool registry, so `projections.rs` can project it rather than parse the source that
+# declares it. `KWB-62` recorded that this crate depends on nothing and that a check meant to
+# catch a stale claim should not be why a serialization crate enters the workspace -- that
+# argument is about *third-party* dependencies and is unchanged. A projection has to read the
+# canonical value; reading the text that declares it would make the check a second parser of
+# the thing it exists to stop being restated.
+kwb-mcp = { workspace = true }
 
 [lints]
 workspace = true

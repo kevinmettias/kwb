@@ -118,6 +118,9 @@ dependencies = [
 [[package]]
 name = "kwb-contract-tests"
 version = "0.1.0"
+dependencies = [
+ "kwb-mcp",
+]
 
 [[package]]
 name = "kwb-contracts"

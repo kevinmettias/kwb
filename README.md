@@ -80,13 +80,20 @@ cited    Stahl 1703 [not current: what it cites is not]
 
 The five, and the world each reads:
 
+<!-- generated from kwb_mcp::TOOLS -->
 | Tool | World | Answers |
 |---|---|---|
 | `search` | current | claims whose text contains every word of a query |
 | `get_concept` | current | concepts whose canonical name contains every word of a query |
-| `neighbours` | current | a concept with its claims and their citations |
-| `merge_losers` | historical | concepts closed against a successor, with the reason |
-| `held_neighbours` | historical | what a concept carried, live or closed |
+| `neighbours` | current | a concept with its claims and their assertions |
+| `merge_losers` | historical | concepts closed against a successor -- the question an audit needs |
+| `held_neighbours` | historical | what a concept carried, live or closed -- what a merge loser said |
+<!-- end generated -->
+
+*That table is a projection of `kwb_mcp::TOOLS` and is checked against it, not maintained beside
+it. Three of its five rows disagreed with the registry before `KWB-70`, because the guards here
+checked that two documents named the same tools and never that they said the same thing about
+them. The prose around it is a person's and stays a person's.*
 
 A tool reads the world it declares and takes no world as an argument, so no caller can ask the
 historical question of the current graph — `D19-B` is the incident where exactly that happened
