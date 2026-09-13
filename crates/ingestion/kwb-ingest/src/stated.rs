@@ -115,14 +115,18 @@ impl ExtractionStrategy for Stated
         source: ContentIdentity,
         _content: &[u8],
         _needed: ReadingKind,
-    ) -> Result<ProposedReading, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
     {
-        return Ok(ProposedReading::Of(
+        // One reading, because a person supplied one location. `KWB-66` made a read return many
+        // so that a reader which splits a source can locate each passage truthfully; this reader
+        // does not split, and saying so with a single-element list is more honest than inventing
+        // passage boundaries a person never drew.
+        return Ok(vec![ProposedReading::Of(
             source,
             self.location.clone(),
             self.statements.clone(),
             self.lineage.clone(),
-        ));
+        )]);
     }
 
     fn Scope(&self) -> Scope

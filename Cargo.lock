@@ -135,6 +135,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "kwb-extract"
+version = "0.1.0"
+dependencies = [
+ "kwb-domain",
+ "kwb-ingest",
+ "kwb-model",
+ "kwb-platform-xvpe",
+ "kwb-store",
+]
+
+[[package]]
 name = "kwb-ingest"
 version = "0.1.0"
 dependencies = [
@@ -175,8 +186,10 @@ dependencies = [
 name = "kwb-platform-xvpe"
 version = "0.1.0"
 dependencies = [
+ "xvpe-ai-inference",
  "xvpe-clock",
  "xvpe-collections-persistent",
+ "xvpe-corpus-text",
 ]
 
 [[package]]
@@ -376,6 +389,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "xvpe-ai-inference"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+dependencies = [
+ "xvpe-json-text",
+ "xvpe-primitives",
+]
+
+[[package]]
 name = "xvpe-clock"
 version = "0.1.0"
 source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
@@ -420,6 +442,19 @@ dependencies = [
  "smallvec",
  "xvpe-primitives",
 ]
+
+[[package]]
+name = "xvpe-corpus-text"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+dependencies = [
+ "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-json-text"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
 
 [[package]]
 name = "xvpe-primitives"

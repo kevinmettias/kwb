@@ -335,10 +335,30 @@ impl core::error::Error for ExtractionRefused {}
 /// [`Stated`]: crate::Stated
 pub trait ExtractionStrategy
 {
-    /// Read a source and propose what it says.
+    /// Read a source and propose what it says, one reading per passage.
     ///
     /// `needed` is what kind of reading this source takes. An implementation that does not do
     /// that kind refuses with [`ExtractionRefused::CannotRead`] and proposes nothing.
+    ///
+    /// # Why many readings and not one
+    ///
+    /// `D-015` deferred this and named the condition: *a reader that splits*. `KWB-66` is that
+    /// reader — it chunks a source and asks about each passage — so the question is live and
+    /// settled here. A [`ProposedReading`] carries **one** location, so a reader that merged
+    /// several passages into one reading would locate every proposal at whichever passage it
+    /// picked. Returning one reading per passage keeps a location true instead of average.
+    ///
+    /// # Why a failed passage refuses the whole read
+    ///
+    /// All or nothing, deliberately. If a reader returned the passages it managed and dropped
+    /// the rest, a source two thirds read would report the same shape as a source fully read —
+    /// and admission would derive its coverage from what it was handed, which is the prototype's
+    /// **1,367 `Barren` rows** exactly: a partial result recorded as a complete one.
+    ///
+    /// The cost is that one unreadable passage loses a whole document's work, which is a real
+    /// cost and the right one while a source is a handful of passages. *Revisited when:* a
+    /// corpus exists where a partial reading is worth keeping, which needs a way to say *these
+    /// passages and not those* that does not read like a complete reading.
     ///
     /// # Why there is no `Reads(kind) -> bool` beside this
     ///
@@ -366,7 +386,7 @@ pub trait ExtractionStrategy
         source: ContentIdentity,
         content: &[u8],
         needed: ReadingKind,
-    ) -> Result<ProposedReading, ExtractionRefused>;
+    ) -> Result<Vec<ProposedReading>, ExtractionRefused>;
 
     /// The scope assertions from this extractor are made at.
     ///

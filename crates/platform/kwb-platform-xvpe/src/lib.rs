@@ -65,3 +65,55 @@ pub use xvpe_clock::Timestamp as PublicationTime;
 /// features on: adopting the port without it would leave `kwb-cli` with nothing to pass, which
 /// is a port with no implementation and no caller.
 pub use xvpe_clock::HostedWallClock as SystemClock;
+
+/// Cutting a source into passages small enough to ask about.
+///
+/// Named for the role: what this repository wants is *a passage a reader can be asked about*,
+/// and that XVPE calls it a chunk and measures a page fidelity onto it is `xvpe-corpus-text`'s
+/// business. `KWB-47` said this is where `PageFidelity` would arrive, and `KWB-66` is where it
+/// maps into `ReadingKind` rather than replacing it.
+pub mod reading
+{
+    pub use xvpe_corpus_text::Chunk as Passage;
+    pub use xvpe_corpus_text::ChunkBudget as PassageBudget;
+    pub use xvpe_corpus_text::ChunkingStrategy as PassageSplitter;
+    pub use xvpe_corpus_text::FidelityThresholds;
+    pub use xvpe_corpus_text::PageFidelity;
+    pub use xvpe_corpus_text::PageNumber;
+    pub use xvpe_corpus_text::PageProfile;
+    pub use xvpe_corpus_text::PageText;
+    pub use xvpe_corpus_text::SectionBoundary;
+}
+
+/// Asking a question and getting an answer, with the answer's shape constrained.
+///
+/// # Why the whole request vocabulary comes through rather than a narrower door
+///
+/// A narrower one would mean this crate deciding what a request may contain, which is adding
+/// behaviour — the one thing its charter forbids. The quarantine is not that KWB touches few
+/// XVPE types; it is that **one crate names XVPE**, so a change of mechanism is a change here.
+///
+/// What the quarantine does exclude is a provider. Neither adopted crate carries one, and no
+/// credential or network dependency enters this workspace, which is why every test downstream
+/// runs on [`ReplayInference`] against committed recordings.
+///
+/// [`ReplayInference`]: inference::ReplayInference
+pub mod inference
+{
+    pub use xvpe_ai_inference::AnswerValue;
+    pub use xvpe_ai_inference::ContentBlock;
+    pub use xvpe_ai_inference::InferenceError;
+    pub use xvpe_ai_inference::InferenceRequest;
+    pub use xvpe_ai_inference::InferenceResponse;
+    pub use xvpe_ai_inference::InferenceStrategy;
+    pub use xvpe_ai_inference::ModelIdentifier;
+    pub use xvpe_ai_inference::ModelRole;
+    pub use xvpe_ai_inference::RequestFingerprint;
+    pub use xvpe_ai_inference::ResponseSchema;
+    pub use xvpe_ai_inference::SchemaField;
+    pub use xvpe_ai_inference::SchemaNode;
+    pub use xvpe_ai_inference::TokenUsage;
+    pub use xvpe_ai_inference::recording_codec;
+    pub use xvpe_ai_inference::strategies::ReplayInference;
+    pub use xvpe_ai_inference::strategies::ReplayRecording;
+}

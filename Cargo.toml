@@ -30,7 +30,8 @@ members = [
 
     # Band 3 — ingestion. The admission pipeline: link-concepts, normalize-concepts,
     # admit, in the .NET prototype's own order until a reason to change it is found.
-    "crates/ingestion/kwb-ingest",
+    "crates/ingestion/kwb-extract",
+  "crates/ingestion/kwb-ingest",
 
     # Band 3 — retrieval. Search and graph traversal over the domain model.
     "crates/retrieval/kwb-retrieval",
@@ -59,6 +60,7 @@ kwb-platform = { path = "crates/platform/kwb-platform" }
 kwb-platform-std = { path = "crates/platform/kwb-platform-std" }
 kwb-platform-xvpe = { path = "crates/platform/kwb-platform-xvpe" }
 kwb-domain = { path = "crates/domain/kwb-domain" }
+kwb-extract = { path = "crates/ingestion/kwb-extract" }
 kwb-ingest = { path = "crates/ingestion/kwb-ingest" }
 kwb-retrieval = { path = "crates/retrieval/kwb-retrieval" }
 

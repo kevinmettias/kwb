@@ -615,7 +615,8 @@ fn Test_Changing_The_Protocol_Should_Not_Redefine_What_A_Claim_Is()
     )
     .expect("a reader")
     .Read(source, b"the passage", ReadingKind::Text)
-    .expect("a stated reading cannot fail");
+    .expect("a stated reading cannot fail")
+    .remove(0);
 
     let second = Stated::Of(
         statements,
@@ -625,7 +626,8 @@ fn Test_Changing_The_Protocol_Should_Not_Redefine_What_A_Claim_Is()
     )
     .expect("a reader")
     .Read(source, b"the passage", ReadingKind::Text)
-    .expect("a stated reading cannot fail");
+    .expect("a stated reading cannot fail")
+    .remove(0);
 
     assert_ne!(
         first.Lineage(),
@@ -656,7 +658,7 @@ impl ExtractionStrategy for Silent
         _source: kwb_model::ContentIdentity,
         _content: &[u8],
         _needed: ReadingKind,
-    ) -> Result<ProposedReading, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
     {
         return Err(ExtractionRefused::ReaderFailed {
             cause: "the answer did not parse".to_owned(),
@@ -711,7 +713,8 @@ fn Test_A_Reading_Should_Carry_The_Address_Of_What_Was_Read()
     )
     .expect("a reader")
     .Read(source, b"the passage", ReadingKind::Text)
-    .expect("a stated reading cannot fail");
+    .expect("a stated reading cannot fail")
+    .remove(0);
 
     assert_eq!(reading.Source(), source);
     assert_eq!(reading.Location().Description(), "chapter two");
@@ -731,7 +734,7 @@ impl ExtractionStrategy for TextOnly
         source: kwb_model::ContentIdentity,
         content: &[u8],
         needed: ReadingKind,
-    ) -> Result<ProposedReading, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
     {
         if needed != ReadingKind::Text
         {
@@ -745,12 +748,12 @@ impl ExtractionStrategy for TextOnly
             |text| return vec![Offered("a concept", text)],
         );
 
-        return Ok(ProposedReading::Of(
+        return Ok(vec![ProposedReading::Of(
             source,
             SourceLocation::Named("throughout"),
             proposed,
             ExtractionLineage::Of("read-the-text-v1", "a text extractor"),
-        ));
+        )]);
     }
 
     fn Scope(&self) -> Scope
@@ -825,14 +828,14 @@ impl ExtractionStrategy for Confused
         _source: kwb_model::ContentIdentity,
         _content: &[u8],
         _needed: ReadingKind,
-    ) -> Result<ProposedReading, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
     {
-        return Ok(ProposedReading::Of(
+        return Ok(vec![ProposedReading::Of(
             Document::Of(b"some other document".to_vec()).Identity(),
             SourceLocation::Named("throughout"),
             vec![Offered("entropy", "It is non-decreasing.")],
             A_Reading("a reader with the wrong book open"),
-        ));
+        )]);
     }
 
     fn Scope(&self) -> Scope

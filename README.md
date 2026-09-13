@@ -121,9 +121,22 @@ held       1
 That is the other half of an audit `merge_losers` starts: one says what was merged away, this
 says what the graph looked like before it.
 
-**There is no extractor.** Nothing here reads a document and decides what it says — that is what
-`--says` is for, and it is the interesting half. `kwb help` has the flags; they are not repeated
-here, because a copy of a help text is a copy that drifts.
+**There is an extractor, and it has no provider.** `kwb-extract` reads a born-digital text
+source: it splits the source into passages with XVPE's chunker, asks a model what each passage
+asserts under a schema, and returns proposals — which `Admit` then lowers through the same
+identity, normalization and write door that `--says` goes through. Two documents read this way,
+proposing the same proposition, become **one claim with two citations**, with nobody typing the
+claim. That is `KWB-66`, and it is exercised end to end.
+
+What is deliberately absent is the thing that answers: no provider, credential or network
+dependency is in this workspace. Every test replays committed answers, so the suite is offline,
+free and exactly reproducible. **There is therefore no `kwb admit --read` flag**, because without
+a provider it would ask an operator to supply recordings for passages they would already have had
+to record — a test harness wearing a command's clothes. The flag arrives with the provider
+adapter, which lives outside this repository by design.
+
+`kwb help` has the flags; they are not repeated here, because a copy of a help text is a copy that
+drifts.
 
 ## Bands
 
@@ -139,6 +152,7 @@ against the real workspace, both directions.
 | 1p | `kwb-platform-std` | The standard-library implementation of those traits. |
 | 1p | `kwb-platform-xvpe` | The one crate permitted to name XVPE. Adopts the persistent map versioned state is built on, by git reference and commit SHA. `D-007`, `D-012`. |
 | 2 | `kwb-domain` | Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel. |
+| 3 | `kwb-extract` | A model-backed reader, behind the extraction seam. The only crate that asks a model anything, and it chooses no provider. |
 | 3 | `kwb-ingest` | The admission pipeline: link-concepts, normalize-concepts, admit. |
 | 3 | `kwb-retrieval` | Answering questions about the graph, and never changing it. |
 | 10 | `kwb-cli` | The `kwb` composition root. |

@@ -1,0 +1,24 @@
+[package]
+name = "kwb-extract"
+version = "0.1.0"
+description = "A model-backed reader, behind the extraction seam. The only crate that asks a model anything, and it chooses no provider."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# The seam this implements, and the vocabulary it proposes in.
+kwb-ingest = { workspace = true }
+kwb-domain = { workspace = true }
+kwb-model = { workspace = true }
+# Reading and inference, through the one crate permitted to name XVPE. Nothing here names
+# XVPE directly, which is what keeps `D-007`'s single edge single.
+kwb-platform-xvpe = { workspace = true }
+
+[dev-dependencies]
+# Driving the seam end to end needs the write door and a graph to publish into.
+kwb-store = { workspace = true }
+
+[lints]
+workspace = true

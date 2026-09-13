@@ -16,6 +16,7 @@ use kwb_store::DocumentStore;
 use kwb_store::StoreError;
 use kwb_store::Written;
 
+use crate::Extraction;
 use crate::ExtractionRefused;
 use crate::ProposedReading;
 use crate::ExtractionStrategy;
@@ -245,7 +246,7 @@ pub fn Admit(
     {
         Some(reader) => reader
             .Read(document.Identity(), document.Content(), needed)
-            .and_then(|reading| return Read_The_Right_Document(reading, document.Identity())),
+            .and_then(|readings| return Read_The_Right_Document(readings, document.Identity())),
         None => Err(ExtractionRefused::NotRead),
     };
     let source = store.Write(document)?;
@@ -271,8 +272,14 @@ pub fn Admit(
     // is. This spelled it `Scope::Named("")` until `KWB-50`, which is how a blank `--scope`
     // came to record the same thing as no `--scope` at all.
     let scope = reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
-    let extractions = reading.Proposed();
-    let normalized = Normalize_Concepts(Link_Concepts(extractions));
+    // Every passage's proposals, together. They are linked and normalized as one body because
+    // that is what makes a concept mentioned in two passages one concept -- the same mechanism
+    // that makes it one concept across two documents, one level in.
+    let extractions: Vec<Extraction> = reading
+        .iter()
+        .flat_map(|reading| return reading.Proposed().to_vec())
+        .collect();
+    let normalized = Normalize_Concepts(Link_Concepts(&extractions));
 
     // The citation. The source is the document's own address rather than a filename or a
     // title, so following it returns the bytes the claim was read out of -- and two documents
@@ -319,14 +326,15 @@ pub fn Admit(
 ///
 /// [`ExtractionRefused::ReaderFailed`] when the reading names another document.
 fn Read_The_Right_Document(
-    reading: ProposedReading,
+    readings: Vec<ProposedReading>,
     handed: ContentIdentity,
-) -> Result<ProposedReading, ExtractionRefused>
+) -> Result<Vec<ProposedReading>, ExtractionRefused>
 {
-    if reading.Source() == handed
+    let Some(reading) = readings.iter().find(|reading| return reading.Source() != handed)
+    else
     {
-        return Ok(reading);
-    }
+        return Ok(readings);
+    };
 
     return Err(ExtractionRefused::ReaderFailed {
         cause: format!(
