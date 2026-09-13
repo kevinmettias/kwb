@@ -5,7 +5,7 @@
 //! crate the workspace does not have fails it too. Deliberately simple — this repository
 //! is new and has one such check, not the five Nomos accumulated over its own history.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 fn Repository_Root() -> PathBuf
@@ -105,5 +105,107 @@ fn Test_Every_Readme_Table_Row_Should_Name_A_Real_Workspace_Member()
     assert!(
         missing_from_workspace.is_empty(),
         "README.md's band table names crates the workspace does not have: {missing_from_workspace:?}"
+    );
+}
+
+// ---- KWB-38: a relation is discoverable from both ends, or it is not discoverable ----
+
+/// Every record's identifier, mapped to its text.
+fn Records() -> BTreeMap<String, String>
+{
+    let directory = Repository_Root().join("docs/records");
+    let entries = std::fs::read_dir(&directory).expect("docs/records should be readable");
+
+    let mut records = BTreeMap::new();
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if path.extension().is_some_and(|extension| return extension == "md")
+        {
+            let name = path
+                .file_name()
+                .and_then(|name| return name.to_str())
+                .unwrap_or_default();
+            let mut parts = name.split('-');
+            let (Some(prefix), Some(number)) = (parts.next(), parts.next())
+            else
+            {
+                continue;
+            };
+            let text = std::fs::read_to_string(&path).expect("a readable record");
+            records.insert(format!("{prefix}-{number}"), text);
+        }
+    }
+
+    assert!(!records.is_empty(), "no records were scanned, so this test proves nothing");
+    return records;
+}
+
+/// Every relation a record's frontmatter declares, as `(source, target)`.
+fn Declared_Relations(records: &BTreeMap<String, String>) -> Vec<(String, String)>
+{
+    let mut relations = Vec::new();
+    for (identifier, text) in records
+    {
+        let Some(frontmatter) = text.split("---").nth(1)
+        else
+        {
+            continue;
+        };
+        for line in frontmatter.lines()
+        {
+            let trimmed = line.trim();
+            let Some(target) = trimmed.strip_prefix("- target:")
+            else
+            {
+                continue;
+            };
+            relations.push((identifier.clone(), target.trim().to_owned()));
+        }
+    }
+    return relations;
+}
+
+/// A record that answers, amends or builds on another must be reachable **from** that other.
+///
+/// # Why this is a test and not a convention
+///
+/// Measured before `KWB-38`: of 27 declared relations, **24 had no counterpart in the record
+/// they pointed at**. So the record graph was almost entirely backward-linked, and a reader of
+/// an older record could not reach the newer one that answered it.
+///
+/// That is not a tidiness complaint. `D-008` went on asserting that durability was uncovered
+/// after `D-014` decided it and `KWB-30` built it; `D-012` said nothing survives the process
+/// after `KWB-33` and `KWB-34` made knowledge survive it; `D-013` sent a reader to a crate the
+/// evidence vocabulary had already left. Every correction existed and none was reachable from
+/// where the false statement was.
+///
+/// `AGENTS.md` routes every *why* question to `docs/records/` and calls them canonical. A
+/// canonical record asserting something the repository stopped doing is the stale-premise
+/// defect one level above the code, in the documents that are supposed to be the fix for it.
+#[test]
+fn Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends()
+{
+    let records = Records();
+
+    let mut one_way: Vec<String> = Vec::new();
+    for (source, target) in Declared_Relations(&records)
+    {
+        let Some(target_text) = records.get(&target)
+        else
+        {
+            one_way.push(format!("{source} -> {target} (no such record)"));
+            continue;
+        };
+        if !target_text.contains(&source)
+        {
+            one_way.push(format!("{source} -> {target} (target never names {source})"));
+        }
+    }
+
+    assert!(
+        one_way.is_empty(),
+        "these relations are declared in one direction only, so a reader of the target cannot \
+         reach the record that relates to it: {one_way:#?}"
     );
 }

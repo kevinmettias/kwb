@@ -2074,6 +2074,64 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-38",
+      "title": "Record relations are declared one way, so three records still assert things this repository stopped doing and a reader of them cannot find the correction",
+      "why": "Measured: of 27 relations declared in record frontmatter, 24 have no counterpart in the record they point at. Only three are discoverable from both ends, and those three only because D-004 amendment happened to name them. So the record graph is almost entirely backward-linked, and a reader of an older record cannot reach the newer one that answered or amended it. That is not theoretical. D-008 says durability in any form is uncovered because kwb-store holds documents in memory for the length of a process; KWB-30 made it durable. D-012 says the same sentence about documents and adds that a persistent structure holds versions the same way; KWB-33 and KWB-34 record and replay them. D-013 says the evidence vocabulary lives in the reference miner reachable by nothing; it was extracted to xvpe-evidence. Each correction exists and none is reachable from where the false statement is. AGENTS.md says records are canonical and routes every why question to them, so a canonical record asserting something the code stopped doing is the stale-premise defect this session has now found five times in code, occurring one level up in the documents that are supposed to be the fix for it.",
+      "done_when": "Every relation a record declares is discoverable from both ends, and a check asserts it rather than a convention requiring it -- so a record that answers an earlier one cannot be written without the earlier one gaining a way to reach it. The three false statements are corrected where they stand, by amendment rather than rewriting, because what a record said and when it stopped being true is the thing a reader needs and a silent edit destroys it. The check fails if a relation is added in one direction only, verified by adding one.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 3 tests\ntest Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table ... ok\ntest Test_Every_Readme_Table_Row_Should_Name_A_Real_Workspace_Member ... ok\ntest Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n",
+        "verified_at": 1789263832,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "03b418e6945db7b3073b767da7deb6e2aed8ce33"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

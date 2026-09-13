@@ -3,7 +3,7 @@ id: D-013
 type: decision
 title: The work ledger is shared coordination, D-005's deferral condition has been met, and this repository's position is that it belongs to XVPE
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - ecosystem
@@ -136,3 +136,18 @@ issue against the current owner cannot raise that.
 **Saying nothing until asked.** Rejected: `D-005` named a condition, the condition has been met,
 and a record whose trigger fires silently is `D-004`'s own lesson from two days ago — a list
 nobody re-reads goes stale in both directions.
+
+## Amendment: The Evidence Vocabulary Moved, 2026-09-12
+
+The closing note says the evidence vocabulary *"lives in
+`crates/apps/tools/xvpe-reference-miner`, above everything, reachable by nothing"*, and offers
+it as the next question of this record's shape.
+
+It was extracted the same day, to `xvpe-evidence` in XVPE's `foundations/contracts` — `no_std`,
+no dependencies, with `QuoteVerification` and `ClaimGrounding` moved and the bearing grade and
+the combined confidence deliberately left behind, because a bearing is a fact about a claim and
+a *codebase* and a knowledge base has none. This repository is named there as the measured
+second consumer.
+
+So the question this record raised has been answered in the direction it pointed, which does not
+change what it decided about the ledger.
