@@ -117,7 +117,7 @@ impl DocumentStore
         {
             Some(held) if held.Content() == document.Content() => Admission::AlreadyPresent,
             Some(_) => return Err(StoreError::Collision { document: identity }),
-            None => Admission::Stored,
+            None => self.Admission_Of_Unheld(identity)?,
         };
 
         let written = Written::For(&document, admission);
@@ -134,10 +134,54 @@ impl DocumentStore
                     .Put(&identity.Render(), document.Content())
                     .map_err(|cause| return StoreError::NotStored { cause })?;
             }
-            self.documents.insert(identity, document);
         }
 
+        // Held either way, because memory is a cache of what the *store* holds and not a
+        // record of what this process wrote. A document already on the medium is one this
+        // store holds, so `Read` must answer for it -- and before the admission consulted the
+        // medium, that happened by accident, because every re-admission looked new.
+        self.documents.insert(identity, document);
+
         return Ok(written);
+    }
+
+    /// What a document this store does not hold in memory is, which is not always new.
+    ///
+    /// # The defect this exists to stop
+    ///
+    /// Memory is empty at the start of every process and the medium is not. Deciding from
+    /// memory alone therefore made a backed store report [`Admission::Stored`] for bytes that
+    /// were already on disk — a success value produced on a path that did no work, which is
+    /// `D19`, in the crate whose one job is not lying about writes.
+    ///
+    /// `D-008` recorded content-addressed idempotence as **stronger** than an idempotency key,
+    /// because a key can be forgotten and content cannot. That is only true if the question is
+    /// asked of everything the store holds rather than of the half that happens to be in this
+    /// process.
+    ///
+    /// # Why the bytes are not read back to compare
+    ///
+    /// The address is the digest, and the write path guarantees a complete value under a
+    /// complete address — `D-014`'s atomicity requirement, discharged by a temporary name and a
+    /// rename. Re-reading here would be paying on every write for a guarantee the write already
+    /// gives, and it would not be a check on the medium so much as a second opinion about the
+    /// same digest.
+    ///
+    /// A medium that cannot answer refuses the write. Guessing would put the lie back with an
+    /// extra step in front of it.
+    fn Admission_Of_Unheld(&self, identity: ContentIdentity) -> Result<Admission, StoreError>
+    {
+        let Some(durable) = self.durable.as_ref()
+        else
+        {
+            return Ok(Admission::Stored);
+        };
+
+        let held = durable
+            .Holds(&identity.Render())
+            .map_err(|cause| return StoreError::NotStored { cause })?;
+
+        return Ok(if held { Admission::AlreadyPresent } else { Admission::Stored });
     }
 
     /// The document at an address.

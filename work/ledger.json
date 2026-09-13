@@ -1888,6 +1888,63 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-35",
+      "title": "A backed store decides Stored or AlreadyPresent from memory alone, so every process reports storing what it already durably held",
+      "why": "Measured. Write a document to a backed store, drop the store, open another over the same directory and write the same document: the receipt says Stored and Was_Stored returns true, for bytes that were already on disk and which Put correctly skipped. The receipt means this write is what put the bytes there and it is false. That is precisely the lie Written and Admission were built to prevent -- D19, a success value produced on a path that did no work -- and KWB-30 reintroduced it by adding a durable backing while leaving the decision keyed on the in-memory map. D-008 recorded content-addressed idempotence as stronger than an idempotency key because a key can be forgotten and content cannot; across processes that is currently untrue, and a caller counting admissions over-reports by exactly the number of documents it already had. Worth saying plainly: this was introduced by me, today, in the crate whose one job is not lying about writes, and it was found by probing my own work rather than by any test failing.",
+      "done_when": "A backed store decides its admission from what it actually holds, memory or medium, so re-admitting a durably held document reports AlreadyPresent and Was_Stored is false. An unbacked store is unchanged. A failure to ask the medium refuses the write rather than guessing, because guessing would put the lie back with an extra step. Tests cover the case a process boundary creates -- a store opened over a directory another store wrote -- since that is the only place this defect lives and no single-process test would have caught it.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-store"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 18 tests\ntest Test_A_Write_Should_Return_The_Address_Its_Content_Has ... ok\ntest Test_A_Held_Document_Should_Not_Change_When_Another_Is_Written ... ok\ntest Test_A_Write_Offering_No_Bytes_Should_Be_Refused ... ok\ntest Test_A_Written_Document_Should_Reread_Byte_Identical ... ok\ntest Test_An_Admission_Should_Have_No_Default_To_Fall_Into ... ok\ntest Test_An_Unbacked_Store_Should_Decide_Its_Admissions_Exactly_As_Before ... ok\ntest Test_An_Unbacked_Store_Should_Still_Work_And_Say_It_Keeps_Nothing ... ok\ntest Test_Every_Address_The_Store_Reports_Should_Read_Back ... ok\ntest Test_Reading_An_Address_Nothing_Wrote_Should_Be_Refused_Rather_Than_Empty ... ok\ntest Test_The_Collision_Refusal_Should_Render_Its_Address ... ok\ntest Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In ... ok\ntest Test_Writing_The_Same_Document_Twice_Should_Say_So_Rather_Than_Report_Two_Admissions ... ok\ntest Test_Two_Documents_Differing_Only_By_Whitespace_Should_Both_Be_Held ... ok\ntest Test_The_Crate_Should_Expose_Exactly_One_Mutating_Method ... ok\ntest Test_A_Document_Held_Only_On_The_Medium_Should_Still_Read_Back ... ok\ntest Test_A_Backed_Store_Should_Keep_What_It_Wrote_Beyond_Its_Own_Lifetime ... ok\ntest Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present ... ok\ntest Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-4847c775acd9e625.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-6a0d6ef67be080af.exe)\n   Doc-tests kwb_store\n",
+        "verified_at": 1789260063,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "bcb65f24718303eaeb2f3489a8a36f31ea4128af"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

@@ -345,3 +345,75 @@ fn Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call()
          holds something the next process will not"
     );
 }
+
+// ---- KWB-35: an admission is decided from what the store holds, not from this process ----
+
+#[test]
+fn Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present()
+{
+    // The defect this replaced: memory is empty at the start of every process and the medium
+    // is not, so deciding from memory alone made every process report storing what it already
+    // had. That is a success value produced on a path that did no work, in the crate whose one
+    // job is not lying about writes.
+    let root = std::env::temp_dir().join("kwb-store-test-across-processes");
+    let _ = std::fs::remove_dir_all(&root);
+    let content = b"a passage".to_vec();
+
+    let first = {
+        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
+        let mut store = DocumentStore::Backed_By(Box::new(backing));
+        store.Write(Document::Of(content.clone())).expect("writes")
+    };
+    assert!(first.Was_Stored(), "the first write is what put the bytes there");
+
+    // A second store over the same directory: a new process, as far as memory is concerned.
+    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("reopens");
+    let mut store = DocumentStore::Backed_By(Box::new(backing));
+    let second = store.Write(Document::Of(content.clone())).expect("writes");
+
+    assert!(
+        !second.Was_Stored(),
+        "the bytes were already on the medium, so this write is not what put them there"
+    );
+    assert_eq!(second.Admission(), Admission::AlreadyPresent);
+    assert_eq!(first.Identity(), second.Identity());
+}
+
+#[test]
+fn Test_A_Document_Held_Only_On_The_Medium_Should_Still_Read_Back()
+{
+    // The regression the fix above could have introduced: an AlreadyPresent document that
+    // never entered memory would be one the store holds and cannot answer for.
+    let root = std::env::temp_dir().join("kwb-store-test-reads-across");
+    let _ = std::fs::remove_dir_all(&root);
+    let content = b"a passage worth reading".to_vec();
+
+    let identity = {
+        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
+        let mut store = DocumentStore::Backed_By(Box::new(backing));
+        store.Write(Document::Of(content.clone())).expect("writes").Identity()
+    };
+
+    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("reopens");
+    let mut store = DocumentStore::Backed_By(Box::new(backing));
+    let written = store.Write(Document::Of(content.clone())).expect("writes");
+
+    assert!(!written.Was_Stored());
+    assert_eq!(
+        store.Read(identity).expect("a document the store holds must read back").Content(),
+        content
+    );
+}
+
+#[test]
+fn Test_An_Unbacked_Store_Should_Decide_Its_Admissions_Exactly_As_Before()
+{
+    let mut store = DocumentStore::Empty();
+
+    let first = store.Write(Passage("a passage")).expect("writes");
+    let second = store.Write(Passage("a passage")).expect("writes again");
+
+    assert!(first.Was_Stored());
+    assert_eq!(second.Admission(), Admission::AlreadyPresent);
+    assert_eq!(store.Length(), 1);
+}
