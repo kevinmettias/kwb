@@ -194,6 +194,17 @@ impl ProposedReading
     }
 
     /// Under what protocol, and by whom.
+    ///
+    /// # This reaches the door and stops there
+    ///
+    /// `Admit` reads [`Proposed`] and [`Source`] and discards this and [`Location`]. An
+    /// `Assertion` holds a source, a claim and a scope, so nothing about the *reading* survives
+    /// into the graph. Recorded here rather than left for a reader to discover, because a field
+    /// nothing consumes reads exactly like a field something does.
+    ///
+    /// [`Proposed`]: Self::Proposed
+    /// [`Source`]: Self::Source
+    /// [`Location`]: Self::Location
     #[must_use]
     pub const fn Lineage(&self) -> &ExtractionLineage
     {

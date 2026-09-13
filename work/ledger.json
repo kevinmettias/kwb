@@ -2923,6 +2923,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-53",
+      "title": "Admission carries a reading's location and lineage to the door and drops both, and the type that exists to make provenance explicit says in its own documentation that it does not",
+      "why": "KWB-47 declared ProposedReading carrying the source it read, where in it, what it proposes, and the protocol and reader that produced them. Admit consults exactly one of those four. Measured: nothing outside the seam's own tests reads Location or Lineage, and Assertion::By takes a source, a claim and a scope, so both are constructed, handed to Admit and discarded. The stated invariant that every admitted claim identifies its source occurrence and extraction protocol is therefore unmet, and Stated's documentation says the opposite in as many words -- 'now the record says which person and under what protocol' -- which is false of every record this repository writes. That is the defect this session has closed five times in other people's work, written by me, in the doc comment of the type whose whole purpose is making provenance explicit. Separately, Admit ignores the source the reading says it read and cites the document it was given instead, so a reader returning a reading about a different document has its proposals silently attributed to this one. The citation resolving to the exact bytes a claim was read out of is the strongest thing this repository claims, and nothing checks that the reader agreed about which bytes those were.",
+      "done_when": "Admit refuses a reading whose source is not the document it was handed, as a reader that did not answer usably, so proposals cannot be attributed to a document the reader did not read. A test builds a reader that returns a reading about another document and fixes that it is refused rather than cited. The documentation says what is true: a reading carries its location and lineage to the seam and no further, what that leaves unmet, and which item owns the question. No location or lineage is added to Assertion here, because whether they belong on it and what that does to its identity is a decision and not a correction -- an assertion whose identity absorbed the protocol would make a re-read under a new prompt a second citation, and one that carried them without identifying by them would let a value disagree with itself, which KWB-32 has already fixed once.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789274348,
+        "lease_expires_at": 1789281548
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

@@ -25,12 +25,25 @@ use crate::SourceLocation;
 /// through the same door a model-backed reader will use, so the seam has a working
 /// implementation on the day it is declared rather than a promise of one.
 ///
-/// # What this makes visible
+/// # What this makes visible, and what it does not yet record
 ///
-/// `--says` records **no location and no lineage**. It never has. Passing it through this type
-/// forces both to be said out loud — a person is a reader with a protocol, and now the record
-/// says which person and under what protocol, instead of an assertion whose origin is
-/// *the command line* and nothing more.
+/// `--says` supplies **no location and no lineage**. It never has. Passing it through this type
+/// forces both to be *said* — a person is a reader with a protocol, and this is where the
+/// protocol and the person get named instead of being implied by somebody having typed them.
+///
+/// **They are said and not yet recorded.** `Admit` carries a reading's location and lineage as
+/// far as the door and then drops both: an `Assertion` holds a source, a claim and a scope, so
+/// what survives into the graph is the source address and nothing about the reading. The
+/// invariant that every admitted claim identifies its source *occurrence* and its extraction
+/// protocol is therefore **unmet**, and this paragraph said the opposite until `KWB-53` — in
+/// the documentation of the type whose whole purpose is making provenance explicit.
+///
+/// Left as a stated gap rather than closed in passing, because whether an `Assertion` carries
+/// them is a decision with a consequence either way. If its identity absorbed the protocol, a
+/// re-read under a new prompt would become a second citation of the same source for the same
+/// claim. If it carried them without identifying by them, two readings would meet at one
+/// assertion holding one of their lineages, and a value would disagree with itself — which
+/// `KWB-32` has already had to fix once, for `Concept` and `Claim`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Stated
 {

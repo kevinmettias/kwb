@@ -2,6 +2,8 @@
 
 use core::num::NonZeroUsize;
 
+use kwb_model::ContentIdentity;
+
 use kwb_domain::Assertion;
 use kwb_domain::Coverage;
 use kwb_domain::KnowledgeGraph;
@@ -15,6 +17,7 @@ use kwb_store::StoreError;
 use kwb_store::Written;
 
 use crate::ExtractionRefused;
+use crate::ProposedReading;
 use crate::ExtractionStrategy;
 use crate::Link_Concepts;
 use crate::Normalize_Concepts;
@@ -240,7 +243,9 @@ pub fn Admit(
     // below runs -- the reading produces proposals, and proposals are not records.
     let reading = match reader
     {
-        Some(reader) => reader.Read(document.Identity(), document.Content(), needed),
+        Some(reader) => reader
+            .Read(document.Identity(), document.Content(), needed)
+            .and_then(|reading| return Read_The_Right_Document(reading, document.Identity())),
         None => Err(ExtractionRefused::NotRead),
     };
     let source = store.Write(document)?;
@@ -286,6 +291,50 @@ pub fn Admit(
         source: Some(source),
         refusal: None,
         assertions,
+    });
+}
+
+/// The reading, if it is about the document it was handed.
+///
+/// # Why this is checked rather than assumed
+///
+/// `Admit` cites the document *it* wrote, not the one the reading names, and it did so without
+/// ever comparing them. A reader that returned a reading about a different document therefore
+/// had its proposals attributed to this one, silently and with a citation that resolved
+/// perfectly — to the wrong bytes.
+///
+/// That a citation resolves to the exact bytes a claim was read out of is the strongest thing
+/// this repository claims, and `D-006` is the dependency edge that rests on it. An unchecked
+/// field is not provenance; it is a field.
+///
+/// # Why the disagreement is a refusal and not a panic
+///
+/// It is a fault in the reader, and a fault in a reader is the case [`ExtractionRefused`]
+/// already describes: it was asked and did not answer usably. Nothing was learned about *this*
+/// source, which is what makes the outcome [`Coverage::Unmet`] rather than anything else — the
+/// same landing every other unanswered reading gets, reached without a variant that would only
+/// ever mean "the reader has a bug".
+///
+/// # Errors
+///
+/// [`ExtractionRefused::ReaderFailed`] when the reading names another document.
+fn Read_The_Right_Document(
+    reading: ProposedReading,
+    handed: ContentIdentity,
+) -> Result<ProposedReading, ExtractionRefused>
+{
+    if reading.Source() == handed
+    {
+        return Ok(reading);
+    }
+
+    return Err(ExtractionRefused::ReaderFailed {
+        cause: format!(
+            "the reading is about {}, and the document handed to it was {}. Refusing to cite \
+             the second for what was read out of the first",
+            reading.Source().Render(),
+            handed.Render()
+        ),
     });
 }
 

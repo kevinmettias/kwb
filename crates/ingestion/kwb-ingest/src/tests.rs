@@ -810,3 +810,83 @@ fn Test_The_Same_Reader_Should_Read_A_Source_That_Is_Already_Text()
     assert_eq!(report.Assertions().len(), 1);
     assert!(report.Refusal().is_none(), "a reading that happened is not a refusal");
 }
+
+/// A reader that answers about a document it was not given.
+///
+/// Not a hypothetical. `Admit` cites the document *it* wrote and never compared it with the one
+/// the reading names, so this reader's proposals were attributed to whatever source happened to
+/// be passed in, with a citation that resolved perfectly to the wrong bytes.
+struct Confused;
+
+impl ExtractionStrategy for Confused
+{
+    fn Read(
+        &self,
+        _source: kwb_model::ContentIdentity,
+        _content: &[u8],
+        _needed: ReadingKind,
+    ) -> Result<ProposedReading, ExtractionRefused>
+    {
+        return Ok(ProposedReading::Of(
+            Document::Of(b"some other document".to_vec()).Identity(),
+            SourceLocation::Named("throughout"),
+            vec![Offered("entropy", "It is non-decreasing.")],
+            A_Reading("a reader with the wrong book open"),
+        ));
+    }
+
+    fn Scope(&self) -> Scope
+    {
+        return Unstated();
+    }
+}
+
+#[test]
+fn Test_A_Reading_About_Another_Document_Should_Not_Be_Cited_As_This_One()
+{
+    // That a citation resolves to the exact bytes a claim was read out of is the strongest
+    // thing this repository claims, and `D-006`'s dependency edge rests on it. An unchecked
+    // field is not provenance; it is a field.
+    let mut store = DocumentStore::Empty();
+
+    let report = Admit(
+        b"a source".to_vec(),
+        Some(&Confused),
+        ReadingKind::Text,
+        &mut store,
+    )
+    .expect("the source is admitted; only the reading is refused");
+
+    assert!(
+        report.Assertions().is_empty(),
+        "a reading about another document was cited as this one, so the citation resolves to \
+         bytes the claim was not read out of"
+    );
+    assert_eq!(report.Coverage().Name(), "unmet");
+    assert!(
+        report
+            .Refusal()
+            .is_some_and(|refusal| return matches!(refusal, ExtractionRefused::ReaderFailed { .. })),
+        "a reader that answered about the wrong document was not reported as having failed"
+    );
+}
+
+#[test]
+fn Test_A_Reading_About_The_Right_Document_Should_Still_Be_Admitted()
+{
+    // The control. Without it the test above passes against a check that refuses every reading,
+    // which would be a guard that reports the strongest possible provenance by admitting
+    // nothing at all.
+    let mut store = DocumentStore::Empty();
+
+    let report = Admit(
+        b"a source".to_vec(),
+        Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Unstated())),
+        ReadingKind::Text,
+        &mut store,
+    )
+    .expect("admits");
+
+    assert_eq!(report.Assertions().len(), 1);
+    assert!(report.Refusal().is_none());
+}
