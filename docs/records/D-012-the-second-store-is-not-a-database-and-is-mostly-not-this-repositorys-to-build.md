@@ -340,11 +340,12 @@ claim stays visible beside its correction here; this amendment is the correction
 
 
 *Written by hand, and checked by `tests/contract` in both directions: a declared relation with
-no entry here fails, and an entry here that no record declares a relation to fails too. A
-relation is declared in the frontmatter of the record that makes it; this is the other end, so
-that a reader of this record can reach the ones that answer, amend or build on it. Before
-`KWB-38`, 24 of 27 relations were reachable from one side only — which is how three records
-came to assert things this repository had stopped doing.*
+no entry here fails, and an entry here that nothing declares a relation to fails too. Either
+end may be a record or an observation, since `KWB-86`. A relation is declared in the
+frontmatter of the document that makes it; this is the other end, so that a reader of this
+record can reach the ones that answer, amend or build on it. Before `KWB-38`, 24 of 27
+relations were reachable from one side only — which is how three records came to assert things
+this repository had stopped doing.*
 
 - `D-013`
 - `D-014`

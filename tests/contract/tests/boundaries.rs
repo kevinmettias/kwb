@@ -182,7 +182,7 @@ fn Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends()
 ///
 /// # Why this is not `Records()`, and must not become it
 ///
-/// `KWB-85` widened the relation checks to cover `docs/observations/`, because an observation
+/// `KWB-86` widened the relation checks to cover `docs/observations/`, because an observation
 /// declaring `relates-to D-005` was invisible to them in both directions — the one relation in
 /// this repository unreachable from its target, which is the condition `KWB-38` exists for.
 /// `D-005`'s own *Referenced By* note claimed it was checked both ways, and for observations
@@ -1658,5 +1658,142 @@ fn Test_An_Observation_May_Be_Revised_Without_An_Amendment_Section()
          longer demonstrates what it was written to demonstrate -- that an observation is revised \
          in place. Either the convention changed, in which case AGENTS.md is now wrong, or the \
          one example was edited away and a new one is needed"
+    );
+}
+
+// ---- KWB-87: one note about the relation check, carried by every record that needs it ----
+
+/// What a record's *Referenced By* note says, and the only place it is written.
+///
+/// # Why this is a constant and not eleven paragraphs
+///
+/// It was eleven paragraphs. Measured for `KWB-87`: the identical text was copied verbatim into
+/// every record that has a *Referenced By* section — eleven of the fifteen; the other four have
+/// no section, and the correlation is exact, which the test below asserts rather than assumes.
+///
+/// Nothing made them agree. They did agree, which is why it went unnoticed for as long as it
+/// did, and it is the truth question rather than the agreement question that bit: `KWB-86`
+/// widened the relation guards to read observations, and every copy went on saying *no record*
+/// where an observation now counts too. Eleven copies of a sentence about a mechanism, and the
+/// mechanism had changed underneath all of them.
+///
+/// So the note is derived from here, the way `README.md`'s tool and bands tables are derived
+/// from the registry and the manifests. The copies still exist — a record should carry its own
+/// note where a reader meets it, not a pointer — but agreement is no longer somebody's job.
+const REFERENCED_BY_NOTE: &str = "*Written by hand, and checked by `tests/contract` in both \
+     directions: a declared relation with no entry here fails, and an entry here that nothing \
+     declares a relation to fails too. Either end may be a record or an observation, since \
+     `KWB-86`. A relation is declared in the frontmatter of the document that makes it; this is \
+     the other end, so that a reader of this record can reach the ones that answer, amend or \
+     build on it. Before `KWB-38`, 24 of 27 relations were reachable from one side only — which \
+     is how three records came to assert things this repository had stopped doing.*";
+
+/// The same text with its line breaks collapsed, so wrapping is not part of the contract.
+///
+/// A guard that compared line breaks would fail the day somebody reflowed a paragraph, which is
+/// a guard failing for the wrong reason — worse than one passing for the wrong reason, because
+/// it spends a reader's attention on nothing.
+fn Collapsed(text: &str) -> String
+{
+    return text.split_whitespace().collect::<Vec<&str>>().join(" ");
+}
+
+/// The italic note a record carries under its *Referenced By* heading, when it carries one.
+fn Referenced_By_Note(record: &str) -> Option<String>
+{
+    let after = record.split("## Referenced By").nth(1)?;
+    let (note, _) = after.trim_start().split_once("*\n")?;
+
+    return Some(format!("{note}*"));
+}
+
+/// Every record with a *Referenced By* section carries the note, and it is the note.
+#[test]
+fn Test_Every_Referenced_By_Section_Should_Carry_The_One_Note()
+{
+    let records = Records();
+
+    let carrying: Vec<&String> = records
+        .iter()
+        .filter(|(_, text)| return text.contains("## Referenced By"))
+        .map(|(identifier, _)| return identifier)
+        .collect();
+
+    assert!(
+        carrying.len() >= 10,
+        "only {} records have a Referenced By section, so this guard covers almost nothing",
+        carrying.len()
+    );
+
+    let expected = Collapsed(REFERENCED_BY_NOTE);
+    let mut wrong: Vec<String> = Vec::new();
+    for identifier in &carrying
+    {
+        let text = records.get(*identifier).expect("a record just enumerated");
+        let Some(note) = Referenced_By_Note(text)
+        else
+        {
+            wrong.push(format!("{identifier} has a Referenced By section and no note"));
+            continue;
+        };
+        if Collapsed(&note) != expected
+        {
+            wrong.push(format!("{identifier}'s note is not the note: {note}"));
+        }
+    }
+
+    assert!(
+        wrong.is_empty(),
+        "these records describe the relation check differently from every other record -- the \
+         note is derived from REFERENCED_BY_NOTE and a record may not carry its own version of \
+         it: {wrong:#?}"
+    );
+}
+
+/// A record with no incoming relation has no *Referenced By* section, and that is the whole rule.
+///
+/// # What this asserts that the test above does not
+///
+/// The test above checks the records that have a section. This checks the four that do not —
+/// `D-009`, `D-011`, `D-013` and `D-015` when `KWB-87` measured it — and says the reason is that
+/// nothing declares a relation to them, rather than that somebody forgot the section.
+///
+/// The distinction matters because the two look identical from outside. If a record acquires an
+/// incoming relation and nobody adds the section, the relation guard already fails; this fails
+/// earlier and more precisely, at the record that is now missing a section it needs.
+#[test]
+fn Test_A_Record_Has_A_Referenced_By_Section_Exactly_When_Something_Points_At_It()
+{
+    let documents = Relating_Documents();
+    let records = Records();
+    let declared = Declared_Relations(&documents);
+
+    let mut wrong: Vec<String> = Vec::new();
+    for (identifier, text) in &records
+    {
+        let pointed_at = declared.iter().any(|(_, target)| return target == identifier);
+        let has_section = text.contains("## Referenced By");
+
+        if pointed_at && !has_section
+        {
+            wrong.push(format!("{identifier} is related to and has no Referenced By section"));
+        }
+        if !pointed_at && has_section
+        {
+            wrong.push(format!(
+                "{identifier} has a Referenced By section and nothing declares a relation to it"
+            ));
+        }
+    }
+
+    assert!(
+        declared.len() >= 10,
+        "only {} relations were found, so this guard compares against almost nothing",
+        declared.len()
+    );
+    assert!(
+        wrong.is_empty(),
+        "a Referenced By section means something points here, and its absence means nothing \
+         does -- these say otherwise: {wrong:#?}"
     );
 }
