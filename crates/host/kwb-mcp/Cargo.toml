@@ -7,6 +7,13 @@ rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
 
+# A library as well as a binary, so the tool surface can be tested. A dispatcher
+# nothing could call from a test would be a surface whose promise is unchecked,
+# which is the defect it exists to prevent.
+[lib]
+name = "kwb_mcp"
+path = "src/lib.rs"
+
 [[bin]]
 name = "kwb-mcp"
 path = "src/main.rs"
