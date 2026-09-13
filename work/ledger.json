@@ -2658,6 +2658,34 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-48",
+      "title": "The one route this repository has to ownership lands on a burden of proof a later record narrowed, so a session is told to build generic code here first",
+      "why": "AGENTS.md routes 'What does KWB own versus Nomos, XVPE, or repository tooling?' to nomos ARC-ECOSYSTEM-001 and says this repository does not restate it, which is right. ARC-ECOSYSTEM-001 version 4 adopts D-122 and quotes it: a shared mechanism moves to XVPE only after two products have demonstrated materially identical domain-neutral semantics. D-135 narrows that -- D-122's proof gate governs only code that started product-specific, and code designed for shared use is proposed in XVPE the first time it is written. D-135 names this repository by name as one of the two products the narrowing is for. Nothing links the two: D-135 declares relates-to ARC-ECOSYSTEM-001 and ARC-ECOSYSTEM-001 does not mention D-135, so the relation is reachable from one side only, which is the exact defect KWB-38 fixed inside this repository and could not fix across the boundary. A session that follows the route reads the un-narrowed gate and concludes it must build a domain-neutral mechanism here and wait for a second product, which is the opposite of what was decided.",
+      "done_when": "AGENTS.md routes the ownership question to both records and says what each settles: ARC-ECOSYSTEM-001 decides ownership by semantics, D-135 decides where domain-neutral code is authored the first time. The route states that D-135 is the later and narrowing record so a reader cannot take the quoted D-122 gate as the whole rule. No record content is restated here beyond what the route needs to send a reader to the right one, because not restating is what makes this routing table correct. The one-directional relation belongs to the sibling repository and is named as owed there rather than worked around here.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "AGENTS.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789272714,
+        "lease_expires_at": 1789279914
+      },
+      "verification": null,
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

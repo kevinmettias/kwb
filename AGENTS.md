@@ -18,12 +18,28 @@ Read the authority. Do not infer the architecture from the code nearest to your 
 | What was measured, and on what? | `docs/corpus/` — surveys of the prototype and of Nomos. Evidence the records cite, kept apart from them because a measurement outlives the decision it informed |
 | What has this repository learned about how it works? | `docs/observations/` — findings about the process rather than the product. Open until something acts on them, and they are not decisions |
 | What does KWB own versus Nomos, XVPE, or repository tooling? | `f:/repos/nomos/docs/records/ARC-ECOSYSTEM-001-...md` — this repository does not restate it |
+| Where does code that is *not* about knowledge get written in the first place? | `f:/repos/nomos/docs/records/D-135-...md` — the later record, and it narrows the one above |
 | What work is available, claimed, blocked, or already refused? | `work/ledger.json` |
 | What must pass before I finish? | the claimed item's own verification predicate |
 | Which files am I allowed to change? | the territory of the item you hold, and nothing else |
 
 When two of those disagree, the mechanical one wins and the disagreement is a defect worth
 an item.
+
+**The two ownership rows are not one row, and reading only the first one gets it wrong.**
+`ARC-ECOSYSTEM-001` decides ownership *by semantics* and adopts `D-122`, which it quotes: a
+shared mechanism moves to XVPE only after two products have demonstrated materially identical
+domain-neutral semantics. `D-135` is later and narrows that gate to code which *started*
+product-specific. Code designed for shared use from the outset is proposed in XVPE **the first
+time it is written**, and `D-135` names this repository as one of the two products that
+narrowing is for.
+
+The second row exists because the first one cannot be followed to the second. `D-135` declares
+a relation to `ARC-ECOSYSTEM-001`; `ARC-ECOSYSTEM-001` does not mention `D-135`. A session that
+followed the route and stopped would read the un-narrowed gate and build a domain-neutral
+mechanism here to wait for a second product — the cost `D-135` exists to avoid. Making that
+relation reachable from both ends belongs to the sibling repository and is owed there;
+`KWB-38` is what fixing it looks like, and it could only fix the records inside this one.
 
 ## The loop
 
