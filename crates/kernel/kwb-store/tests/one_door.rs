@@ -285,3 +285,63 @@ fn Test_The_Collision_Refusal_Should_Render_Its_Address()
 
     assert!(format!("{refusal}").contains(&identity.Render()));
 }
+
+// ---- D-014: a write that reaches memory and not the medium is not a write ----
+
+#[test]
+fn Test_A_Backed_Store_Should_Keep_What_It_Wrote_Beyond_Its_Own_Lifetime()
+{
+    let root = std::env::temp_dir().join("kwb-store-test-survives");
+    let _ = std::fs::remove_dir_all(&root);
+    let content = b"a passage worth keeping".to_vec();
+
+    let identity = {
+        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
+        let mut store = DocumentStore::Backed_By(Box::new(backing));
+        assert!(store.Is_Durable());
+        store.Write(Document::Of(content.clone())).expect("writes").Identity()
+    };
+
+    // The store is gone. The bytes are not.
+    let survivor = kwb_platform_std::DirectoryContentStore::Under(&root).expect("reopens");
+    assert_eq!(
+        kwb_platform::ContentStoreStrategy::Get(&survivor, &identity.Render()).expect("reads"),
+        content,
+        "the document did not survive the store that wrote it"
+    );
+}
+
+#[test]
+fn Test_An_Unbacked_Store_Should_Still_Work_And_Say_It_Keeps_Nothing()
+{
+    // A test suite that needed a filesystem to test a type would be testing the filesystem.
+    let mut store = DocumentStore::Empty();
+
+    let written = store.Write(Passage("a passage")).expect("writes");
+
+    assert!(!store.Is_Durable(), "an unbacked store must not claim to keep anything");
+    assert_eq!(store.Read(written.Identity()).expect("reads").Content(), b"a passage");
+}
+
+#[test]
+fn Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call()
+{
+    // D19: the report must not outrun the work. A document in memory and not on the medium
+    // exists until the process ends, and a caller told nothing would not know which of its
+    // documents were real.
+    let root = std::env::temp_dir().join("kwb-store-test-refuses");
+    let _ = std::fs::remove_dir_all(&root);
+    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
+    let document = Passage("a passage");
+    std::fs::create_dir_all(root.join(document.Identity().Render())).expect("obstructs");
+
+    let mut store = DocumentStore::Backed_By(Box::new(backing));
+    let refusal = store.Write(document).expect_err("must refuse");
+
+    assert!(matches!(refusal, StoreError::NotStored { .. }), "{refusal}");
+    assert!(
+        store.Is_Empty(),
+        "the document was kept in memory after the durable write failed, so the store now \
+         holds something the next process will not"
+    );
+}

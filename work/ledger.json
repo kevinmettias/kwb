@@ -1581,6 +1581,69 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-30",
+      "title": "D-014 decided documents go to content-addressed files and kwb-platform has no traits at all",
+      "why": "D-014 answered the document half of durability completely -- one file per address, no index, no overwrite, writes atomic by temp-then-rename -- and named exactly what a port must offer to serve it. kwb-platform is a doc comment with no traits, and kwb-platform-std is a doc comment with no implementations, so the decision has nothing to be implemented against. kwb admit still loses every byte it writes. The atomicity requirement is the part that must not be got wrong and the reason to do this carefully rather than quickly: a half-written file under a content address is the one way this store can lie, because the address promises the bytes and nothing downstream re-hashes what it reads, so a truncated file is a silent corruption rather than a loud failure.",
+      "done_when": "kwb-platform declares a filesystem port sufficient for a content-addressed store and nothing wider, kwb-platform-std implements it over the standard library, and kwb-store can be constructed over one so that writes land on disk and survive the process. The one-write-door property is unchanged and its test still passes: persistence is reached through the existing door, never beside it. A write is atomic -- a reader never sees a partial file under a complete address -- and a test demonstrates it rather than the code asserting it. An in-memory store still works with no backing at all, because a test suite that needed a filesystem to test a type would be testing the filesystem.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform",
+          "crates/platform/kwb-platform-std",
+          "crates/kernel/kwb-store"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "-p",
+          "kwb-platform-std",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "-p",
+          "kwb-platform-std",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "asured; 0 filtered out; finished in 0.00s\n\n\nrunning 15 tests\ntest Test_An_Admission_Should_Have_No_Default_To_Fall_Into ... ok\ntest Test_A_Write_Offering_No_Bytes_Should_Be_Refused ... ok\ntest Test_A_Write_Should_Return_The_Address_Its_Content_Has ... ok\ntest Test_A_Held_Document_Should_Not_Change_When_Another_Is_Written ... ok\ntest Test_Every_Address_The_Store_Reports_Should_Read_Back ... ok\ntest Test_Reading_An_Address_Nothing_Wrote_Should_Be_Refused_Rather_Than_Empty ... ok\ntest Test_A_Written_Document_Should_Reread_Byte_Identical ... ok\ntest Test_An_Unbacked_Store_Should_Still_Work_And_Say_It_Keeps_Nothing ... ok\ntest Test_The_Collision_Refusal_Should_Render_Its_Address ... ok\ntest Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In ... ok\ntest Test_Two_Documents_Differing_Only_By_Whitespace_Should_Both_Be_Held ... ok\ntest Test_Writing_The_Same_Document_Twice_Should_Say_So_Rather_Than_Report_Two_Admissions ... ok\ntest Test_The_Crate_Should_Expose_Exactly_One_Mutating_Method ... ok\ntest Test_A_Backed_Store_Should_Keep_What_It_Wrote_Beyond_Its_Own_Lifetime ... ok\ntest Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running tests\\directory_content_store.rs (target\\debug\\deps\\directory_content_store-dd0fa236681e73ed.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-4847c775acd9e625.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-6a0d6ef67be080af.exe)\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_store\n",
+        "verified_at": 1789258700,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "59b04a54a4ad33c6421b7d522f884ab85ecf7c9a"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

@@ -16,6 +16,20 @@
 //! `D-007` is why adoption is by git reference and commit SHA rather than by `path`.
 //! `D-012` is what was adopted and why it was adopted rather than written.
 //!
-//! Nothing is implemented yet.
+//! # What is here
+//!
+//! [`ContentStoreStrategy`]: somewhere bytes can be kept under an address and read back
+//! unchanged, atomically. `D-014` decided the document half of durability and this is the
+//! surface it named — five operations, no listing, no deletion, no directory walk. A port wide
+//! enough to be a filesystem would let a caller reach past `kwb-store`'s single write door,
+//! which is the second route into storage `D-008` measured the cost of.
+//!
+//! The clock, lock and process ports the prototype's platform had are not here yet. They will
+//! arrive when something needs them, one at a time, rather than as a set nothing consumes.
 
 #![forbid(unsafe_code)]
+
+mod content_store_port;
+
+pub use content_store_port::ContentStoreStrategy;
+pub use content_store_port::StorageError;

@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use kwb_model::ContentIdentity;
+use kwb_platform::ContentStoreStrategy;
 
 use crate::Admission;
 use crate::Document;
@@ -43,19 +44,48 @@ use crate::Written;
 /// growing a file path or a connection string before that record exists.
 ///
 /// [`Write`]: Self::Write
-#[derive(Clone, Debug, Default)]
+#[derive(Default)]
 pub struct DocumentStore
 {
     documents: BTreeMap<ContentIdentity, Document>,
+
+    /// Where writes are also kept, when the store was given somewhere.
+    ///
+    /// `Option` rather than a null implementation: a store with no durable backing is a real
+    /// configuration — every test in this workspace is one — and making that state a variant of
+    /// the type says so, where a do-nothing strategy would have made *lost on exit* look
+    /// identical to *written to disk* at every call site.
+    durable: Option<Box<dyn ContentStoreStrategy>>,
 }
 
 impl DocumentStore
 {
-    /// A store holding nothing.
+    /// A store holding nothing, keeping nothing beyond this process.
     #[must_use]
     pub fn Empty() -> Self
     {
         return Self::default();
+    }
+
+    /// A store that also writes through to somewhere durable.
+    ///
+    /// This is a **constructor, not a second door**. Durability is reached through
+    /// [`Write`][Self::Write] like everything else, which is what keeps the one-write-path
+    /// property true rather than true-except-for-persistence.
+    #[must_use]
+    pub fn Backed_By(durable: Box<dyn ContentStoreStrategy>) -> Self
+    {
+        return Self {
+            documents: BTreeMap::new(),
+            durable: Some(durable),
+        };
+    }
+
+    /// Whether this store keeps anything beyond the process.
+    #[must_use]
+    pub const fn Is_Durable(&self) -> bool
+    {
+        return self.durable.is_some();
     }
 
     /// Write a document. This is the only way anything enters the store.
@@ -94,6 +124,16 @@ impl DocumentStore
 
         if written.Was_Stored()
         {
+            // The medium first. A document recorded in memory and not on the medium is a
+            // document that exists until the process ends, and `D19`'s lesson is that the
+            // report must not outrun the work -- so a failed durable write refuses the whole
+            // call rather than succeeding into memory alone.
+            if let Some(durable) = self.durable.as_ref()
+            {
+                durable
+                    .Put(&identity.Render(), document.Content())
+                    .map_err(|cause| return StoreError::NotStored { cause })?;
+            }
             self.documents.insert(identity, document);
         }
 

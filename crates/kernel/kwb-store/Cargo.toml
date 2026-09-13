@@ -9,6 +9,13 @@ publish.workspace = true
 
 [dependencies]
 kwb-model.workspace = true
+# The durable seam D-014 decided. The store names the port, never an implementation.
+kwb-platform.workspace = true
+
+# An implementation of the port, for tests only. The crate itself names the port and
+# never an implementation -- choosing one is a composition root's job.
+[dev-dependencies]
+kwb-platform-std.workspace = true
 
 [lints]
 workspace = true
