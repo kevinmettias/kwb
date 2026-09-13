@@ -4406,6 +4406,62 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-80",
+      "title": "README's ecosystem section says no crate depends on XVPE, thirty lines under a generated table saying which crate does and what it adopts",
+      "why": "README.md line 183 reads: XVPE, the shared application platform. No crate here depends on it yet. That was true until KWB-24 created kwb-platform-xvpe, and the same README's own generated bands table now reads kwb-platform-xvpe: the one crate permitted to name XVPE. Adopts the persistent map, the wall clock, the passage splitter and the inference surface, each by git reference and commit SHA. The document contradicts itself across thirty lines, and the false half is the hand-written half. This is the fifth copy of the retired XVPE premise. KWB-18 corrected three, KWB-27 found a fourth, KWB-28 a manifest comment; each pass read code and records, and none read the README's prose sections, so the copy living there outlived every correction aimed at the family. D-007 is NOT wrong and must not be touched: it says no crate depends on xvpe BY PATH, which is exact and still true. The defect is the README dropping that qualifier. Worse, D-012 already named this correction. Its consequences list says the bands table needs a row for whatever quarantines the XVPE dependency, and README.md currently says no crate here depends on XVPE -- both corrections owed once the crate exists. The crate exists. The bands row was discharged by KWB-75's projection without the record being told, and the README half was never done at all. So one bullet is simultaneously phantom debt and real debt, which is why neither half got attention: a reader checking it finds one claim true and stops.",
+      "done_when": "README.md states what is actually true of the XVPE relationship -- that one quarantine crate adopts XVPE by git reference and commit SHA, and that no crate depends on it by path, which is what D-007 decided -- rather than a sentence its own generated table refutes. D-012's owed-corrections bullet says which half was discharged and by what, and carries no obligation that has been met. The correction is an amendment, not an edit to the original text, because a superseded claim stays visible beside its correction here. Nothing about any decision changes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "ured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Blocking waiting for file lock on package cache\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.73s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789289054,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "c5954d1c79158bc77b815a6c914ba83a793f6fbe"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

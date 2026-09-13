@@ -180,8 +180,18 @@ The operating contract is `AGENTS.md`. It is not repeated here.
 
 - `f:/repos/nomos` — Nomos, the software-engineering authority this product does not
   duplicate.
-- `f:/repos/xvpe` — XVPE, the shared application platform. No crate here depends on it
-  yet, and `D-007` states the reason and what was measured. In short: not because XVPE is
-  broken — the crates this repository would want compile clean and pull no third-party
-  package between them — but because a `path` edge would make this repository's
-  reproducibility a function of another repository's working tree.
+- `f:/repos/xvpe` — XVPE, the shared application platform. Exactly one crate here depends
+  on it — `kwb-platform-xvpe`, which exists to quarantine the dependency — and it adopts
+  by git reference and commit SHA. **No crate depends on it by `path`**, which is the part
+  `D-007` decided and the part that matters: not because XVPE is broken — the crates this
+  repository would want compile clean and pull no third-party package between them — but
+  because a `path` edge would make this repository's reproducibility a function of another
+  repository's working tree. What XVPE supplies, and why it is adopted rather than
+  written, is `D-012`.
+
+  This paragraph said *no crate here depends on it yet* until `KWB-80`, thirty lines below
+  a generated table naming the crate that does and listing what it adopts. It is the fifth
+  copy of a premise retired in 2026-09-12 and corrected four times — `KWB-18` found three,
+  `KWB-27` a fourth, `KWB-28` a manifest comment — and it outlived all of them because
+  every pass read code and records, and this is prose in a README. That is the cost of
+  restating a fact: a correction reaches the copies somebody thought to look for.

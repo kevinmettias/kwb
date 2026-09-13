@@ -3,7 +3,7 @@ id: D-012
 type: decision
 title: The second store is not a database, and most of it is not this repository's to build
 status: accepted
-version: 4
+version: 5
 authority: canonical-normative-record
 tags:
   - storage
@@ -300,6 +300,41 @@ already defers it. Any of those is a measurement, not a preference, and would be
 the same footing as the eight above.
 
 Nothing decided above changes. Only the sentence that reads like a rule.
+
+## Amendment: Both Owed Corrections Are Settled, And One Had Been For Days, 2026-09-13
+
+The Consequences list above says:
+
+> **The bands table needs a row** for whatever quarantines the XVPE dependency, and `README.md`
+> currently says no crate here depends on XVPE. Both are corrections owed once the crate exists,
+> not before.
+
+The crate has existed since `KWB-24`. Measured for `KWB-80`, the two halves were in opposite
+states and had been for some time.
+
+**The bands row was discharged and nothing said so.** `KWB-75` made the bands table a projection
+of the crate manifests, so `kwb-platform-xvpe` appears in it with what it adopts — not because
+anybody acted on this bullet, but because the table stopped being hand-maintained and the crate
+had a manifest. The obligation was met as a side effect of removing the class of obligation.
+
+**The README half was never done.** It still read *No crate here depends on it yet*, thirty lines
+under the generated table naming the crate that does. `KWB-80` corrected it, and the README now
+carries the qualifier `D-007` actually decided: no crate depends on XVPE **by `path`**.
+
+The reason neither half got attention is the shape worth recording. A bullet naming two
+obligations is checked by reading it, and a reader who confirms the first one is true has no
+prompt to check the second. **Phantom debt and real debt in one sentence hide each other**:
+`KWB-76` swept this repository for obligations that had been discharged without being closed and
+would have closed this bullet outright; a sweep for obligations still outstanding would have
+found the README and left the bands row. Neither sweep reads a mixed bullet correctly, and this
+one survived both.
+
+So the rule this record can offer is narrow and mechanical: **one obligation per bullet.** A
+consequence that names two things cannot be settled, only half-settled, and half-settled reads
+as settled from either end.
+
+Nothing decided above changes. The Consequences list is left as written, because a superseded
+claim stays visible beside its correction here; this amendment is the correction.
 
 ## Referenced By
 
