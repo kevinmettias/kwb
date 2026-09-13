@@ -2,9 +2,11 @@
 
 use core::num::NonZeroUsize;
 
+use kwb_domain::Assertion;
 use kwb_domain::Coverage;
 use kwb_domain::KnowledgeGraph;
 use kwb_domain::Publication;
+use kwb_domain::Scope;
 use kwb_domain::Standing;
 use kwb_domain::Versioned;
 use kwb_store::Document;
@@ -50,6 +52,7 @@ pub struct AdmissionReport
     coverage: Coverage,
     normalized: Normalized,
     source: Option<Written>,
+    assertions: Vec<Assertion>,
 }
 
 impl AdmissionReport
@@ -66,6 +69,22 @@ impl AdmissionReport
     pub const fn Normalized(&self) -> &Normalized
     {
         return &self.normalized;
+    }
+
+    /// Who asserted what, and at what scope.
+    ///
+    /// One per admitted claim, sourced by the **content address of the document it came from**.
+    /// That is what makes a citation resolve: the address is the digest, so following it
+    /// returns the exact bytes the claim was read out of, or fails loudly because they are
+    /// gone. `D-006`'s dependency edge, and the reason `D-014` keeps documents at all.
+    ///
+    /// This is where `D-010`'s decision becomes a thing the pipeline does rather than a thing
+    /// a record says: a claim carries no source and no scope, and two sources asserting one
+    /// claim are two assertions meeting at it.
+    #[must_use]
+    pub fn Assertions(&self) -> &[Assertion]
+    {
+        return &self.assertions;
     }
 
     /// What the store did with the source document, when there was one to write.
@@ -106,6 +125,15 @@ impl AdmissionReport
                 standing: Standing::Asserted,
             });
         }
+        // After the claims, because replay refuses an assertion naming a claim no earlier
+        // record published -- the same ordering rule, one level further along.
+        for assertion in &self.assertions
+        {
+            publications.push(Publication::Assertion {
+                assertion: assertion.clone(),
+                standing: Standing::Asserted,
+            });
+        }
 
         return publications;
     }
@@ -140,6 +168,10 @@ impl AdmissionReport
         {
             published = published.With_Claim(Versioned::Asserted(claim.clone()));
         }
+        for assertion in &self.assertions
+        {
+            published = published.With_Assertion(Versioned::Asserted(assertion.clone()));
+        }
 
         return published;
     }
@@ -158,16 +190,29 @@ impl AdmissionReport
 pub fn Admit(
     source: Vec<u8>,
     extractions: &[Extraction],
+    scope: &Scope,
     store: &mut DocumentStore,
 ) -> Result<AdmissionReport, StoreError>
 {
     let source = store.Write(Document::Of(source))?;
     let normalized = Normalize_Concepts(Link_Concepts(extractions));
 
+    // The citation. The source is the document's own address rather than a filename or a
+    // title, so following it returns the bytes the claim was read out of -- and two documents
+    // with the same content are one source, which is the same mechanism one crate down.
+    let cited = source.Identity().Render();
+    let assertions = normalized
+        .Linked()
+        .Claims()
+        .iter()
+        .map(|claim| return Assertion::By(&cited, claim, scope.clone()))
+        .collect();
+
     return Ok(AdmissionReport {
         coverage: Coverage_Of(extractions.len(), normalized.Linked().Claims().len()),
         normalized,
         source: Some(source),
+        assertions,
     });
 }
 

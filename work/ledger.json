@@ -1945,6 +1945,68 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-36",
+      "title": "Assertion is constructed nowhere but replay, so the citation the whole repository exists to accumulate is never recorded",
+      "why": "Measured by grep after the KWB-35 audit found a defect the same way. Assertion::By appears in exactly one place outside tests: the replay branch that reads an assertion record. Nothing writes one. So the keystone D-010 spent a record establishing -- that a claim has no standing of its own and who asserts it, from where, at what scope, are properties of an assertion -- reaches no production path, and the replay code for it exists to read a format nothing produces. Two defects in one: the type is written and never wired, and a branch is dead while looking live. The concrete loss is the product. Admit knows the source document address and the claim and links them nowhere, so a corpus built by this pipeline records what is claimed and never who said it -- and two sources asserting one claim, which is the mechanism every identity decision here was made to support, become one claim with no citations rather than one claim with two. Scope is unwired for the same reason and by the same omission.",
+      "done_when": "Admission creates an assertion for every claim it admits, sourced by the content address of the document the claim came from -- so a citation resolves to the exact bytes, which is what D-006 dependency edge and D-014 reason for keeping documents are both for. The scope is the callers to state and an unstated one stays a real, distinguishable answer, because D-010 says a source that did not say how far it meant has not said the narrowest thing. Publications emit assertions after the claims they are about, since replay refuses an assertion naming a claim no earlier record published. Running the command line over two sources asserting the same claim demonstrates one claim carrying two citations, which no test in this repository has ever shown end to end.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest",
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "sts::Test_Publishing_Should_Leave_The_Graph_It_Was_Given_Unchanged ... ok\ntest tests::Test_Admitting_Nothing_Should_Be_Unmet_Rather_Than_Barren ... ok\ntest tests::Test_Admitting_The_Same_Source_Twice_Should_Not_Duplicate_It ... ok\ntest tests::Test_An_Admitted_Source_Should_Be_Readable_Back_From_The_Store ... ok\ntest tests::Test_Case_Differences_Should_Not_Be_Grouped ... ok\ntest tests::Test_An_Incomplete_Extraction_Should_Be_Refused_And_Counted ... ok\ntest tests::Test_Every_Claims_Concept_Should_Be_Among_The_Concepts ... ok\ntest tests::Test_Examining_Extractions_And_Finding_None_Admissible_Should_Be_Barren ... ok\ntest tests::Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct ... ok\ntest tests::Test_Normalization_Should_Remove_No_Claim ... ok\ntest tests::Test_Admission_Should_Queue_Nothing_For_A_Consumer_That_Does_Not_Exist ... ok\ntest tests::Test_Repeated_Mentions_Of_One_Concept_Should_Become_One_Concept ... ok\ntest tests::Test_The_Grouping_Relation_Should_Be_Transitive_Over_A_Chain ... ok\ntest tests::Test_Publications_Should_Order_Assertions_After_The_Claims_They_Name ... ok\ntest tests::Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts ... ok\ntest tests::Test_The_Report_Should_Not_Count_More_Than_It_Holds ... ok\ntest tests::Test_An_Unstated_Scope_Should_Stay_Unstated_Rather_Than_Become_The_Narrowest ... ok\ntest tests::Test_Two_Sources_Asserting_One_Claim_Should_Be_One_Claim_With_Two_Citations ... ok\ntest tests::Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds ... ok\n\ntest result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-38f77df29d8226f3.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-1ea03b34c0548482.exe)\n   Doc-tests kwb_ingest\n",
+        "verified_at": 1789260266,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "c2b282087e507c7cb6d2c96a7ca0e6116690263f"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

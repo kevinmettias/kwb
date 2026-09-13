@@ -7,6 +7,7 @@
 //! it, and would not find its successor either.
 
 use kwb_domain::KnowledgeGraph;
+use kwb_domain::Scope;
 use kwb_domain::Standing;
 use kwb_store::Document;
 use kwb_store::DocumentStore;
@@ -184,7 +185,7 @@ fn Test_Admitting_Nothing_Should_Be_Unmet_Rather_Than_Barren()
 {
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(b"a source".to_vec(), &[], &mut store).expect("admits");
+    let report = Admit(b"a source".to_vec(), &[], &Unstated(), &mut store).expect("admits");
 
     assert!(
         !report.Coverage().Is_Evidence_Of_Absence(),
@@ -201,6 +202,7 @@ fn Test_Examining_Extractions_And_Finding_None_Admissible_Should_Be_Barren()
     let report = Admit(
         b"a source".to_vec(),
         &[Offered("entropy", "  "), Offered("", "orphaned")],
+        &Unstated(),
         &mut store,
     )
     .expect("admits");
@@ -220,6 +222,7 @@ fn Test_The_Report_Should_Not_Count_More_Than_It_Holds()
     let report = Admit(
         b"a source".to_vec(),
         &[Offered("entropy", "one"), Offered("enthalpy", "two")],
+        &Unstated(),
         &mut store,
     )
     .expect("admits");
@@ -239,7 +242,7 @@ fn Test_An_Admitted_Source_Should_Be_Readable_Back_From_The_Store()
     let mut store = DocumentStore::Empty();
     let bytes = b"a source document".to_vec();
 
-    let report = Admit(bytes.clone(), &[Offered("entropy", "one")], &mut store).expect("admits");
+    let report = Admit(bytes.clone(), &[Offered("entropy", "one")], &Unstated(), &mut store).expect("admits");
 
     let written = report.Source().expect("a source was written");
     assert_eq!(store.Read(written.Identity()).expect("reads").Content(), bytes);
@@ -251,8 +254,8 @@ fn Test_Admitting_The_Same_Source_Twice_Should_Not_Duplicate_It()
     let mut store = DocumentStore::Empty();
     let extractions = [Offered("entropy", "one")];
 
-    let first = Admit(b"a source".to_vec(), &extractions, &mut store).expect("admits");
-    let second = Admit(b"a source".to_vec(), &extractions, &mut store).expect("admits again");
+    let first = Admit(b"a source".to_vec(), &extractions, &Unstated(), &mut store).expect("admits");
+    let second = Admit(b"a source".to_vec(), &extractions, &Unstated(), &mut store).expect("admits again");
 
     assert_eq!(
         first.Source().expect("written").Identity(),
@@ -267,7 +270,7 @@ fn Test_A_Source_Of_No_Bytes_Should_Be_Refused_Before_Anything_Is_Admitted()
 {
     let mut store = DocumentStore::Empty();
 
-    let refusal = Admit(Vec::new(), &[Offered("entropy", "one")], &mut store)
+    let refusal = Admit(Vec::new(), &[Offered("entropy", "one")], &Unstated(), &mut store)
         .expect_err("must refuse");
 
     assert_eq!(refusal, StoreError::Vacuous);
@@ -285,6 +288,7 @@ fn Test_Admission_Should_Queue_Nothing_For_A_Consumer_That_Does_Not_Exist()
     let report = Admit(
         b"a source".to_vec(),
         &[Offered("entropy", "one"), Offered("enthalpy", "two")],
+        &Unstated(),
         &mut store,
     )
     .expect("admits");
@@ -306,6 +310,7 @@ fn Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds()
     let report = Admit(
         b"a source".to_vec(),
         &[Offered("entropy", "one"), Offered("enthalpy", "two")],
+        &Unstated(),
         &mut store,
     )
     .expect("admits");
@@ -320,7 +325,7 @@ fn Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds()
 fn Test_Publishing_Should_Leave_The_Graph_It_Was_Given_Unchanged()
 {
     let mut store = DocumentStore::Empty();
-    let report = Admit(b"a source".to_vec(), &[Offered("entropy", "one")], &mut store)
+    let report = Admit(b"a source".to_vec(), &[Offered("entropy", "one")], &Unstated(), &mut store)
         .expect("admits");
     let before = KnowledgeGraph::Empty();
 
@@ -339,9 +344,9 @@ fn Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts()
     let mut store = DocumentStore::Empty();
     let extractions = [Offered("entropy", "one"), Offered("entropy", "two")];
 
-    let first = Admit(b"a source".to_vec(), &extractions, &mut store).expect("admits");
+    let first = Admit(b"a source".to_vec(), &extractions, &Unstated(), &mut store).expect("admits");
     let graph = first.Published_Into(&KnowledgeGraph::Empty());
-    let second = Admit(b"a source".to_vec(), &extractions, &mut store).expect("admits again");
+    let second = Admit(b"a source".to_vec(), &extractions, &Unstated(), &mut store).expect("admits again");
     let graph = second.Published_Into(&graph);
 
     assert_eq!(
@@ -358,7 +363,7 @@ fn Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current()
     // One liveness rule applied twice rather than two rules. Nothing else in this workspace
     // would have said that a claim about a retired concept is not current knowledge.
     let mut store = DocumentStore::Empty();
-    let report = Admit(b"a source".to_vec(), &[Offered("phlogiston", "It is released in combustion.")], &mut store)
+    let report = Admit(b"a source".to_vec(), &[Offered("phlogiston", "It is released in combustion.")], &Unstated(), &mut store)
         .expect("admits");
     let graph = report.Published_Into(&KnowledgeGraph::Empty());
     let held = graph.Every_Version().Concepts();
@@ -379,7 +384,7 @@ fn Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current()
 fn Test_A_Published_Concept_Should_Be_Addressed_By_Its_Content()
 {
     let mut store = DocumentStore::Empty();
-    let report = Admit(b"a source".to_vec(), &[Offered("entropy", "one")], &mut store)
+    let report = Admit(b"a source".to_vec(), &[Offered("entropy", "one")], &Unstated(), &mut store)
         .expect("admits");
 
     let graph = report.Published_Into(&KnowledgeGraph::Empty());
@@ -391,4 +396,127 @@ fn Test_A_Published_Concept_Should_Be_Addressed_By_Its_Content()
         Some(concept.Identity()),
         report.Normalized().Concepts().first().map(|c| return c.Identity())
     );
+}
+
+/// A scope a source did not state. `D-010`: an answer, not a default.
+fn Unstated() -> Scope
+{
+    return Scope::Named("");
+}
+
+// ---- KWB-36: the citation, which is what all of this was for ----
+
+#[test]
+fn Test_Two_Sources_Asserting_One_Claim_Should_Be_One_Claim_With_Two_Citations()
+{
+    // The mechanism every identity decision in this workspace was made to support, end to end
+    // for the first time. Two different documents, the same claim text: one claim, two
+    // assertions, each naming the address of the document it was read out of.
+    let mut store = DocumentStore::Empty();
+    let says = [Offered("entropy", "It is non-decreasing.")];
+
+    let callen = Admit(b"Callen, Thermodynamics".to_vec(), &says, &Unstated(), &mut store)
+        .expect("admits");
+    let kittel = Admit(b"Kittel, Thermal Physics".to_vec(), &says, &Unstated(), &mut store)
+        .expect("admits");
+
+    let graph = kittel.Published_Into(&callen.Published_Into(&KnowledgeGraph::Empty()));
+
+    assert_eq!(graph.Current().Claims().len(), 1, "the source is excluded, so this is one claim");
+    assert_eq!(
+        graph.Current().Assertions().len(),
+        2,
+        "and it carries two citations, which is the whole mechanism"
+    );
+
+    let cited: Vec<&str> = graph
+        .Current()
+        .Assertions()
+        .iter()
+        .map(|assertion| return assertion.Source())
+        .collect();
+    assert!(
+        cited.contains(&callen.Source().expect("written").Identity().Render().as_str())
+            && cited.contains(&kittel.Source().expect("written").Identity().Render().as_str()),
+        "a citation must name the document it was read out of: {cited:?}"
+    );
+}
+
+#[test]
+fn Test_A_Citation_Should_Resolve_To_The_Bytes_The_Claim_Was_Read_Out_Of()
+{
+    // What makes the address a citation rather than a label: following it returns the exact
+    // content, or fails loudly because it is gone.
+    let mut store = DocumentStore::Empty();
+    let bytes = b"Entropy is non-decreasing in an isolated system.".to_vec();
+    let report = Admit(
+        bytes.clone(),
+        &[Offered("entropy", "It is non-decreasing.")],
+        &Unstated(),
+        &mut store,
+    )
+    .expect("admits");
+
+    let assertion = report.Assertions().first().expect("one assertion");
+    let address = kwb_model::ContentIdentity::Parse(assertion.Source()).expect("an address");
+
+    assert_eq!(store.Read(address).expect("resolves").Content(), bytes);
+}
+
+#[test]
+fn Test_An_Unstated_Scope_Should_Stay_Unstated_Rather_Than_Become_The_Narrowest()
+{
+    let mut store = DocumentStore::Empty();
+    let report = Admit(
+        b"a source".to_vec(),
+        &[Offered("entropy", "It is non-decreasing.")],
+        &Unstated(),
+        &mut store,
+    )
+    .expect("admits");
+
+    assert!(
+        report.Assertions().first().expect("one").Scope().Is_Unstated(),
+        "a source that did not say how far it meant has not said the narrowest thing"
+    );
+}
+
+#[test]
+fn Test_A_Stated_Scope_Should_Reach_The_Assertion()
+{
+    let mut store = DocumentStore::Empty();
+    let report = Admit(
+        b"a source".to_vec(),
+        &[Offered("entropy", "It is non-decreasing.")],
+        &Scope::Named("physical theory"),
+        &mut store,
+    )
+    .expect("admits");
+
+    assert_eq!(report.Assertions().first().expect("one").Scope().Name(), "physical theory");
+}
+
+#[test]
+fn Test_Publications_Should_Order_Assertions_After_The_Claims_They_Name()
+{
+    // Replay refuses an assertion naming a claim no earlier record published, so this ordering
+    // is a property of the method rather than an accident of iteration.
+    let mut store = DocumentStore::Empty();
+    let report = Admit(
+        b"a source".to_vec(),
+        &[Offered("entropy", "one"), Offered("enthalpy", "two")],
+        &Unstated(),
+        &mut store,
+    )
+    .expect("admits");
+
+    let records: Vec<String> = report
+        .Publications()
+        .iter()
+        .map(kwb_domain::Publication::Record)
+        .collect();
+
+    let replayed = kwb_domain::Replay(&records).expect("a run's own publications must replay");
+    assert_eq!(replayed.Current().Assertions().len(), 2);
+    assert_eq!(replayed.Current().Claims().len(), 2);
 }

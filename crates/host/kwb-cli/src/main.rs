@@ -22,7 +22,7 @@
 
 use std::process::ExitCode;
 
-use kwb_domain::{KnowledgeGraph, Publication, Replay};
+use kwb_domain::{KnowledgeGraph, Publication, Replay, Scope};
 use kwb_ingest::{Admit, AdmissionReport, Extraction};
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::{DirectoryContentStore, FileRecordLog};
@@ -68,6 +68,7 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
     };
 
     let (store_root, rest) = Store_Root_From(rest);
+    let (scope, rest) = Scope_From(rest);
     let extractions = match Extractions_From(rest)
     {
         Ok(extractions) => extractions,
@@ -117,7 +118,7 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
             return ExitCode::from(FAILURE_EXIT);
         }
     };
-    let report = match Admit(bytes, &extractions, &mut store)
+    let report = match Admit(bytes, &extractions, &scope, &mut store)
     {
         Ok(report) => report,
         Err(refusal) =>
@@ -144,6 +145,7 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
     println!("coverage   {}", report.Coverage().Name());
     println!("concepts   {}", published.Current().Concepts().len());
     println!("claims     {}", published.Current().Claims().len());
+    println!("citations  {}", published.Current().Assertions().len());
     println!("refused    {}", report.Normalized().Linked().Refused());
     println!("documents  {}", if durable { "kept" } else { "in memory only" });
     println!("knowledge  {}", if log.is_some() { "kept" } else { "in memory only" });
@@ -191,6 +193,21 @@ fn Store_For(root: Option<&str>) -> Result<DocumentStore, String>
     let durable = DirectoryContentStore::Under(root)
         .map_err(|cause| return format!("cannot use {root} as a store: {cause}"))?;
     return Ok(DocumentStore::Backed_By(Box::new(durable)));
+}
+
+/// `--scope <name>`, if it leads the remaining arguments.
+///
+/// An absent scope is a real answer and not a default. `D-010`: a source that did not say how
+/// far it meant has not said the narrowest thing, so an unstated scope stays distinguishable
+/// from every stated one rather than being filled in with a guess.
+fn Scope_From<'arguments>(arguments: &'arguments [&'arguments str])
+    -> (Scope, &'arguments [&'arguments str])
+{
+    return match arguments
+    {
+        [flag, name, rest @ ..] if *flag == "--scope" => (Scope::Named(name), rest),
+        _ => (Scope::Named(""), arguments),
+    };
 }
 
 /// The publication log a run records into, when it was told where.
@@ -286,7 +303,9 @@ fn Extractions_From(arguments: &[&str]) -> Result<Vec<Extraction>, String>
 /// What this tool does, including the half it does not have.
 fn Print_Usage()
 {
-    eprintln!("usage: kwb admit <file> [--store <dir>] [--says <concept> <claim>]...");
+    eprintln!(
+        "usage: kwb admit <file> [--store <dir>] [--scope <name>] [--says <concept> <claim>]..."
+    );
     eprintln!();
     eprintln!("  Admits a file: the bytes are written to the content-addressed store and");
     eprintln!("  whatever is supplied by --says is linked, normalized and published.");
@@ -301,4 +320,9 @@ fn Print_Usage()
     eprintln!("  it admits, so the counts below include what earlier runs learned.");
     eprintln!();
     eprintln!("  Without it nothing is kept and the run says so.");
+    eprintln!();
+    eprintln!("  Every admitted claim gets a citation naming the document's content address,");
+    eprintln!("  so following it returns the exact bytes the claim was read out of. --scope");
+    eprintln!("  says how far the source claims it reaches; leaving it out is an answer, not");
+    eprintln!("  a default -- a source that did not say has not said the narrowest thing.");
 }
