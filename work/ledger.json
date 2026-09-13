@@ -3272,7 +3272,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-66, which the owner re-scoped and reassigned. Two changes. Its territory omitted crates/host/kwb-cli, so the verb that makes a source readable could not have landed under it -- the item as authored could not reach its own done_when. And its completion criterion was quality-shaped where the owner's is functional: KWB reads a real born-digital source automatically, extracts at least one grounded proposition, feeds it through existing identity, admission and storage, and accumulates corroboration across sources without the model bypassing KWB authority. Extraction quality stops being part of the seam. The Fable/DeepSeek split is not abandoned but made operational -- Fable owns the seam because the seam defines meaning, DeepSeek owns the iterations once it exists -- and leaving this parked optimised for an organisational split with no worker on one side while the product could not perform its defining first operation."
+        }
+      },
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -3287,7 +3291,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789280531
+      }
     },
     {
       "id": "KWB-60",
@@ -3631,6 +3638,45 @@
         },
         "revision": "164e68475ccc2193ab7b7688d66b41622ea74eab"
       },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-66",
+      "title": "KWB cannot perform its defining first operation: nothing here reads a source and decides what it says",
+      "why": "The README's first line said KWB ingests references until KWB-56 corrected it, and the Trying it section still says there is no extractor. KWB-47 declared the extraction seam and its only implementation is Stated, a person typing --says. Everything else is now measured and cleared: KWB-59 proved xvpe-corpus-text and xvpe-ai-inference resolve and compile at the commit kwb-platform-xvpe pins, by naming a type from each, with zero third-party packages in the closure and no provider in either crate; KWB-64 adopted the clock through the same quarantine; D-015 decided where a reading's provenance may and may not go. InferenceStrategy's own contract says a schema is a constraint and not a suggestion, returning Malformed rather than a non-conforming answer, and ReplayInference::From_Recordings with the recording codec means every test can run offline against committed evidence. So the seam is the remaining work and the seam is where meaning is decided -- what an extractor may propose against what KWB admits, how a reading reaches the single write door, what happens when a model fails. The owner re-scoped this to Fable for that reason: handing over the seam would hand over the part that cannot be re-derived from a prompt, while prompt iteration, schema tuning, fixture generation and corpus sweeps remain volume work for later.",
+      "done_when": "KWB reads a real born-digital source automatically, extracts at least one grounded proposition, feeds it through the existing identity, admission and storage path, and accumulates corroboration across two sources -- the two-books-one-claim property, reached without a person typing the claim. The model cannot bypass KWB authority at any point: it mints no identity, it writes nothing, its output reaches the graph only through Admit and kwb-store's one write door, and a malformed answer is a refusal that becomes Unmet rather than a graph mutation or evidence of source barrenness, proved against a recorded malformed answer rather than a hand-written one. Every test runs offline on the replay strategy against committed recordings; no provider, credential or network dependency enters this workspace. kwb-platform-xvpe stays the one crate permitted to name XVPE and the reader names only it; PageFidelity maps into ReadingKind rather than replacing it. D-015's one-location-per-reading deferral is settled, because chunking makes a reading cover one passage. And KWB-65's lesson is preserved rather than re-learned: extraction proposals, refused readings, and admitted knowledge are different things, so a run reports how many were proposed, how many admitted, how many refused and whether the reading happened at all, as four facts and not one -- a surface that resolved the object while hiding what the caller asked is what that item was about. The product surface and its documentation are checked in both directions when this lands, which the verb and tool guards already do. Extraction quality is explicitly not in scope.",
+      "kind": "Capability",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/ingestion",
+          "crates/host/kwb-cli",
+          "README.md",
+          "Cargo.toml"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789280558,
+        "lease_expires_at": 1789287758
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
       "abandoned": [],
       "displaced": [],
       "declined": null
