@@ -197,9 +197,9 @@ fn Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends()
             one_way.push(format!("{source} -> {target} (no such record)"));
             continue;
         };
-        if !target_text.contains(&source)
+        if !Referenced_By(target_text).contains(&source)
         {
-            one_way.push(format!("{source} -> {target} (target never names {source})"));
+            one_way.push(format!("{source} -> {target} (not in {target}'s Referenced By)"));
         }
     }
 
@@ -628,5 +628,70 @@ fn Test_Both_Records_That_Decide_Ownership_Should_Be_Routed()
         contract.contains("narrow"),
         "both records are named and nothing says D-135 narrows the gate ARC-ECOSYSTEM-001 \
          quotes, so a reader has two rows and no reason to prefer either"
+    );
+}
+
+/// The identifiers a record's `Referenced By` section lists.
+///
+/// # Why the section and not the whole text
+///
+/// Until `KWB-55` the reachability test asked whether the target's text contained the source
+/// identifier **anywhere**. That passes on a record that mentions another in passing, so a
+/// `Referenced By` section could be stale, incomplete, or list records that relate to nothing,
+/// and the test would stay green — while eleven records carried a note saying it *"fails if it
+/// is wrong"*.
+///
+/// Reading the section is what makes that sentence true. It is also free: every one of the
+/// eleven relation targets already had the section, so no record was restructured to satisfy
+/// the stricter check.
+fn Referenced_By(record: &str) -> Vec<String>
+{
+    let Some((_, listed)) = record.split_once("## Referenced By")
+    else
+    {
+        return Vec::new();
+    };
+
+    return listed
+        .lines()
+        .filter_map(|line| return line.trim().strip_prefix("- "))
+        .map(|entry| return entry.trim().trim_matches('`').to_owned())
+        .collect();
+}
+
+/// A `Referenced By` entry that no record declares a relation to.
+///
+/// # The other direction, and why it is the half that was missing
+///
+/// A list can be wrong by omission or by invention, and only the first was ever checked. The
+/// invented entry is the worse of the two: it sends a reader to a record that does not answer,
+/// amend or build on this one, carrying the authority of a section the note called generated.
+///
+/// A claim about what relates to what is a claim, and this repository checks its claims.
+#[test]
+fn Test_No_Record_Should_Claim_A_Reference_Nobody_Declared()
+{
+    let records = Records();
+    let declared = Declared_Relations(&records);
+
+    let mut invented: Vec<String> = Vec::new();
+    for (identifier, text) in &records
+    {
+        for listed in Referenced_By(text)
+        {
+            let is_declared = declared
+                .iter()
+                .any(|(source, target)| return source == &listed && target == identifier);
+            if !is_declared
+            {
+                invented.push(format!("{identifier} lists {listed}, which declares no relation"));
+            }
+        }
+    }
+
+    assert!(
+        invented.is_empty(),
+        "these Referenced By entries send a reader to a record that does not relate back, with \
+         the authority of a list this repository calls checked: {invented:#?}"
     );
 }
