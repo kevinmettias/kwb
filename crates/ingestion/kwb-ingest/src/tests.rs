@@ -6,6 +6,8 @@
 //! structure that consumed it. A test of what a stage usually returns would not have found
 //! it, and would not find its successor either.
 
+use kwb_domain::KnowledgeGraph;
+use kwb_domain::Standing;
 use kwb_store::Document;
 use kwb_store::DocumentStore;
 use kwb_store::StoreError;
@@ -290,4 +292,103 @@ fn Test_Admission_Should_Queue_Nothing_For_A_Consumer_That_Does_Not_Exist()
     assert_eq!(report.Normalized().Claims_Held(), 2, "the claims were handed back");
     assert_eq!(store.Length(), 1, "the store holds the source and nothing else");
     assert!(store.Read(Document::Of(b"a source".to_vec()).Identity()).is_ok());
+}
+
+// ---- KWB-25: what admission reports is what the graph holds ----
+
+#[test]
+fn Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds()
+{
+    // The connection, asserted rather than assumed. A pipeline whose output reached nothing
+    // is the defect this item exists to close, and the only way to see it is to compare the
+    // report against the thing it was supposed to fill.
+    let mut store = DocumentStore::Empty();
+    let report = Admit(
+        b"a source".to_vec(),
+        &[Offered("entropy", "one"), Offered("enthalpy", "two")],
+        &mut store,
+    )
+    .expect("admits");
+
+    let graph = report.Published_Into(&KnowledgeGraph::Empty());
+
+    assert_eq!(graph.Current().Claims().len(), report.Coverage().Findings());
+    assert_eq!(graph.Current().Concepts().len(), 2);
+}
+
+#[test]
+fn Test_Publishing_Should_Leave_The_Graph_It_Was_Given_Unchanged()
+{
+    let mut store = DocumentStore::Empty();
+    let report = Admit(b"a source".to_vec(), &[Offered("entropy", "one")], &mut store)
+        .expect("admits");
+    let before = KnowledgeGraph::Empty();
+
+    let after = report.Published_Into(&before);
+
+    assert!(
+        before.Current().Concepts().is_empty(),
+        "the caller still holds what it passed in, which is what makes the previous version          a thing that was kept rather than overwritten"
+    );
+    assert_eq!(after.Current().Concepts().len(), 1);
+}
+
+#[test]
+fn Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts()
+{
+    let mut store = DocumentStore::Empty();
+    let extractions = [Offered("entropy", "one"), Offered("entropy", "two")];
+
+    let first = Admit(b"a source".to_vec(), &extractions, &mut store).expect("admits");
+    let graph = first.Published_Into(&KnowledgeGraph::Empty());
+    let second = Admit(b"a source".to_vec(), &extractions, &mut store).expect("admits again");
+    let graph = second.Published_Into(&graph);
+
+    assert_eq!(
+        graph.Current().Concepts().len(),
+        1,
+        "content addressing means a re-read book is the same concept, not a second one"
+    );
+    assert_eq!(graph.Current().Claims().len(), 2);
+}
+
+#[test]
+fn Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current()
+{
+    // One liveness rule applied twice rather than two rules. Nothing else in this workspace
+    // would have said that a claim about a retired concept is not current knowledge.
+    let mut store = DocumentStore::Empty();
+    let report = Admit(b"a source".to_vec(), &[Offered("phlogiston", "It is released in combustion.")], &mut store)
+        .expect("admits");
+    let graph = report.Published_Into(&KnowledgeGraph::Empty());
+    let held = graph.Every_Version().Concepts();
+    let concept = (*held.first().expect("one concept")).clone();
+
+    let retired = graph.With_Concept(concept.Closed(Standing::Retired));
+
+    assert!(retired.Current().Claims().is_empty(), "the claim is not current knowledge");
+    assert_eq!(
+        retired.Every_Version().Claims().len(),
+        1,
+        "and it is still there, because D17 says nothing is destroyed without evidence"
+    );
+    assert!(graph.Current().Claims().len() == 1, "and the earlier graph is unchanged");
+}
+
+#[test]
+fn Test_A_Published_Concept_Should_Be_Addressed_By_Its_Content()
+{
+    let mut store = DocumentStore::Empty();
+    let report = Admit(b"a source".to_vec(), &[Offered("entropy", "one")], &mut store)
+        .expect("admits");
+
+    let graph = report.Published_Into(&KnowledgeGraph::Empty());
+
+    let held = graph.Current().Concepts();
+    let concept = held.first().expect("one concept");
+    assert_eq!(concept.Canonical_Name(), "entropy");
+    assert_eq!(
+        Some(concept.Identity()),
+        report.Normalized().Concepts().first().map(|c| return c.Identity())
+    );
 }

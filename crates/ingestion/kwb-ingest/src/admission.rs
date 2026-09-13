@@ -3,6 +3,8 @@
 use core::num::NonZeroUsize;
 
 use kwb_domain::Coverage;
+use kwb_domain::KnowledgeGraph;
+use kwb_domain::Versioned;
 use kwb_store::Document;
 use kwb_store::DocumentStore;
 use kwb_store::StoreError;
@@ -23,12 +25,17 @@ use crate::Normalized;
 /// rule it produced is that **a producer and its consumer belong in the same commit** — never
 /// enqueue for a handler that does not exist.
 ///
-/// This repository has nowhere to put a claim. `D-008` measured why: `kwb-store` is the
-/// immutable artifact store, the mutable versioned graph that claims and concepts belong in
-/// has no crate and no row in the bands table, and deciding it is blocked on work that has
-/// not happened. So admission **hands its claims back to its caller, synchronously**, rather
-/// than writing them somewhere that does not exist or queueing them for a consumer that was
-/// never written. That is the one shape `D19` forbids, avoided by not having a queue.
+/// So admission **hands its claims back to its caller, synchronously**, and never queues them.
+/// That is the one shape `D19` forbids, avoided by not having a queue.
+///
+/// When this was written there was also nowhere to put a claim — `D-008` had measured that the
+/// mutable versioned graph claims belong in had no crate. `D-012` decided it and `KWB-24` built
+/// it, so that is no longer true and this comment does not pretend otherwise. What survives the
+/// change is the reason: publishing is [`Published_Into`], a separate call the caller makes,
+/// because *what was admitted* and *where it goes* are different decisions. Handing the result
+/// back is what keeps the second one the caller's.
+///
+/// [`Published_Into`]: Self::Published_Into
 ///
 /// # The coverage is derived, never asserted
 ///
@@ -64,6 +71,40 @@ impl AdmissionReport
     pub const fn Source(&self) -> Option<&Written>
     {
         return self.source.as_ref();
+    }
+
+    /// Publish what was admitted into a graph, returning the new graph.
+    ///
+    /// # Why this is a separate call rather than something `Admit` does
+    ///
+    /// `Admit` writes the source document and decides what is admissible. Publishing decides
+    /// *where the result goes*, and those are different decisions with different failure
+    /// modes — the first can refuse a source, the second cannot refuse anything, because by
+    /// then the work is done and dropping it would be the loss `D19` is about.
+    ///
+    /// Keeping them apart also means a caller can admit, inspect the report, and decide. A
+    /// pipeline that published unconditionally would have no place to put that decision.
+    ///
+    /// # Why it returns a graph instead of mutating one
+    ///
+    /// The caller still holds the graph it passed in, unchanged and queryable. That is what
+    /// makes the previous version a thing that was *kept* rather than a thing that was
+    /// overwritten, and it is the property `D-012` adopted the persistent map for.
+    #[must_use]
+    pub fn Published_Into(&self, graph: &KnowledgeGraph) -> KnowledgeGraph
+    {
+        let mut published = graph.clone();
+
+        for concept in self.normalized.Concepts()
+        {
+            published = published.With_Concept(Versioned::Asserted(concept.clone()));
+        }
+        for claim in self.normalized.Linked().Claims()
+        {
+            published = published.With_Claim(Versioned::Asserted(claim.clone()));
+        }
+
+        return published;
     }
 }
 

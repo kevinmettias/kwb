@@ -2,11 +2,11 @@
 //!
 //! From outside deliberately: a read is only a separate world if it is separate to a caller.
 
-use kwb_domain::{Concept, ConceptGraph, ConceptRecord, Standing};
+use kwb_domain::{Concept, KnowledgeGraph, Standing, Versioned};
 
-fn Asserted(name: &str) -> ConceptRecord
+fn Asserted(name: &str) -> Versioned<Concept>
 {
-    return ConceptRecord::Asserted(Concept::Named(name.to_owned()));
+    return Versioned::Asserted(Concept::Named(name.to_owned()));
 }
 
 // ---- D-008's first requirement: liveness is one expression ----
@@ -110,25 +110,25 @@ fn Test_A_Superseded_Concept_Should_Be_Absent_From_Current_And_Present_In_Every_
 {
     let entropy = Asserted("entropy");
     let successor = Asserted("thermodynamic entropy");
-    let identity = entropy.Concept().Identity();
+    let identity = entropy.Value().Identity();
 
-    let graph = ConceptGraph::Empty()
-        .Publish(entropy.clone())
-        .Publish(successor.clone())
-        .Publish(entropy.Closed(Standing::Superseded {
-            by: successor.Concept().Identity(),
+    let graph = KnowledgeGraph::Empty()
+        .With_Concept(entropy.clone())
+        .With_Concept(successor.clone())
+        .With_Concept(entropy.Closed(Standing::Superseded {
+            by: successor.Value().Identity(),
         }));
 
     assert!(
-        graph.Current().Get(identity).is_none(),
+        !graph.Current().Concepts().iter().any(|concept| return concept.Identity() == identity),
         "a merge loser is not a current concept"
     );
     assert!(
-        graph.Every_Version().Get(identity).is_some(),
+        graph.Every_Version().Concepts().iter().any(|held| return held.Value().Identity() == identity),
         "and it is kept, because D17 says destruction requires evidence and a merge is not it"
     );
-    assert_eq!(graph.Current().Length(), 1);
-    assert_eq!(graph.Every_Version().Length(), 2);
+    assert_eq!(graph.Current().Concepts().len(), 1);
+    assert_eq!(graph.Every_Version().Concepts().len(), 2);
 }
 
 #[test]
@@ -139,20 +139,20 @@ fn Test_The_Merge_Log_Should_Be_Answerable_From_The_All_Versions_Read()
     // record could have been wrong and the gate would have passed.
     let loser = Asserted("C");
     let keeper = Asserted("C++");
-    let graph = ConceptGraph::Empty()
-        .Publish(keeper.clone())
-        .Publish(loser.Closed(Standing::Superseded {
-            by: keeper.Concept().Identity(),
+    let graph = KnowledgeGraph::Empty()
+        .With_Concept(keeper.clone())
+        .With_Concept(loser.Closed(Standing::Superseded {
+            by: keeper.Value().Identity(),
         }));
 
     let losers = graph.Every_Version().Merge_Losers();
 
     assert_eq!(losers.len(), 1, "the audit must be able to see what was merged away");
     assert_eq!(
-        losers.first().and_then(|record| return record.Standing().Superseded_By()),
-        Some(keeper.Concept().Identity())
+        losers.first().and_then(|held| return held.Standing().Superseded_By()),
+        Some(keeper.Value().Identity())
     );
-    assert!(graph.Current().Records().len() == 1, "and the loser is not current");
+    assert!(graph.Current().Concepts().len() == 1, "and the loser is not current");
 }
 
 #[test]
@@ -172,17 +172,16 @@ fn Test_A_Retired_Concept_Should_Not_Claim_A_Successor()
 fn Test_Publishing_Should_Leave_The_Previous_Version_Queryable()
 {
     let entropy = Asserted("entropy");
-    let identity = entropy.Concept().Identity();
-    let before = ConceptGraph::Empty().Publish(entropy.clone());
+    let before = KnowledgeGraph::Empty().With_Concept(entropy.clone());
 
-    let after = before.Publish(entropy.Closed(Standing::Retired));
+    let after = before.With_Concept(entropy.Closed(Standing::Retired));
 
     assert!(
-        before.Current().Get(identity).is_some(),
+        !before.Current().Concepts().is_empty(),
         "the earlier graph is a value and is unchanged; this is what makes a temporal read a \
          value you kept rather than a query that opts out of a filter"
     );
-    assert!(after.Current().Get(identity).is_none());
+    assert!(after.Current().Concepts().is_empty());
 }
 
 #[test]
@@ -192,10 +191,10 @@ fn Test_The_Two_Reads_Should_Not_Be_One_Type_With_A_Flag()
     // read takes an argument selecting a world, so neither can be pointed at the other by
     // passing the wrong value, and a caller that needs merge losers has had to name
     // Every_Version to get one.
-    let graph = ConceptGraph::Empty().Publish(Asserted("entropy"));
+    let graph = KnowledgeGraph::Empty().With_Concept(Asserted("entropy"));
 
-    assert_eq!(graph.Current().Length(), 1);
-    assert_eq!(graph.Every_Version().Length(), 1);
+    assert_eq!(graph.Current().Concepts().len(), 1);
+    assert_eq!(graph.Every_Version().Concepts().len(), 1);
 }
 
 // ---- determinism is enforced at the boundary, not obtained from a hasher ----
@@ -205,28 +204,28 @@ fn Test_The_Listing_Should_Not_Depend_On_The_Order_Concepts_Arrived_In()
 {
     let names = ["entropy", "enthalpy", "free energy", "temperature"];
 
-    let mut forwards = ConceptGraph::Empty();
+    let mut forwards = KnowledgeGraph::Empty();
     for name in names
     {
-        forwards = forwards.Publish(Asserted(name));
+        forwards = forwards.With_Concept(Asserted(name));
     }
-    let mut backwards = ConceptGraph::Empty();
+    let mut backwards = KnowledgeGraph::Empty();
     for name in names.iter().rev()
     {
-        backwards = backwards.Publish(Asserted(name));
+        backwards = backwards.With_Concept(Asserted(name));
     }
 
     let one: Vec<_> = forwards
         .Every_Version()
-        .Records()
+        .Concepts()
         .iter()
-        .map(|record| return record.Concept().Identity())
+        .map(|held| return held.Value().Identity())
         .collect();
     let other: Vec<_> = backwards
         .Every_Version()
-        .Records()
+        .Concepts()
         .iter()
-        .map(|record| return record.Concept().Identity())
+        .map(|held| return held.Value().Identity())
         .collect();
 
     assert_eq!(

@@ -29,12 +29,12 @@
 //!
 //! `KWB-4`: [`Concept`], [`Claim`] and [`Coverage`]. `KWB-23`: [`Assertion`] and
 //! [`Scope`], which are where a source and a domain attach — a claim has neither, and
-//! `D-010` is why. `KWB-24`: [`Standing`] and [`ConceptGraph`], where a concept's state
+//! `D-010` is why. `KWB-24`: [`Standing`] and [`KnowledgeGraph`], where state
 //! lives and where the **one** liveness expression is applied.
 //!
-//! The two reads off a graph — [`CurrentConcepts`] and [`EveryVersion`] — are different
+//! The two reads off a graph — [`CurrentKnowledge`] and [`EveryVersion`] — are different
 //! types rather than one type with a flag, because `D19-B` is what a forgettable filter
-//! costs. The first two rest on `kwb-model`'s
+//! costs. `KWB-25` connects `kwb-ingest` to it, so admission's output reaches something. The first two rest on `kwb-model`'s
 //! identity and on its two exclusions; the third is the anti-data-loss primitive the
 //! admission pipeline cannot be built safely without, which is why it comes before `KWB-5`
 //! rather than with it.
@@ -46,7 +46,7 @@
 mod assertion;
 mod claim;
 mod concept;
-mod concept_graph;
+mod knowledge_graph;
 mod coverage;
 mod scope;
 mod standing;
@@ -57,10 +57,10 @@ mod tests;
 pub use assertion::Assertion;
 pub use claim::Claim;
 pub use concept::Concept;
-pub use concept_graph::ConceptGraph;
-pub use concept_graph::ConceptRecord;
-pub use concept_graph::CurrentConcepts;
-pub use concept_graph::EveryVersion;
+pub use knowledge_graph::CurrentKnowledge;
+pub use knowledge_graph::EveryVersion;
+pub use knowledge_graph::KnowledgeGraph;
+pub use knowledge_graph::Versioned;
 pub use coverage::Coverage;
 pub use scope::Scope;
 pub use standing::Standing;

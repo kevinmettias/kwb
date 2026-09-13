@@ -1291,6 +1291,68 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-25",
+      "title": "Admission hands back concepts and claims, the graph holds concepts, and nothing connects them",
+      "why": "KWB-5 built the pipeline and KWB-24 built versioned state, and between them there is nothing. Admit returns its concepts and claims to its caller deliberately -- D19 forbids enqueueing for a consumer that does not exist, and at the time D-008 had measured that the store claims belong in had no crate. D-012 answered that and KWB-24 built it, so the consumer now exists and the deliberate gap has become an ordinary one. Left as it is, this repository has an ingestion pipeline whose output reaches nothing and a graph nothing fills: complete, tested code connected to no other code, which is the defect this family of repositories produces most often. The graph is also concept-only. Claims and assertions are versioned by the same mechanism or they are not versioned at all, and a claim that cannot be closed cannot be corrected -- while a concept can. That asymmetry is not a decision anybody made.",
+      "done_when": "Admission writes its concepts and claims into versioned state through one call, and returns the new graph value rather than mutating one -- so the caller still holds what it had, which is what makes the previous version a thing that was kept. The graph holds claims and assertions as well as concepts, under one liveness rule and still with exactly one definition of it. Tests defend the connection rather than the pieces: what admission reports as admitted is what the resulting graph holds, a re-admitted source adds no duplicate concept, and a claim whose concept is closed is reachable through the all-versions read and not through the current one -- because a claim about a retired concept is not a current claim, and saying so is the point of having one liveness rule rather than two.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain",
+          "crates/ingestion/kwb-ingest"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ed_Concept_Should_Not_Be_Current ... ok\ntest tests::Test_Admission_Should_Queue_Nothing_For_A_Consumer_That_Does_Not_Exist ... ok\ntest tests::Test_Admitting_The_Same_Source_Twice_Should_Not_Duplicate_It ... ok\ntest tests::Test_Case_Differences_Should_Not_Be_Grouped ... ok\ntest tests::Test_An_Admitted_Source_Should_Be_Readable_Back_From_The_Store ... ok\ntest tests::Test_Normalization_Should_Remove_No_Claim ... ok\ntest tests::Test_Examining_Extractions_And_Finding_None_Admissible_Should_Be_Barren ... ok\ntest tests::Test_Every_Claims_Concept_Should_Be_Among_The_Concepts ... ok\ntest tests::Test_An_Incomplete_Extraction_Should_Be_Refused_And_Counted ... ok\ntest tests::Test_Admitting_Nothing_Should_Be_Unmet_Rather_Than_Barren ... ok\ntest tests::Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct ... ok\ntest tests::Test_The_Report_Should_Not_Count_More_Than_It_Holds ... ok\ntest tests::Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts ... ok\ntest tests::Test_Publishing_Should_Leave_The_Graph_It_Was_Given_Unchanged ... ok\ntest tests::Test_Repeated_Mentions_Of_One_Concept_Should_Become_One_Concept ... ok\ntest tests::Test_The_Grouping_Relation_Should_Be_Transitive_Over_A_Chain ... ok\ntest tests::Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds ... ok\n\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.63s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-1740151ea0c9a712.exe)\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n",
+        "verified_at": 1789257715,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "4b4daa651c1aaffbb5e2e1fd1da18d47dc749b0c"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
