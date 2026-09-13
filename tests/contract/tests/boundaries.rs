@@ -881,3 +881,47 @@ fn State_Of(board: &str, item: &str) -> Option<String>
         .nth(1)
         .map(str::to_owned);
 }
+
+/// Every tool the surface declares is one the README names.
+///
+/// # The direction `KWB-61` added for verbs and `KWB-65` needed for tools
+///
+/// The test above catches a README naming a tool that does not exist. This catches a tool that
+/// exists and nobody is told about — and the repository grew one the day this was written,
+/// because `KWB-65` added `held_neighbours` and the only check ran README-to-surface.
+///
+/// `AGENTS.md` routes *what exists* to `README.md`. An agent reading that file to learn what it
+/// can ask would not have found the tool built so that it could ask the question `D19-B` needed.
+#[test]
+fn Test_Every_Tool_The_Surface_Declares_Should_Be_One_The_Readme_Names()
+{
+    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+        .expect("README.md should be readable");
+    let surface = std::fs::read_to_string(Repository_Root().join("crates/host/kwb-mcp/src/lib.rs"))
+        .expect("the tool surface should be readable");
+
+    let mut declared: Vec<String> = Vec::new();
+    for fragment in surface.split("name: \"").skip(1)
+    {
+        if let Some(name) = fragment.split('"').next()
+        {
+            Remember(&mut declared, name);
+        }
+    }
+
+    assert!(
+        declared.len() >= 5,
+        "only {declared:?} were found in the surface, so this guard covers almost nothing"
+    );
+
+    let undocumented: Vec<&String> = declared
+        .iter()
+        .filter(|tool| return !readme.contains(tool.as_str()))
+        .collect();
+
+    assert!(
+        undocumented.is_empty(),
+        "the surface declares these and the README never names them, so an agent sent to that \
+         file for what it can ask cannot find them: {undocumented:?}"
+    );
+}

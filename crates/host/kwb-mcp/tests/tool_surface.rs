@@ -111,3 +111,100 @@ fn Test_A_Merge_Loser_Should_Be_Invisible_To_The_Current_Tools()
     assert_eq!(Answer(&graph, "get_concept", "C").expect("declared"), ["C++"]);
     assert_eq!(Answer(&graph, "merge_losers", "").expect("declared").len(), 1);
 }
+
+// ---- KWB-65: what a merge loser carried ----
+
+/// A corpus with a merge in it: one concept superseded by another, each carrying a claim.
+fn After_A_Merge() -> KnowledgeGraph
+{
+    let loser = Concept::Named("phlogiston");
+    let winner = Concept::Named("oxidation");
+    let lost = Claim::About(&loser, "It is released in combustion.");
+    let kept = Claim::About(&winner, "It is combination with oxygen.");
+    let cited = Assertion::By("Stahl 1703", &lost, Scope::Named("chemistry").expect("a scope"));
+
+    let graph = KnowledgeGraph::Empty()
+        .With_Concept(Versioned::Asserted(winner.clone()))
+        .With_Claim(Versioned::Asserted(kept))
+        .With_Claim(Versioned::Asserted(lost))
+        .With_Assertion(Versioned::Asserted(cited));
+
+    return graph.With_Concept(Versioned::Asserted(loser).Closed(Standing::Superseded {
+        by: winner.Identity(),
+        because: "superseded by oxidation theory".to_owned(),
+    }));
+}
+
+#[test]
+fn Test_A_Merge_Loser_Should_Say_What_It_Carried()
+{
+    // The gap measured before this tool existed: `merge_losers` reported the loser and its
+    // reason, and `neighbours` reported nothing, so an audit could establish that something was
+    // merged and not what was lost. `D17` is that destruction requires evidence, and evidence a
+    // reader cannot reach is an obligation that looks handled because nothing complains.
+    let graph = After_A_Merge();
+
+    let answered = Answer(&graph, "held_neighbours", "phlogiston").expect("a declared tool");
+    let joined = answered.join("\n");
+
+    assert!(
+        joined.contains("It is released in combustion."),
+        "the claim the merged concept carried is still unreachable: {joined}"
+    );
+    assert!(
+        joined.contains("superseded by oxidation theory"),
+        "the reason that authorised the merge is not rendered: {joined}"
+    );
+}
+
+#[test]
+fn Test_Nothing_Under_A_Merged_Concept_Should_Be_Reported_As_Current()
+{
+    // A claim is current when its own standing is current **and its concept's is**, which is
+    // what `CurrentKnowledge::Claims` composes. This listing got that wrong twice while it was
+    // being written -- once by reading the claim's own standing, and once by falling back to it
+    // -- and both times it rendered a claim under a superseded concept as live, which is
+    // `D19-B`'s confusion inside the tool built to end it.
+    let graph = After_A_Merge();
+
+    let answered = Answer(&graph, "held_neighbours", "phlogiston").expect("a declared tool");
+    let lost = answered
+        .iter()
+        .find(|line| return line.contains("It is released in combustion."))
+        .expect("the claim is listed");
+
+    assert!(
+        lost.contains("not current"),
+        "a claim under a superseded concept is reported as live: {lost}"
+    );
+
+    let cited = answered
+        .iter()
+        .find(|line| return line.starts_with("cited"))
+        .expect("the citation is listed");
+    assert!(
+        cited.contains("not current"),
+        "a citation of a claim that is not current is reported as live: {cited}"
+    );
+}
+
+#[test]
+fn Test_A_Concept_That_Is_Current_Should_Still_Read_As_Current()
+{
+    // The control. Without it the two tests above pass against a listing that calls everything
+    // not current, which would be a tool that has stopped answering rather than one that
+    // answers carefully.
+    let graph = After_A_Merge();
+
+    let answered = Answer(&graph, "held_neighbours", "oxidation").expect("a declared tool");
+    let joined = answered.join("\n");
+
+    assert!(
+        joined.contains("It is combination with oxygen."),
+        "the surviving concept's claim is missing: {joined}"
+    );
+    assert!(
+        !joined.contains("not current"),
+        "the surviving concept's neighbourhood is reported as closed: {joined}"
+    );
+}

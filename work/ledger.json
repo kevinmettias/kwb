@@ -3578,6 +3578,44 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-65",
+      "title": "An agent can learn which concept was merged away and cannot learn anything it said",
+      "why": "kwb-mcp answers merge_losers, which reports a closed concept, its successor and the reason that authorised the merge. Measured against a rebuilt binary: after superseding phlogiston into oxidation, merge_losers reports phlogiston pointing at the successor's address with its reason, and neighbours phlogiston reports nothing. The claim it carried is still in the graph -- Versioned keeps it -- and no tool can reach it, because Neighbourhood_Of is on CurrentQueries and a merged concept is not current. HistoricalQueries offers Claims_Matching, Merge_Losers and Concept_Count and no neighbourhood at all. So an audit can establish that something was merged and cannot establish what was lost, which is D19-B one step later than the prototype had it: there merge-audit could not resolve which identifiers had been merged, here they resolve and say nothing. D17 is the rule that destruction requires evidence, and evidence a reader cannot reach is the same shape as the AdmitChunk path disarmed by a default -- an obligation that looks handled because nothing complains. Separately, the tool guard has the asymmetry KWB-61 fixed for verbs: it checks that every tool the README names is declared, not that every declared tool is named, so a tool added without documentation is caught by nothing.",
+      "done_when": "The neighbourhood of a concept is answerable in the historical world, so a merge loser's claims and their citations are reachable, and the query reports the standing of what it returns rather than presenting a closed claim as a live one -- a reader who cannot tell them apart has the confusion D19-B is about. A kwb-mcp tool exposes it, declared in the world it reads like every other, so no caller can ask the historical question of the current graph. Measured end to end against a rebuilt binary on the corpus that produced this finding: phlogiston superseded into oxidation, and the claim it carried reachable with its standing. The tool guard checks both directions, as KWB-61 made the verb guard do, and is shown to discriminate by mutating the real files each way. README names the tool.",
+      "kind": "Capability",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/retrieval/kwb-retrieval",
+          "crates/host/kwb-mcp",
+          "README.md",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789279945,
+        "lease_expires_at": 1789287145
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

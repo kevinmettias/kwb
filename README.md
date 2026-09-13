@@ -69,7 +69,34 @@ one returns those exact bytes or fails loudly because they are gone.
 
 `kwb retire` and `kwb supersede` close a concept, and both require `--because`: `D17` is that
 destruction requires evidence, and a merge with no recorded reason cannot answer the question it
-demands. `kwb-mcp <store>` with no tool lists the four it answers.
+demands. `kwb-mcp <store>` with no tool lists the five it answers.
+
+```console
+$ kwb-mcp ./corpus held_neighbours phlogiston
+concept  phlogiston [superseded by 66d1b720...f574e: superseded by oxidation theory]
+claim    It is released in combustion. [not current: its concept is not]
+cited    Stahl 1703 [not current: what it cites is not]
+```
+
+The five, and the world each reads:
+
+| Tool | World | Answers |
+|---|---|---|
+| `search` | current | claims whose text contains every word of a query |
+| `get_concept` | current | concepts whose canonical name contains every word of a query |
+| `neighbours` | current | a concept with its claims and their citations |
+| `merge_losers` | historical | concepts closed against a successor, with the reason |
+| `held_neighbours` | historical | what a concept carried, live or closed |
+
+A tool reads the world it declares and takes no world as an argument, so no caller can ask the
+historical question of the current graph — `D19-B` is the incident where exactly that happened
+and the answer was *"nothing has been merged away"*. Two of these rows were missing until
+`KWB-65`, and `search` and `get_concept` had never been named here at all.
+
+`merge_losers` says **which** concept was closed and why; `held_neighbours` says what it
+carried. Those two are the audit `D19-B` could not perform. Every line says what became of the
+thing it names, and a claim under a superseded concept is *not* current however its own standing
+reads — that composition is the graph's, asked rather than restated here.
 
 `kwb history --store <dir> [--through <count> | --as-of <unix seconds>]` replays the publication
 log and reports the graph as it was; given neither, it reports all of it. `--through` takes a

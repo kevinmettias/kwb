@@ -28,6 +28,74 @@ pub struct Neighbourhood<'graph>
     pub assertions: Vec<&'graph Assertion>,
 }
 
+/// One claim of a held neighbourhood, and whether it is current **in the composed sense**.
+///
+/// # Why the flag is here and not read off the claim's own standing
+///
+/// A claim is current when its own standing is current **and its concept's is** — that is what
+/// `CurrentKnowledge::Claims` composes, and it is the whole reason a merge closes the knowledge
+/// under it rather than orphaning it.
+///
+/// Asking only `held.Standing().Is_Current()` gives the wrong answer for exactly the case this
+/// type exists for: a claim under a superseded concept reports itself live. That was rendered
+/// once, during `KWB-65`, and caught by reading the output rather than the types — the tool
+/// built to end `D19-B`'s confusion reproducing it on its first run.
+///
+/// So the flag is computed by **asking the graph which claims are current**, not by restating
+/// the rule. `Standing::Is_Current` stays the one liveness expression and this consumes it
+/// through the composition that already exists.
+#[derive(Debug)]
+pub struct HeldClaim<'graph>
+{
+    /// The claim and what became of it.
+    pub held: &'graph Versioned<Claim>,
+
+    /// Whether it is current, concept and all.
+    pub current: bool,
+}
+
+/// One assertion of a held neighbourhood, and whether it is current in the composed sense.
+///
+/// The same composition as [`HeldClaim`], one level further: *an assertion of a claim that is
+/// not current is not a current assertion*, which is how the graph puts it. A citation of a
+/// claim whose concept was merged away is not evidence for anything live, and a listing that
+/// said otherwise would be the citation resolving perfectly to something retired.
+#[derive(Debug)]
+pub struct HeldAssertion<'graph>
+{
+    /// The assertion and what became of it.
+    pub held: &'graph Versioned<Assertion>,
+
+    /// Whether it is current, claim and concept and all.
+    pub current: bool,
+}
+
+/// Everything ever attached to one concept, each with the standing it holds.
+///
+/// # Why this is a second type and not [`Neighbourhood`] with a flag
+///
+/// `D-012` decided that the two worlds are distinct *values* rather than one type a caller could
+/// ask the wrong question of, and `KWB-6` asked for the same of the read surface. The difference
+/// is not decoration: everything here is a [`Versioned`], because in this world a claim can be
+/// retired and a reader who could not tell a live claim from a closed one would have exactly the
+/// confusion `D19-B` is about — `merge-audit` asked the historical question of the current graph
+/// and was told nothing had been merged away.
+///
+/// So the standing travels with every part. A caller cannot render one of these without having
+/// been handed what it would need to say so.
+#[derive(Debug)]
+pub struct HeldNeighbourhood<'graph>
+{
+    /// The concept at the centre, and what became of it.
+    pub concept: &'graph Versioned<Concept>,
+
+    /// Every claim made about it, live or closed, each saying which it is.
+    pub claims: Vec<HeldClaim<'graph>>,
+
+    /// Every assertion of those claims, each saying whether it is current.
+    pub assertions: Vec<HeldAssertion<'graph>>,
+}
+
 /// Questions asked of the current world.
 ///
 /// # This type cannot write, and that is checked rather than promised
@@ -196,6 +264,81 @@ impl<'graph> HistoricalQueries<'graph>
     pub fn Merge_Losers(&self) -> Vec<&'graph Versioned<Concept>>
     {
         return self.graph.Every_Version().Merge_Losers();
+    }
+
+    /// Everything ever attached to one concept, whatever became of it.
+    ///
+    /// # The question a merge audit reaches second
+    ///
+    /// `Merge_Losers` says *which* concept was closed and what authorised it. This says what it
+    /// carried. Measured before `KWB-65` existed: `merge_losers` reported `phlogiston` against
+    /// its successor and a reason, and nothing could reach the claim it held — the claim was in
+    /// the graph, because `Versioned` keeps it, and no query could name it.
+    ///
+    /// `D17` is that destruction requires evidence. Evidence a reader cannot reach is the shape
+    /// of the prototype's `AdmitChunk` path disarmed by a configuration default: an obligation
+    /// that looks handled because nothing complains.
+    #[must_use]
+    pub fn Neighbourhood_Of(&self, concept: ContentIdentity) -> Option<HeldNeighbourhood<'graph>>
+    {
+        let every = self.graph.Every_Version();
+        let found = every
+            .Concepts()
+            .into_iter()
+            .find(|held| return held.Value().Identity() == concept)?;
+
+        // The claims the graph itself calls current, composed the way it composes them. Asked
+        // rather than re-derived: a second liveness rule here would be the half-enforced index
+        // `D-012` describes, and it would be wrong in exactly the case this query is for.
+        let live: Vec<ContentIdentity> = self
+            .graph
+            .Current()
+            .Claims()
+            .into_iter()
+            .map(Claim::Identity)
+            .collect();
+
+        let claims: Vec<HeldClaim<'graph>> = every
+            .Claims()
+            .into_iter()
+            .filter(|held| return held.Value().Concept() == concept)
+            .map(|held| {
+                return HeldClaim {
+                    held,
+                    current: live.contains(&held.Value().Identity()),
+                };
+            })
+            .collect();
+        let addresses: Vec<ContentIdentity> = claims
+            .iter()
+            .map(|claim| return claim.held.Value().Identity())
+            .collect();
+        // Asked of the graph, like the claims above, and for the same reason.
+        let cited: Vec<ContentIdentity> = self
+            .graph
+            .Current()
+            .Assertions()
+            .into_iter()
+            .map(Assertion::Identity)
+            .collect();
+
+        let assertions = every
+            .Assertions()
+            .into_iter()
+            .filter(|held| return addresses.contains(&held.Value().Claim()))
+            .map(|held| {
+                return HeldAssertion {
+                    held,
+                    current: cited.contains(&held.Value().Identity()),
+                };
+            })
+            .collect();
+
+        return Some(HeldNeighbourhood {
+            concept: found,
+            claims,
+            assertions,
+        });
     }
 
     /// How many concepts are held, current or not.

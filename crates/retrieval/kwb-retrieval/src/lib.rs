@@ -24,4 +24,7 @@ mod queries;
 
 pub use queries::CurrentQueries;
 pub use queries::HistoricalQueries;
+pub use queries::HeldAssertion;
+pub use queries::HeldClaim;
+pub use queries::HeldNeighbourhood;
 pub use queries::Neighbourhood;

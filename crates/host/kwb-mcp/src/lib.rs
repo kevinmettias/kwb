@@ -113,7 +113,7 @@ impl World
 }
 
 /// The read-only tool surface, in declaration order.
-pub const TOOLS: [Tool; 4] = [
+pub const TOOLS: [Tool; 5] = [
     Tool {
         name: "search",
         world: World::Current,
@@ -133,6 +133,11 @@ pub const TOOLS: [Tool; 4] = [
         name: "merge_losers",
         world: World::Historical,
         summary: "concepts closed against a successor -- the question an audit needs",
+    },
+    Tool {
+        name: "held_neighbours",
+        world: World::Historical,
+        summary: "what a concept carried, live or closed -- what a merge loser said",
     },
 ];
 
@@ -175,6 +180,7 @@ pub fn Answer(graph: &KnowledgeGraph, tool: &str, argument: &str) -> Option<Vec<
                 .map(|held| return Merge_Loser_Line(held))
                 .collect(),
         ),
+        "held_neighbours" => Some(Held_Neighbourhood_Lines(historical, argument)),
         _ => None,
     };
 }
@@ -271,4 +277,98 @@ pub fn Print_Surface(graph: &KnowledgeGraph, without_a_store: bool)
     println!("list_connection_hypotheses need typed relations (D-011 holds them), proofs_for");
     println!("and code_for need artifact kinds the kernel has not declared, and gaps_in_source");
     println!("needs coverage stored per source.");
+}
+
+/// Everything a concept ever carried, each line saying what became of it.
+///
+/// # Why every line carries a standing and the current tool's lines do not
+///
+/// `neighbours` reads the current world, where everything it can reach is current by
+/// construction, so saying so on every line would be noise. Here nothing is: a merge loser is
+/// closed, and the claims it carried may be closed with it or still live under another concept.
+/// A reader who could not tell those apart has `D19-B`'s confusion, which is what this tool
+/// exists to end rather than to reproduce one layer up.
+///
+/// The concept is found by name against **every** version, because a merge loser is exactly the
+/// concept the current world cannot find — that is what made it unreachable before `KWB-65`.
+fn Held_Neighbourhood_Lines(historical: HistoricalQueries<'_>, name: &str) -> Vec<String>
+{
+    let Some(concept) = historical
+        .Neighbourhood_Of(kwb_domain::Concept::Named(name).Identity())
+    else
+    {
+        return Vec::new();
+    };
+
+    let mut lines = vec![format!(
+        "concept  {} [{}]",
+        concept.concept.Value().Canonical_Name(),
+        Standing_Of(concept.concept.Standing())
+    )];
+    for claim in &concept.claims
+    {
+        // The composed answer, and the reason when the two disagree.
+        //
+        // A claim under a superseded concept is not current however its own standing reads, and
+        // saying so needs both facts: the claim itself was never retired, and it is not live
+        // because what it was about is not. Rendering only its own standing says "current" and
+        // reproduces `D19-B` inside the tool built to end it -- which this line did twice, once
+        // by reading the standing directly and once by falling back to it.
+        let standing = match (claim.current, claim.held.Standing().Is_Current())
+        {
+            (true, _) => "current".to_owned(),
+            (false, true) => "not current: its concept is not".to_owned(),
+            (false, false) => Standing_Of(claim.held.Standing()),
+        };
+        lines.push(format!("claim    {} [{}]", claim.held.Value().Text(), standing));
+    }
+    for assertion in &concept.assertions
+    {
+        let standing = match (assertion.current, assertion.held.Standing().Is_Current())
+        {
+            (true, _) => "current".to_owned(),
+            (false, true) => "not current: what it cites is not".to_owned(),
+            (false, false) => Standing_Of(assertion.held.Standing()),
+        };
+        lines.push(format!("cited    {} [{}]", assertion.held.Value().Source(), standing));
+    }
+
+    return lines;
+}
+
+/// What became of something, with its reason when it has one.
+///
+/// # Why it is derived from `Is_Current` and not from a name on the type
+///
+/// `Standing::Is_Current` is **the** liveness expression in this workspace, guarded by a test
+/// that fails on a second definition. Asking it here means this surface cannot drift from what
+/// the domain means by live — which is the failure `D-012` describes as the prototype's index
+/// enforcing half the rule for three weeks with nothing failing.
+///
+/// The reason is rendered rather than summarised, for `D17`: an audit that can see a concept was
+/// closed and not why has the merge log the prototype had before `merge-audit` needed one.
+///
+/// # Why `Merge_Loser_Line` is not this
+///
+/// That renders a *relation* — what merged into what — and this renders a *state*, what became
+/// of one thing. They overlap in the superseded case and answer different questions, and
+/// collapsing them would make the merge listing carry standings nobody asked it for.
+fn Standing_Of(standing: &kwb_domain::Standing) -> String
+{
+    if standing.Is_Current()
+    {
+        return "current".to_owned();
+    }
+
+    let became = match standing.Superseded_By()
+    {
+        Some(into) => format!("superseded by {}", into.Render()),
+        None => "retired".to_owned(),
+    };
+
+    return match standing.Because()
+    {
+        Some(because) => format!("{became}: {because}"),
+        None => became,
+    };
 }
