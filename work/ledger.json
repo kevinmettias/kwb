@@ -4975,6 +4975,62 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-91",
+      "title": "Six pushes have run the gate and no step has ever executed, and independently of that the gate as configured cannot resolve the dependency D-007 adopts",
+      "why": "Measured 2026-09-13. Two independent facts, either of which alone stops the gate.\n\nFirst: no step has ever run. Six workflow runs exist on dev, 34736068864 through 34766510019, every one `completed failure` in four or five seconds with an empty steps array. GitHub's annotation on each is the same: the job was not started because recent account payments have failed or the spending limit needs increasing. That is an account condition and nothing in this repository can change it.\n\nSecond, and the part that outlives the billing: the gate as written could not pass anyway. `kwb-platform-xvpe` adopts four crates from github.com/kevinmettias/xvpe, which is private. .github/workflows/gate.yml provides no credential for it - no `token:` on checkout, no ssh-agent, no `net.git-fetch-with-cli` - and this workspace has no .cargo/config.toml. The token `actions/checkout@v4` installs is scoped to this repository, and cargo does not use it for a git dependency. Reproduced on Linux: `cargo fetch` fails with `failed to authenticate when downloading repository`. The pin is not at fault, and that was checked rather than assumed - 8ff98a8fd is present on xvpe's origin/dev.\n\nWhat the gate would have reported was measured by hand instead, on Linux, with xvpe's git database seeded from a machine that has credentials and with a target directory of its own: all three steps pass. `cargo clippy --workspace --all-targets -- -D warnings` is clean on stable 1.98.0, `cargo test --workspace --no-fail-fast` is 210 passed and 0 failed, and `cargo test -p kwb-contract-tests` exits 0. The test count is identical to Windows and the name sets are identical too, so nothing here is platform-conditional; the workspace declares no cfg gate anywhere.\n\nOne number in that paragraph was wrong before it was right, and it is recorded because the failure is instructive. The first Linux run reported 230. Two cargo processes were running against one CARGO_TARGET_DIR and writing one log path, and their interleaved output summed to more tests than exist. Re-measured in isolation it is 210. A measurement taken while something else is building is not a measurement.\n\nWhy this is worth writing down rather than leaving in a session. `D-005` adopted the nomos ledger partly on the strength of the gate: `nomos work finish` refuses at exit 4 when gate.yml cannot be read, on the grounds that an item finished against a check weaker than the gate is the defect that refusal exists to prevent. That refusal is satisfied by the file being readable. Seventy-seven items have been finished against it and it has never proved anything, because the check it stands for has not run once.\n\nThis observation makes no decision. Restoring the gate needs an account change and a credential decision about granting CI read access to a private repository, and both are the maintainer's rather than a session's.",
+      "done_when": "docs/observations/ carries an observation stating the two measured facts, the reproduction, and the hand measurement that stands in for the gate, with `status: open` because nothing has acted on it. It declares a relation to `D-005`, whose stated precondition it is about, and `D-005` carries the other end in its Referenced By list, since a relation reachable from one side only is the defect `KWB-38` measured. No decision is recorded and no remedy is applied: the credential question is not a session's to answer. `cargo test -p kwb-contract-tests` passes, which is the real predicate here - it is the suite that checks an observation declares a version and a meaningful status, that a declared relation is reachable from both ends, and that a Referenced By section carries the derived note.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/observations/OD-GATE-001-the-gate-has-never-run-and-as-configured-it-cannot.md",
+          "docs/records/D-005-this-repository-adopts-the-nomos-ledger-schema-and-defers-owning-any-ledger-code.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789317072,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "6636e1c6d864743ba99187bbe346283b291ae77d"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
