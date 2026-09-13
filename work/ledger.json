@@ -2007,6 +2007,68 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-37",
+      "title": "Nothing can close a concept, so a merge loser is a state only a test has ever produced, and a supersede records no evidence authorising it",
+      "why": "Two findings from the same sweep that found KWB-36. Standing has three variants and production constructs only Asserted -- Retired and Superseded appear solely in the encode and decode halves of replay, which means the closing path can only ever read records nothing writes. Merge_Losers, the question D19-B says merge-audit needed and asked of the wrong world, can therefore only ever answer about an empty set, and the whole current-versus-historical distinction this repository has spent several records justifying has nothing to distinguish. And the second, which is the sharper one: Standing::Superseded carries its successor and nothing else. D17 is that destruction requires evidence, and the question it demands be answerable before a delete, deprecate, supersede or overwrite is \"what belief authorises this, and what would falsify it\". A supersede that records the successor and not the reason cannot answer it. The prototype was better here -- it kept a ConceptMerge log its own merge-audit re-read -- and this repository, which cites that incident in four records, currently has no place to put the answer.",
+      "done_when": "Closing a concept records what authorised it. A supersede names its successor and the belief behind it, a retirement names its reason, and neither is constructible without one -- so the question D17 demands be answerable is answerable by construction rather than by whoever remembers to write it down. The reason survives a record and a replay. The command line can retire and supersede, so the closing path is reachable outside a test and a merge loser is a state the product can actually produce. Superseding something into itself is refused, and so is superseding into a concept the graph does not hold, because both are merges whose successor cannot be resolved and D17 is about not destroying on a belief nobody checked.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain",
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\ntest tests::Test_Two_Sources_Asserting_One_Claim_Should_Be_Two_Assertions_Of_One_Claim ... ok\n\ntest result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 7 tests\ntest Test_A_Retired_Concept_Should_Not_Claim_A_Successor ... ok\ntest Test_A_Superseded_Concept_Should_Be_Absent_From_Current_And_Present_In_Every_Version ... ok\ntest Test_Publishing_Should_Leave_The_Previous_Version_Queryable ... ok\ntest Test_The_Two_Reads_Should_Not_Be_One_Type_With_A_Flag ... ok\ntest Test_The_Merge_Log_Should_Be_Answerable_From_The_All_Versions_Read ... ok\ntest Test_The_Listing_Should_Not_Depend_On_The_Order_Concepts_Arrived_In ... ok\ntest Test_The_Crate_Should_Define_Liveness_Exactly_Once ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 7 tests\ntest Test_A_Claim_Whose_Concept_Was_Never_Published_Should_Be_Refused ... ok\ntest Test_A_Record_Of_An_Unknown_Shape_Should_Be_Refused ... ok\ntest Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Held ... ok\ntest Test_An_Empty_Sequence_Should_Replay_To_An_Empty_Graph ... ok\ntest Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record ... ok\ntest Test_A_Retired_Concept_Should_Replay_Retired ... ok\ntest Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-38f77df29d8226f3.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running tests\\publication.rs (target\\debug\\deps\\publication-59a684649459b0cc.exe)\n   Doc-tests kwb_domain\n",
+        "verified_at": 1789260583,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "36d5950f42b87bebfae1bd5e3a0b2c71389a2806"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

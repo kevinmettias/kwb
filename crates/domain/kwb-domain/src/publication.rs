@@ -128,16 +128,17 @@ impl Publication
         {
             Self::Concept { concept, standing } =>
             {
-                let (name, successor) = Standing_Fields(*standing);
-                Joined(&[CONCEPT, name, &successor, concept.Canonical_Name()])
+                let (name, successor, because) = Standing_Fields(standing);
+                Joined(&[CONCEPT, name, &successor, &because, concept.Canonical_Name()])
             }
             Self::Claim { claim, standing } =>
             {
-                let (name, successor) = Standing_Fields(*standing);
+                let (name, successor, because) = Standing_Fields(standing);
                 Joined(&[
                     CLAIM,
                     name,
                     &successor,
+                    &because,
                     &claim.Concept().Render(),
                     claim.Text(),
                 ])
@@ -147,11 +148,12 @@ impl Publication
                 standing,
             } =>
             {
-                let (name, successor) = Standing_Fields(*standing);
+                let (name, successor, because) = Standing_Fields(standing);
                 Joined(&[
                     ASSERTION,
                     name,
                     &successor,
+                    &because,
                     &assertion.Claim().Render(),
                     assertion.Source(),
                     assertion.Scope().Name(),
@@ -195,13 +197,13 @@ fn Applied(
 
     return match fields
     {
-        [kind, standing, successor, name] if *kind == CONCEPT =>
+        [kind, standing, successor, because, name] if *kind == CONCEPT =>
         {
             let concept = Concept::Named(name);
-            let standing = Standing_Of(standing, successor).ok_or_else(malformed)?;
+            let standing = Standing_Of(standing, successor, because).ok_or_else(malformed)?;
             Ok(graph.With_Concept(Versioned::Asserted(concept).Closed(standing)))
         }
-        [kind, standing, successor, concept, text] if *kind == CLAIM =>
+        [kind, standing, successor, because, concept, text] if *kind == CLAIM =>
         {
             let address = ContentIdentity::Parse(concept).map_err(|_| return malformed())?;
             let held = Concept_At(graph, address).ok_or_else(|| {
@@ -210,10 +212,10 @@ fn Applied(
                 };
             })?;
             let claim = Claim::About(&held, text);
-            let standing = Standing_Of(standing, successor).ok_or_else(malformed)?;
+            let standing = Standing_Of(standing, successor, because).ok_or_else(malformed)?;
             Ok(graph.With_Claim(Versioned::Asserted(claim).Closed(standing)))
         }
-        [kind, standing, successor, claim, source, scope] if *kind == ASSERTION =>
+        [kind, standing, successor, because, claim, source, scope] if *kind == ASSERTION =>
         {
             let address = ContentIdentity::Parse(claim).map_err(|_| return malformed())?;
             let held = Claim_At(graph, address).ok_or_else(|| {
@@ -222,7 +224,7 @@ fn Applied(
                 };
             })?;
             let assertion = Assertion::By(source, &held, Scope::Named(scope));
-            let standing = Standing_Of(standing, successor).ok_or_else(malformed)?;
+            let standing = Standing_Of(standing, successor, because).ok_or_else(malformed)?;
             Ok(graph.With_Assertion(Versioned::Asserted(assertion).Closed(standing)))
         }
         _ => Err(malformed()),
@@ -262,13 +264,13 @@ fn Claim_At(graph: &KnowledgeGraph, address: ContentIdentity) -> Option<Claim>
 /// standing. A variable-width standing would have made the field count carry meaning, and a
 /// reader would have had to know the standing before it could finish splitting — which is the
 /// kind of format where a value eventually decides how it is parsed.
-fn Standing_Fields(standing: Standing) -> (&'static str, String)
+fn Standing_Fields(standing: &Standing) -> (&'static str, String, String)
 {
     return match standing
     {
-        Standing::Asserted => (ASSERTED, String::new()),
-        Standing::Retired => (RETIRED, String::new()),
-        Standing::Superseded { by } => (SUPERSEDED, by.Render()),
+        Standing::Asserted => (ASSERTED, String::new(), String::new()),
+        Standing::Retired { because } => (RETIRED, String::new(), because.clone()),
+        Standing::Superseded { by, because } => (SUPERSEDED, by.Render(), because.clone()),
     };
 }
 
@@ -277,15 +279,20 @@ fn Standing_Fields(standing: Standing) -> (&'static str, String)
 /// A successor that is present where none belongs, or absent where one does, is refused rather
 /// than ignored: both are records this writer could not have produced, so reading them would be
 /// reading something else's file as if it were ours.
-fn Standing_Of(name: &str, successor: &str) -> Option<Standing>
+fn Standing_Of(name: &str, successor: &str, because: &str) -> Option<Standing>
 {
-    return match (name, successor.is_empty())
+    return match (name, successor.is_empty(), because.is_empty())
     {
-        (ASSERTED, true) => Some(Standing::Asserted),
-        (RETIRED, true) => Some(Standing::Retired),
-        (SUPERSEDED, false) => ContentIdentity::Parse(successor)
-            .ok()
-            .map(|by| return Standing::Superseded { by }),
+        (ASSERTED, true, true) => Some(Standing::Asserted),
+        (RETIRED, true, false) => Some(Standing::Retired {
+            because: because.to_owned(),
+        }),
+        (SUPERSEDED, false, false) => ContentIdentity::Parse(successor).ok().map(|by| {
+            return Standing::Superseded {
+                by,
+                because: because.to_owned(),
+            };
+        }),
         _ => None,
     };
 }

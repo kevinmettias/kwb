@@ -45,9 +45,9 @@ impl<Value> Versioned<Value>
 
     /// Where it stands.
     #[must_use]
-    pub const fn Standing(&self) -> Standing
+    pub const fn Standing(&self) -> &Standing
     {
-        return self.standing;
+        return &self.standing;
     }
 }
 

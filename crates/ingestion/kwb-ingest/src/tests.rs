@@ -369,7 +369,9 @@ fn Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current()
     let held = graph.Every_Version().Concepts();
     let concept = (*held.first().expect("one concept")).clone();
 
-    let retired = graph.With_Concept(concept.Closed(Standing::Retired));
+    let retired = graph.With_Concept(concept.Closed(Standing::Retired {
+            because: "the concept was withdrawn by its source".to_owned(),
+        }));
 
     assert!(retired.Current().Claims().is_empty(), "the claim is not current knowledge");
     assert_eq!(

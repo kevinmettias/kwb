@@ -22,7 +22,7 @@
 
 use std::process::ExitCode;
 
-use kwb_domain::{KnowledgeGraph, Publication, Replay, Scope};
+use kwb_domain::{Concept, KnowledgeGraph, Publication, Replay, Scope, Standing, Versioned};
 use kwb_ingest::{Admit, AdmissionReport, Extraction};
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::{DirectoryContentStore, FileRecordLog};
@@ -42,6 +42,8 @@ fn main() -> ExitCode
     return match borrowed.split_first()
     {
         Some((&"admit", rest)) => Admit_Command(rest),
+        Some((&"retire", rest)) => Close_Command(rest, None),
+        Some((&"supersede", rest)) => Close_Command(rest, Some(())),
         Some((&"help" | &"--help" | &"-h", _)) =>
         {
             Print_Usage();
@@ -195,6 +197,165 @@ fn Store_For(root: Option<&str>) -> Result<DocumentStore, String>
     return Ok(DocumentStore::Backed_By(Box::new(durable)));
 }
 
+/// `kwb retire <concept> --store <dir> --because <reason>`
+/// `kwb supersede <concept> --into <concept> --store <dir> --because <reason>`
+///
+/// # Why a reason is required rather than optional
+///
+/// `D17`: destruction requires evidence, and the question it demands be answerable before a
+/// delete, deprecate, supersede or overwrite is *what belief authorises this, and what would
+/// falsify it*. A closure with no recorded reason cannot answer either half, and the prototype
+/// found **144 of 579 merges** wrong months later only because it had a log to re-read.
+fn Close_Command(arguments: &[&str], merging: Option<()>) -> ExitCode
+{
+    let Some((name, rest)) = arguments.split_first()
+    else
+    {
+        eprintln!("kwb: expected a concept");
+        Print_Usage();
+        return ExitCode::from(USAGE_EXIT);
+    };
+
+    let (successor, rest) = Flag_From(rest, "--into");
+    let (store_root, rest) = Store_Root_From(rest);
+    let (because, rest) = Flag_From(rest, "--because");
+
+    if !rest.is_empty()
+    {
+        eprintln!("kwb: unexpected argument {}", rest.first().unwrap_or(&""));
+        Print_Usage();
+        return ExitCode::from(USAGE_EXIT);
+    }
+
+    let Some(because) = because.filter(|reason| return !reason.trim().is_empty())
+    else
+    {
+        eprintln!("kwb: --because is required. D17: destruction requires evidence");
+        Print_Usage();
+        return ExitCode::from(USAGE_EXIT);
+    };
+
+    let Some(store_root) = store_root
+    else
+    {
+        eprintln!("kwb: --store is required; closing a concept nothing keeps changes nothing");
+        Print_Usage();
+        return ExitCode::from(USAGE_EXIT);
+    };
+
+    let log = match Log_For(Some(store_root))
+    {
+        Ok(log) => log,
+        Err(complaint) =>
+        {
+            eprintln!("kwb: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+    let known = match Known_So_Far(log.as_ref())
+    {
+        Ok(known) => known,
+        Err(complaint) =>
+        {
+            eprintln!("kwb: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+
+    let concept = Concept::Named(name);
+    let standing = match Closing_Standing(merging, successor, because, &known, &concept)
+    {
+        Ok(standing) => standing,
+        Err(complaint) =>
+        {
+            eprintln!("kwb: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+
+    // Applied to what was known, so the count reported is the corpus after this closure and
+    // not this closure in isolation. The previous graph is untouched, which is what makes the
+    // state before a merge a thing that was kept.
+    let after = known.With_Concept(Versioned::Asserted(concept.clone()).Closed(standing.clone()));
+    let publication = Publication::Concept { concept, standing };
+
+    // Recorded before anything is printed. `D19`: a report must not outrun the work, and a
+    // closure announced but not recorded is one the next run will not know about.
+    if let Some(log) = log.as_ref()
+    {
+        if let Err(cause) = log.Append(&publication.Record())
+        {
+            eprintln!("kwb: cannot record the closure: {cause}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    }
+
+    println!("closed     {name}");
+    println!("current    {}", after.Current().Concepts().len());
+    println!("held       {}", after.Every_Version().Concepts().len());
+    return ExitCode::SUCCESS;
+}
+
+/// The standing a closure produces, refusing the merges `D17` would not authorise.
+fn Closing_Standing(
+    merging: Option<()>,
+    successor: Option<&str>,
+    because: &str,
+    known: &KnowledgeGraph,
+    concept: &Concept,
+) -> Result<Standing, String>
+{
+    if merging.is_none()
+    {
+        return Ok(Standing::Retired {
+            because: because.to_owned(),
+        });
+    }
+
+    let Some(successor) = successor
+    else
+    {
+        return Err("supersede needs --into <concept>".to_owned());
+    };
+
+    let into = Concept::Named(successor);
+    if into.Identity() == concept.Identity()
+    {
+        return Err("a concept cannot supersede itself".to_owned());
+    }
+
+    // The successor has to be one the graph holds. A merge into something nobody published is
+    // a merge whose successor cannot be resolved, which is how `merge-audit` came to resolve
+    // none of the merge log and report that nothing had been merged away.
+    let held = known
+        .Every_Version()
+        .Concepts()
+        .iter()
+        .any(|candidate| return candidate.Value().Identity() == into.Identity());
+    if !held
+    {
+        return Err(format!("nothing published a concept named {successor} to merge into"));
+    }
+
+    return Ok(Standing::Superseded {
+        by: into.Identity(),
+        because: because.to_owned(),
+    });
+}
+
+/// A named flag's value, if the flag leads the remaining arguments.
+fn Flag_From<'arguments>(
+    arguments: &'arguments [&'arguments str],
+    flag: &str,
+) -> (Option<&'arguments str>, &'arguments [&'arguments str])
+{
+    return match arguments
+    {
+        [found, value, rest @ ..] if *found == flag => (Some(value), rest),
+        _ => (None, arguments),
+    };
+}
+
 /// `--scope <name>`, if it leads the remaining arguments.
 ///
 /// An absent scope is a real answer and not a default. `D-010`: a source that did not say how
@@ -306,6 +467,13 @@ fn Print_Usage()
     eprintln!(
         "usage: kwb admit <file> [--store <dir>] [--scope <name>] [--says <concept> <claim>]..."
     );
+    eprintln!("       kwb retire <concept> --store <dir> --because <reason>");
+    eprintln!("       kwb supersede <concept> --into <concept> --store <dir> --because <reason>");
+    eprintln!();
+    eprintln!("  retire and supersede close a concept, and --because is required rather than");
+    eprintln!("  optional. D17: destruction requires evidence, and the question it demands be");
+    eprintln!("  answerable is what belief authorises this. The prototype found 144 of 579");
+    eprintln!("  merges wrong months later, and only because it had a log to re-read.");
     eprintln!();
     eprintln!("  Admits a file: the bytes are written to the content-addressed store and");
     eprintln!("  whatever is supplied by --says is linked, normalized and published.");

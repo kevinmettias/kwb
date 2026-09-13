@@ -117,6 +117,7 @@ fn Test_A_Superseded_Concept_Should_Be_Absent_From_Current_And_Present_In_Every_
         .With_Concept(successor.clone())
         .With_Concept(entropy.Closed(Standing::Superseded {
             by: successor.Value().Identity(),
+            because: "the two names denote one concept".to_owned(),
         }));
 
     assert!(
@@ -143,6 +144,7 @@ fn Test_The_Merge_Log_Should_Be_Answerable_From_The_All_Versions_Read()
         .With_Concept(keeper.clone())
         .With_Concept(loser.Closed(Standing::Superseded {
             by: keeper.Value().Identity(),
+            because: "the two names denote one concept".to_owned(),
         }));
 
     let losers = graph.Every_Version().Merge_Losers();
@@ -160,7 +162,9 @@ fn Test_A_Retired_Concept_Should_Not_Claim_A_Successor()
 {
     // Not current and merged-into-something are different facts, and a retired concept has
     // the first without the second.
-    let retired = Asserted("phlogiston").Closed(Standing::Retired);
+    let retired = Asserted("phlogiston").Closed(Standing::Retired {
+            because: "the concept was withdrawn by its source".to_owned(),
+        });
 
     assert!(!retired.Standing().Is_Current());
     assert_eq!(retired.Standing().Superseded_By(), None);
@@ -174,7 +178,9 @@ fn Test_Publishing_Should_Leave_The_Previous_Version_Queryable()
     let entropy = Asserted("entropy");
     let before = KnowledgeGraph::Empty().With_Concept(entropy.clone());
 
-    let after = before.With_Concept(entropy.Closed(Standing::Retired));
+    let after = before.With_Concept(entropy.Closed(Standing::Retired {
+            because: "the concept was withdrawn by its source".to_owned(),
+        }));
 
     assert!(
         !before.Current().Concepts().is_empty(),

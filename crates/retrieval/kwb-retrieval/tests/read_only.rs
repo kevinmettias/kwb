@@ -204,6 +204,7 @@ fn Test_A_Merge_Loser_Should_Be_Invisible_To_Current_And_Visible_To_Historical()
         .With_Concept(Versioned::Asserted(keeper.clone()))
         .With_Concept(Versioned::Asserted(entropy.clone()).Closed(Standing::Superseded {
             by: keeper.Identity(),
+            because: "the two names denote one concept".to_owned(),
         }));
 
     assert!(
@@ -227,7 +228,9 @@ fn Test_A_Claim_Of_A_Retired_Concept_Should_Leave_The_Current_Keyword_Index()
     let (graph, entropy, _) = Corpus();
 
     let retired = graph.With_Concept(
-        Versioned::Asserted(entropy).Closed(Standing::Retired),
+        Versioned::Asserted(entropy).Closed(Standing::Retired {
+            because: "the concept was withdrawn by its source".to_owned(),
+        }),
     );
 
     assert!(

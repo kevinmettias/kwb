@@ -23,14 +23,22 @@ use kwb_model::ContentIdentity;
 /// without being closed *somehow*, and cannot name a successor without being closed, because
 /// neither is expressible. `D-008`'s fifth requirement, met in the type rather than in the one
 /// store that has the constraints.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Standing
 {
     /// The concept is asserted. This is the only current state.
     Asserted,
 
     /// Closed with no successor — retired on its own.
-    Retired,
+    Retired
+    {
+        /// What authorised retiring it.
+        ///
+        /// `D17`: destruction requires evidence, and the question it demands be answerable is
+        /// *what belief authorises this, and what would falsify it*. A closure that recorded
+        /// only the fact of closing could not answer either half.
+        because: String,
+    },
 
     /// Closed against a successor: a merge loser.
     ///
@@ -42,6 +50,14 @@ pub enum Standing
     {
         /// The concept this one was merged into.
         by: ContentIdentity,
+
+        /// What authorised the merge.
+        ///
+        /// The prototype kept a `ConceptMerge` log and its own `merge-audit` re-read it, which
+        /// is how **144 of 579 merges** were found to have fused ideas the rule explicitly
+        /// rejected — months later, on the live corpus. An audit needs something to re-read,
+        /// and a successor alone is not it.
+        because: String,
     },
 }
 
@@ -65,9 +81,23 @@ impl Standing
     /// `tests/one_liveness.rs` scans this crate's own source and fails if a second definition
     /// appears, which is the only form of this requirement a test can hold.
     #[must_use]
-    pub const fn Is_Current(&self) -> bool
+    pub fn Is_Current(&self) -> bool
     {
         return matches!(*self, Self::Asserted);
+    }
+
+    /// What authorised closing this, when it is closed.
+    ///
+    /// The half of `D17` a successor cannot supply: *what belief authorises this*. An audit
+    /// re-reads these, which is the only way a merge already on record stays falsifiable.
+    #[must_use]
+    pub fn Because(&self) -> Option<&str>
+    {
+        return match self
+        {
+            Self::Asserted => None,
+            Self::Retired { because } | Self::Superseded { because, .. } => Some(because),
+        };
     }
 
     /// The concept this one was merged into, when it was.
@@ -79,10 +109,10 @@ impl Standing
     #[must_use]
     pub const fn Superseded_By(&self) -> Option<ContentIdentity>
     {
-        return match *self
+        return match self
         {
-            Self::Superseded { by } => Some(by),
-            Self::Asserted | Self::Retired => None,
+            Self::Superseded { by, .. } => Some(*by),
+            Self::Asserted | Self::Retired { .. } => None,
         };
     }
 }

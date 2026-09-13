@@ -25,7 +25,9 @@ fn Corpus() -> (KnowledgeGraph, Vec<String>)
         },
         Publication::Concept {
             concept: enthalpy.clone(),
-            standing: Standing::Retired,
+            standing: Standing::Retired {
+                because: "the concept was withdrawn by its source".to_owned(),
+            },
         },
         Publication::Claim {
             claim: claim.clone(),
@@ -39,7 +41,9 @@ fn Corpus() -> (KnowledgeGraph, Vec<String>)
 
     let graph = KnowledgeGraph::Empty()
         .With_Concept(Versioned::Asserted(entropy))
-        .With_Concept(Versioned::Asserted(enthalpy).Closed(Standing::Retired))
+        .With_Concept(Versioned::Asserted(enthalpy).Closed(Standing::Retired {
+            because: "the concept was withdrawn by its source".to_owned(),
+        }))
         .With_Claim(Versioned::Asserted(claim))
         .With_Assertion(Versioned::Asserted(assertion));
 
@@ -113,8 +117,9 @@ fn Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record()
         Publication::Concept {
             concept: loser,
             standing: Standing::Superseded {
-                by: keeper.Identity(),
-            },
+            by: keeper.Identity(),
+            because: "the two names denote one concept".to_owned(),
+        },
         }
         .Record(),
     ];
@@ -148,8 +153,8 @@ fn Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
     .Record();
 
     assert_eq!(
-        record.chars().filter(|character| return *character == SEPARATOR).count(),
-        3,
+        Fields(&record),
+        Fields(&Recorded("entropy")),
         "a value carried a separator into the record, so a reader would split it into the \
          wrong number of fields: {record:?}"
     );
@@ -206,4 +211,20 @@ fn Test_An_Empty_Sequence_Should_Replay_To_An_Empty_Graph()
     let replayed = Replay(&[]).expect("replays");
 
     assert_eq!(replayed.Every_Version().Concepts().len(), 0);
+}
+
+/// A concept record, for a name.
+fn Recorded(name: &str) -> String
+{
+    return Publication::Concept {
+        concept: Concept::Named(name),
+        standing: Standing::Asserted,
+    }
+    .Record();
+}
+
+/// How many fields a record splits into.
+fn Fields(record: &str) -> usize
+{
+    return record.split(SEPARATOR).count();
 }
