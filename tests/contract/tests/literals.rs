@@ -41,13 +41,35 @@ fn Repository_Root() -> PathBuf
 
 /// How many spaces in a row are a gap rather than an alignment.
 ///
-/// Eight, and the number is measured rather than chosen. The damage is the **source
-/// indentation** of a continued literal, which in this repository sits at the column of the
-/// opening quote — the five real instances carried ten, ten, ten, ten and eighteen spaces.
-/// Alignment in printed output is the width of the widest label, and the widest here is
-/// `documents  {}` and `held       {}`, at seven. So eight separates them with the whole gap
-/// between seven and ten to spare, and both sides of that boundary are asserted below rather
-/// than left as a claim in a comment.
+/// # The two numbers that bound it
+///
+/// A threshold here is safe when it sits **above every legitimate run** and **at or below the
+/// shallowest damage**. Both are properties of the tree and both are measured:
+///
+/// | | |
+/// |---|---|
+/// | largest run inside a literal of 30+ characters | **5** — `corpus     {} current, {} held` |
+/// | shallowest continuation indent in `crates/` | **9** — 43 sites, at 9, 13 and 17 |
+///
+/// Eight sits between them. `Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run`
+/// keeps the left-hand number honest, so this table cannot quietly stop being true.
+///
+/// # The blind spot, stated because it is not zero
+///
+/// Damage is the **source indentation of whatever line it happened to**, so its magnitude is a
+/// property of the code and not of the defect — it has no floor in principle. A continuation
+/// site indented six, seven or eight would produce damage this threshold misses. **No such site
+/// exists**: the shallowest is nine. If one is ever written, this guard goes quiet about it and
+/// says nothing, which is the failure mode worth knowing about in advance.
+///
+/// # Why the justification was rewritten
+///
+/// It used to read *"the five real instances carried ten, ten, ten, ten and eighteen"* — the
+/// number argued from a sample of damage. `KWB-57` carried that same reasoning to markdown
+/// command lines, where the real instance carried **seven**, the guard reported clean on it, and
+/// its own detector test passed because the fixture was a reconstruction that happened to carry
+/// ten. The number here was right and its reason was the reason that failed, so the reason is
+/// what changed.
 const GAP: usize = 8;
 
 /// How long a literal has to be before a run of spaces in it is a sentence and not a layout.
@@ -331,4 +353,77 @@ fn Test_The_Detector_Should_Not_Find_What_Is_Not_Damage()
     // Whitespace that is the subject rather than the separator -- `Scope` tests pass these.
     assert!(!Has_A_Gap("   "), "a literal that is itself whitespace was flagged");
     assert!(!Has_A_Gap("\t"), "a tab was flagged");
+}
+
+/// The threshold's left-hand bound, recomputed from the tree on every run.
+///
+/// # Why a number in a comment is not enough
+///
+/// `GAP` is safe only while it sits above every run somebody wrote on purpose. That was
+/// measured once, at five, and a measurement taken once is a claim from then on — the exact
+/// shape this repository keeps finding in its own documents.
+///
+/// So the number is recomputed here. If a printed table ever grows a column eight wide, this
+/// fails and says the threshold has stopped being safe, instead of the scan above quietly
+/// reporting somebody's deliberate alignment as damage and being switched off for it.
+///
+/// It reads the same literals the scan reads and reports the widest run **below** the
+/// threshold, which is exactly the legitimate population — the scan at the top of this file is
+/// what proves there is nothing at or above it. That is also why this test asserts nothing
+/// about the threshold's upper side: a bound computed below `GAP` cannot be found to exceed it,
+/// and an assertion that cannot fail is worse than none.
+#[test]
+fn Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run()
+{
+    let mut code = Vec::new();
+    Code_Of(&Repository_Root().join("crates"), &mut code);
+
+    let mut widest = 0_usize;
+    let mut example = String::new();
+    for (_, text) in &code
+    {
+        for literal in Literals_In(text)
+        {
+            let value = Value_Of(&literal);
+            let trimmed = value.trim();
+            if trimmed.chars().count() < SENTENCE
+            {
+                continue;
+            }
+
+            let mut run = 0_usize;
+            let mut after_a_break = true;
+            for character in trimmed.chars()
+            {
+                if character == ' '
+                {
+                    run = run.saturating_add(1);
+                    if !after_a_break && run > widest && run < GAP
+                    {
+                        widest = run;
+                        example = trimmed.chars().take(60).collect();
+                    }
+                    continue;
+                }
+                after_a_break = character == '\n';
+                run = 0;
+            }
+        }
+    }
+
+    // There is deliberately no `assert!(widest < GAP)` here. The loop above records only runs
+    // *below* `GAP`, so such an assertion could not fail -- a gate that passes on every tree,
+    // which is the shape this repository has a name for. The scan at the top of this file is
+    // what guards that side, and repeating it here would be a second authority for one question
+    // rather than a second check of it.
+    //
+    // This is the measurement the doc comment on `GAP` states. Not an equality: a table gaining
+    // a column is fine while it stays under the threshold. What must not happen unnoticed is it
+    // climbing towards one.
+    assert!(
+        widest <= 5,
+        "the widest deliberate run has grown from 5 to {widest}, which is still under the \
+         threshold but means the comment on GAP is now describing a tree that changed: \
+         {example:?}"
+    );
 }

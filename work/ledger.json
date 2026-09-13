@@ -3199,6 +3199,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-58",
+      "title": "The Rust scanner's threshold is justified by a sample of damage rather than by the structure, which is the reasoning that produced a wrong threshold one item later",
+      "why": "KWB-52's literal scanner sets its threshold at eight and justifies it by the magnitudes of the damage it had seen: the five real instances carried ten, ten, ten, ten and eighteen. KWB-57 then carried that same number to markdown command lines and it was wrong -- the real instance there carried seven, the guard reported clean on it, and its own detector test passed because the fixture was a reconstruction carrying ten. The number here is not wrong, but its stated reason is the same reasoning, and it is stale besides: there are six known instances now and one of them carried seven. Reasoning from a sample of damage says nothing about what the guard will meet next, because the magnitude of this damage is the source indentation of whatever line it happened to, which is a property of the code and not of the defect. Measured properly, tree-wide: the largest run of spaces inside a literal of thirty or more characters is five, in a printed table column, and every continuation site in crates has an indent of nine, thirteen or seventeen. Those two numbers are what bound a safe threshold, and neither appears in the justification. The blind spot they imply is unstated too: a continuation site indented six to eight would be missed, and none exists today.",
+      "done_when": "The threshold's justification names the two structural numbers that bound it -- the largest legitimate run in the tree and the shallowest continuation indent -- rather than a list of damage magnitudes, and states the blind spot those numbers imply along with the fact that nothing occupies it. A test computes the largest legitimate run across the tree and fails if it has reached the threshold, so the guard reports that its own boundary has stopped being safe instead of silently flagging a table somebody aligned. That test is shown to discriminate by being run against a literal that would breach it. The threshold itself is not moved unless the measurement says it must be, because a number that is correct and badly explained is fixed by explaining it.",
+      "kind": "Validation",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789276358,
+        "lease_expires_at": 1789283558
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
