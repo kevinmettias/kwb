@@ -3254,6 +3254,40 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-59",
+      "title": "KWB still cannot read a source, and everything needed to build the first extractor is adopted, measured and unused",
+      "why": "KWB-47 declared the extraction contract and its only implementation is Stated, a person typing --says. The README's opening said KWB ingests references until KWB-56 corrected it, and the Trying it section still says there is no extractor, which is the honest statement and the reason this item exists. Everything the first extractor needs is already in XVPE and was measured today at the commit kwb-platform-xvpe already pins, a7eee3c6e, so no rev bump is involved and bumping stays the separate decision the manifest says it is. xvpe-corpus-text carries Chunk, ChunkingStrategy and PageFidelity and depends on xvpe-primitives alone. xvpe-ai-inference carries Conforms, AnswerValue, a recording codec and replay, recording and replay-recording strategies, and depends on xvpe-primitives and xvpe-json-text. Probed in a scratch crate against that pinned SHA: both resolve, both compile, both proved by naming a type from each rather than by the manifest listing them, and cargo tree --no-default-features -e normal shows zero third-party packages in the closure. Neither crate carries a provider, which is what makes the quarantine the owner asked for actually separable, and the replay strategy is what lets this be tested without credentials.",
+      "done_when": "A model-backed reader implements ExtractionStrategy and kwb admit can read a born-digital text source instead of being told what it says. kwb-platform-xvpe stays the one crate permitted to name XVPE and re-exports what is needed, the way it already re-exports the persistent map as VersionedMap; the reader is a band 3 crate that names only kwb-platform-xvpe, and the README bands table gains its row, which tests/contract then asserts in both directions. PageFidelity maps into ReadingKind rather than replacing it, which is what KWB-47 said would happen when a reading adapter arrived. Every test runs on the replay strategy against a committed recording, so the suite needs no credentials and no network, and the recording is evidence rather than a fixture invented to make a test pass. Malformed model output is refused and never becomes a graph mutation, proved against a recording of a real malformed answer rather than a hand-written one. A reader that fails is Unmet and never Barren, proved end to end rather than at the seam. Re-running an extraction over the same source admits the same graph. D-015's third deferral is settled here rather than left: chunking makes a reading cover one passage, so either a reading is per-chunk or ProposedReading carries a location per proposal, and whichever is chosen is stated with what it costs. No provider, no credential and no network dependency enters this workspace.",
+      "kind": "Capability",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/ingestion",
+          "README.md",
+          "Cargo.toml"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
