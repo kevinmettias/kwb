@@ -5127,6 +5127,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-94",
+      "title": "A command every Rust contributor types would reformat 864 sites away from this workspace's brace style, and nothing here stops it or says so",
+      "why": "Measured 2026-09-13 on Linux against the pinned 1.87.0. `cargo fmt --all --check` exits 1 with 864 diff sites, and every diff is the same edit: this workspace's Allman braces collapsed onto the declaration line. `cargo fmt` is not an exotic command - it is the one a contributor types by reflex, and here it silently rewrites the entire workspace away from its own style.\n\nNothing in this repository prevents it and nothing warns about it. There is no rustfmt.toml, and README.md, AGENTS.md and docs/ mention rustfmt, cargo fmt, Allman and brace styling exactly zero times - grepped, not assumed. Both siblings handle this and this repository is the one that does not: XVPE carries a rustfmt.toml pinning nightly's `brace_style = \"AlwaysNextLine\"`, and Nomos carries one plus a stated prohibition in its README conventions.\n\n`D-016` addressed half of it an hour ago by leaving rustfmt out of the pinned components, and said in as many words that this half remained: a contributor whose global toolchain already carries rustfmt still has the loaded tool. That is the gap this item closes, and it is closed mechanically rather than by prose.\n\nThe mechanism was measured before being proposed, which matters because the obvious fix does not exist: stable rustfmt cannot express Allman at all, so no formatting configuration can make `cargo fmt` correct here. What it can do is make it do nothing. `disable_all_formatting` is a stable rustfmt option, and `cargo fmt --all --check -- --config disable_all_formatting=true` exits 0 with 0 diff sites across this workspace, against 864 without it. So the destructive command becomes a no-op rather than a prohibition somebody has to remember.\n\nWhy no test guards this, stated rather than left as an omission. The only honest guard would run `cargo fmt --all --check` itself, and that requires rustfmt to be installed - which `D-016` deliberately stopped shipping. A predicate that fails on a machine without rustfmt would be failing for the wrong reason, which this board already holds to be worse than passing for the wrong one. The rustfmt.toml is the mechanism; it is not a claim that needs one.",
+      "done_when": "rustfmt.toml exists at the workspace root, disables formatting outright, and carries its reason beside it - specifically that it is not a formatting configuration and this workspace is not rustfmt-formatted, so that a reader does not mistake it for one. After it, `cargo fmt --all --check` exits 0 where it previously exited 1 with 864 diff sites, and that is run and recorded rather than assumed. `cargo test -p kwb-contract-tests` passes, which shows nothing about formatting and is not offered as if it did - it shows the workspace still parses and every boundary guard still reads it. The formatting proof is the fmt run itself, named here so it can be repeated.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "rustfmt.toml"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": " result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.23s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.60s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-3bb30553545e158b.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-0044164605fd7d46.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-73274744ce9004c4.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-fc84c1a1773a4dec.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-861087b3b7b09975.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789329075,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "c5fb655c694975a5426c955fdf286bf6886800dc"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

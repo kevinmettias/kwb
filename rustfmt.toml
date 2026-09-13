@@ -1,0 +1,21 @@
+# This is not a formatting configuration, and this workspace is not rustfmt-formatted.
+#
+# It exists to make `cargo fmt` do nothing. Without it, `cargo fmt --all --check` reports **864
+# diff sites**, every one collapsing this workspace's Allman braces onto the declaration line —
+# so the command a Rust contributor types by reflex silently rewrites the whole tree away from
+# its own style.
+#
+# There is no configuration that would make `cargo fmt` correct here instead of harmless. The
+# style needs `brace_style = "AlwaysNextLine"`, which is unstable; XVPE pins nightly precisely
+# so its own `rustfmt.toml` can use it. `D-016` decided this repository does not pin nightly,
+# because the reason XVPE has is one this repository does not have. That leaves disabling the
+# tool as the only stable answer, and it is a real one: with this file,
+# `cargo fmt --all --check` exits 0.
+#
+# `D-016` is the other half. It leaves `rustfmt` out of the pinned toolchain's `components`, so
+# a contributor does not get the tool by default. This file covers the contributor who already
+# has it globally. Neither half is sufficient alone, which is why both exist.
+#
+# Removing this file re-arms `cargo fmt`. If formatting is ever wanted here, the decision to
+# make first is the one in `D-016` about the channel, not this file.
+disable_all_formatting = true
