@@ -2547,6 +2547,95 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-46",
+      "title": "Admission takes a list of extractions rather than an extractor, so the seam the admission rule requires does not exist",
+      "why": "The README first line says KWB ingests references and builds a graph of the concepts they teach. It cannot: nothing reads a document and decides what it says, and a person types the claims through --says. The obvious next step is an extractor, and the corpus own admission rule says where it may not go. Its second test is whether a feature would still make sense if the model were replaced by a perfect human annotator -- yes means it is KWB, no means it is an AI capability KWB happens to use. Extraction as a step passes that test, because a person reading a passage and writing down what it asserts is a real step. Extraction by a model fails it. So the step belongs here and the model-backed implementation does not, and building one inside kwb-ingest would put an AI capability inside the knowledge engine, which is the one thing the rule exists to prevent. There is a second reason to do this before any extractor exists rather than after. kwb admit --says is already an implementation of that port -- it is literally the perfect human annotator the rule describes -- and it is unnamed, so the seam is being used without being declared. Declaring it costs almost nothing now and is a refactor of every caller later.",
+      "done_when": "kwb-ingest declares what an extractor is, in its own vocabulary rather than a platform one, because the port deals in concepts and claims where kwb-platform ports deal in bytes. Admit takes an extractor rather than a prepared list, so the pipeline asks for what a passage says instead of being handed it. The stated-extractions implementation is named as what it is -- a person supplying the claims, the case the admission rule calls a perfect human annotator -- and the command line uses it, so the port has a real implementation from the moment it exists rather than waiting for a model. An extractor that fails is a run that could not read its source, which is not the same as a source that says nothing, and the two are distinguishable in what admission reports. No model, no provider, no xvpe dependency is added here.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest",
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-47, which carries the owner specification of the same boundary."
+        }
+      },
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Superseded before any work was done. The owner supplied a fuller specification of the extraction boundary the same hour: the output is source-local and deliberately not a Knowledge IR, carries source location, extraction protocol and model lineage, distinguishes text-ready from requires-visual-reading rather than pretending v1 solves multimodality, and must not import the reference miner identity semantics. This item done_when named none of that. Re-authored as KWB-47.",
+          "abandoned_at": 1789271510
+        }
+      ],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789271510
+      }
+    },
+    {
+      "id": "KWB-47",
+      "title": "KWB has no extraction contract, so the first extractor would have to invent one and would invent the wrong one",
+      "why": "The README first line says KWB ingests references; it cannot, because a person types the claims through --says. The extractor is the next major development item, and the contract it lands against decides whether the front end stays a front end. Three ways it goes wrong, each named by the owner and each already visible in this repository history. It becomes the reference miner ingestion architecture, when the miner is producing requirements and experiments and deliberately addresses source observations differently -- D-004 version 2 records that the miner finding identity absorbs the source path, the exact inverse of D-002, so importing its semantics would destroy the two-books-one-claim mechanism everything here was built for. It becomes the Knowledge IR by shipping first, when that subject is stranded and D-009 says so -- a local representation that happened to arrive cannot be allowed to become the canonical one by default. Or it lets a model write KWB entities, when the corpus admission rule second test says a feature that stops making sense with a perfect human annotator is an AI capability KWB happens to use rather than KWB. Extraction as a step passes that test; extraction by a model does not. And --says is already an implementation of the port, the literal perfect human annotator, being used without being declared.",
+      "done_when": "kwb-ingest declares what an extractor offers and what it may not do. The output is source-local and named so it cannot be mistaken for a canonical intermediate representation: it carries the source, where in the source, the proposed claims, the protocol that produced them and the lineage of whatever produced them, and the word proposed is load-bearing -- nothing it returns is a KWB entity and it mints no identity, because identity is derived from content here and an extractor that minted one would be a second authority for the thing D-002 owns. Text-ready and requires-visual-reading are distinguishable, and a source needing visual reading is refused by a text extractor rather than silently returning nothing, because that is the difference between cannot-read and read-and-found-nothing. An extractor that fails is reported as a prerequisite unmet and never as barrenness, which Coverage already distinguishes and a test fixes. Admit takes an extractor rather than a prepared list, and the stated-extractions implementation is named as the human annotator it is and used by the command line, so the port ships with a real implementation. No model, no provider and no XVPE dependency is added by this item.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest",
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789271529,
+        "lease_expires_at": 1789278729
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

@@ -14,10 +14,12 @@ use kwb_store::DocumentStore;
 use kwb_store::StoreError;
 use kwb_store::Written;
 
-use crate::Extraction;
+use crate::ExtractionRefused;
+use crate::ExtractionStrategy;
 use crate::Link_Concepts;
 use crate::Normalize_Concepts;
 use crate::Normalized;
+use crate::ReadingKind;
 
 /// What one admission did, and what it could see while doing it.
 ///
@@ -52,6 +54,7 @@ pub struct AdmissionReport
     coverage: Coverage,
     normalized: Normalized,
     source: Option<Written>,
+    refusal: Option<ExtractionRefused>,
     assertions: Vec<Assertion>,
 }
 
@@ -92,6 +95,20 @@ impl AdmissionReport
     pub const fn Source(&self) -> Option<&Written>
     {
         return self.source.as_ref();
+    }
+
+    /// Why the source was not read, when it was not.
+    ///
+    /// [`Coverage::Unmet`] says *a prerequisite was not satisfied* in a `&'static str`, which is
+    /// a decision written in code and deliberately not a message assembled at runtime. That is
+    /// right for the outcome and useless to the person who ran the command, who needs to know
+    /// which reader gave up and what it said. This carries that, and only that — a report whose
+    /// reading happened has [`None`] here, including a reading that proposed nothing, because
+    /// that one is not a refusal.
+    #[must_use]
+    pub const fn Refusal(&self) -> Option<&ExtractionRefused>
+    {
+        return self.refusal.as_ref();
     }
 
     /// What this admission published, as publications.
@@ -177,24 +194,81 @@ impl AdmissionReport
     }
 }
 
-/// Admit a source and the extractions taken from it.
+/// Admit a source, read by a reader.
 ///
-/// The source document goes through `kwb-store`'s one write door. The extractions are linked,
-/// normalized, and returned.
+/// The source document goes through `kwb-store`'s one write door. The reader is asked what it
+/// says, and whatever it proposes is linked, normalized, and returned.
+///
+/// # Why a reader rather than a prepared list of extractions
+///
+/// A list has no account of where it came from. Taking one meant that every assertion this
+/// repository could produce was sourced by a content address and *nothing else* — no location
+/// in the source, no protocol, no reader — while `README.md`'s first line said KWB ingests
+/// references. Taking a reader makes the missing half impossible to leave out, because there
+/// is no longer a way in that does not carry it.
+///
+/// It also puts the refusal where it can be acted on. A list cannot distinguish *the reader
+/// failed* from *the reader found nothing*; both arrive as an empty slice. A reader returns
+/// [`ExtractionRefused`] for the first, which becomes [`Coverage::Unmet`] below and never
+/// [`Coverage::Barren`].
+///
+/// # What is still true
+///
+/// The write door is untouched: this function writes through `kwb-store` exactly as before,
+/// and the reader never writes anything. Nothing the reader returns has an identity —
+/// [`Link_Concepts`] and `kwb-model` derive every one of those from content, here, after the
+/// reading. An extractor cannot bypass admission because it has nothing to bypass it with.
 ///
 /// # Errors
 ///
 /// [`StoreError`] if the source document is refused — a source of zero bytes is
 /// [`StoreError::Vacuous`], because a document indistinguishable from a failed read is not
 /// something to record having admitted.
+///
+/// **A reader that refuses is not an error here.** It is a report whose coverage is
+/// [`Coverage::Unmet`], because the source was admitted and only the reading did not happen.
 pub fn Admit(
     source: Vec<u8>,
-    extractions: &[Extraction],
-    scope: &Scope,
+    reader: Option<&dyn ExtractionStrategy>,
+    needed: ReadingKind,
     store: &mut DocumentStore,
 ) -> Result<AdmissionReport, StoreError>
 {
-    let source = store.Write(Document::Of(source))?;
+    let document = Document::Of(source);
+    // Read before writing, because the address is derived from the content and does not depend
+    // on the store having accepted it. Nothing is recorded either way until the write door
+    // below runs -- the reading produces proposals, and proposals are not records.
+    let reading = match reader
+    {
+        Some(reader) => reader.Read(document.Identity(), document.Content(), needed),
+        None => Err(ExtractionRefused::NotRead),
+    };
+    let source = store.Write(document)?;
+
+    let reading = match reading
+    {
+        Ok(reading) => reading,
+        Err(refusal) =>
+        {
+            return Ok(AdmissionReport {
+                coverage: Coverage::Unmet {
+                    prerequisite: refusal.Prerequisite(),
+                },
+                normalized: Normalize_Concepts(Link_Concepts(&[])),
+                source: Some(source),
+                refusal: Some(refusal),
+                assertions: Vec::new(),
+            });
+        }
+    };
+
+    // `Scope::Named("")` is how this repository spells an unstated scope. `Scope` has the
+    // query -- `Is_Unstated` -- and no constructor for it, so every caller spells it out and
+    // this is the third place that does. Not fixed here: `kwb-domain` is not this item's
+    // territory, and reaching into it would be the slip rather than the fix.
+    let unstated = || return Scope::Named("");
+    let scope = reader.map_or_else(unstated, ExtractionStrategy::Scope);
+    let extractions = reading.Proposed();
     let normalized = Normalize_Concepts(Link_Concepts(extractions));
 
     // The citation. The source is the document's own address rather than a filename or a
@@ -209,27 +283,37 @@ pub fn Admit(
         .collect();
 
     return Ok(AdmissionReport {
-        coverage: Coverage_Of(extractions.len(), normalized.Linked().Claims().len()),
+        coverage: Coverage_Of_Reading(normalized.Linked().Claims().len()),
         normalized,
         source: Some(source),
+        refusal: None,
         assertions,
     });
 }
 
-/// The outcome of an admission, derived from what it examined and what it found.
+/// The outcome of an admission whose reading **happened**, derived from what it found.
 ///
-/// Nothing examined is [`Coverage::Unmet`] rather than [`Coverage::Barren`], and the
-/// distinction is the whole point of that type. A run handed no extractions did not look at a
-/// source and find it empty — it was never given anything to look at, which is a prerequisite
-/// unsatisfied. The prototype recorded 1,367 of exactly this confusion the other way round
+/// # The material examined is the source, and there is exactly one of it
+///
+/// This used to count *extractions* as the material, and map zero of them to
+/// [`Coverage::Unmet`]. That was right while a caller handed in a prepared list, because an
+/// empty list really did mean nothing had been offered. With a reader it is wrong, and wrong in
+/// the direction that matters: a reader that read the source and proposed nothing **did examine
+/// it**, and calling that a prerequisite unsatisfied throws away the one outcome `D17` needs —
+/// evidence of absence.
+///
+/// So the units are now consistent. `examined` is material, the material is the source, and one
+/// source was read. `found` is what survived linking and normalization.
+///
+/// A reading that did *not* happen never reaches here: [`Admit`] returns [`Coverage::Unmet`]
+/// directly for a refusal, which is what keeps a reader's failure from ever being recorded as
+/// the source having nothing in it. The prototype recorded 1,367 rows of exactly that confusion
 /// and foreclosed two thirds of a book while reporting full coverage.
-fn Coverage_Of(examined: usize, found: usize) -> Coverage
+fn Coverage_Of_Reading(found: usize) -> Coverage
 {
-    return match NonZeroUsize::new(examined)
-    {
-        Some(examined) => Coverage::Of_Run(found, examined),
-        None => Coverage::Unmet {
-            prerequisite: "extraction produced nothing to admit",
-        },
-    };
+    // The source. A reading happened, so the material exists and was looked at, and `Coverage`
+    // requires that to be non-zero precisely so this cannot be asserted without being true.
+    let examined = NonZeroUsize::MIN;
+
+    return Coverage::Of_Run(found, examined);
 }

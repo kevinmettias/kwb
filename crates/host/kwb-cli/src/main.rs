@@ -23,7 +23,10 @@
 use std::process::ExitCode;
 
 use kwb_domain::{Concept, KnowledgeGraph, Publication, Replay, Scope, Standing, Versioned};
-use kwb_ingest::{Admit, AdmissionReport, Extraction};
+use kwb_ingest::{
+    Admit, AdmissionReport, Extraction, ExtractionLineage, ExtractionRefused, ExtractionStrategy,
+    ReadingKind, SourceLocation, Stated,
+};
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::{DirectoryContentStore, FileRecordLog};
 use kwb_store::DocumentStore;
@@ -120,7 +123,23 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
             return ExitCode::from(FAILURE_EXIT);
         }
     };
-    let report = match Admit(bytes, &extractions, &scope, &mut store)
+    // `--says` is a person stating what a passage asserts, which is exactly what `Stated` is.
+    // Routing it through the extraction seam rather than handing `Admit` a list means the
+    // command line uses the same door a reading adapter will, and that the protocol and the
+    // reader are recorded instead of being implied by the fact that somebody typed them.
+    let said = Stated::Of(
+        extractions,
+        SourceLocation::Named("as stated on the command line"),
+        ExtractionLineage::Of("stated-by-a-person", "the operator of kwb admit"),
+        scope,
+    );
+    let reader = said.as_ref().map(|said| return said as &dyn ExtractionStrategy);
+
+    // Text, because that is what a person reading a file to type `--says` was doing. A source
+    // needing visual reading is a judgement no part of this command can make, and saying `Text`
+    // here does not assert otherwise -- `Stated` refuses no kind, so the value reaches nothing
+    // that acts on it. It becomes load-bearing when a reader that can refuse arrives.
+    let report = match Admit(bytes, reader, ReadingKind::Text, &mut store)
     {
         Ok(report) => report,
         Err(refusal) =>
@@ -152,11 +171,18 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
     println!("documents  {}", if durable { "kept" } else { "in memory only" });
     println!("knowledge  {}", if log.is_some() { "kept" } else { "in memory only" });
 
-    if !report.Coverage().Was_Run()
+    if let Some(refusal) = report.Refusal()
     {
+        // The library's own words for why, rather than one sentence covering every reason a
+        // reading did not happen. A person who passed `--says` and still sees this needs to
+        // know it was not their omission.
         println!();
-        println!("Nothing was examined. Pass --says to supply what a passage asserts;");
-        println!("this tool does not read the document and decide for itself.");
+        println!("{refusal}.");
+        if matches!(refusal, ExtractionRefused::NotRead)
+        {
+            println!("Pass --says to supply what a passage asserts; this tool does not read");
+            println!("the document and decide for itself.");
+        }
     }
 
     return ExitCode::SUCCESS;

@@ -22,6 +22,13 @@
 //! It queues nothing, because `D19` is what happens when a producer outruns its consumer, and
 //! `D-008` measured that the store claims and concepts belong in does not exist yet.
 //!
+//! # The stage before the three, declared and not yet built
+//!
+//! [`ExtractionStrategy`] is where a reading of a source arrives. It returns a
+//! [`ProposedReading`] — proposals, no identity, no writes — which the three stages above then
+//! lower. [`Stated`] implements it with a person, which is what `kwb admit --says` has always
+//! been, and a model-backed reader belongs behind the same seam and outside this crate.
+//!
 //! [`Coverage`]: kwb_domain::Coverage
 
 #![forbid(unsafe_code)]
@@ -30,6 +37,8 @@ mod admission;
 mod concept_linking;
 mod concept_normalization;
 mod extraction;
+mod extraction_contract;
+mod stated;
 
 #[cfg(test)]
 mod tests;
@@ -41,3 +50,10 @@ pub use concept_linking::Linked;
 pub use concept_normalization::Normalize_Concepts;
 pub use concept_normalization::Normalized;
 pub use extraction::Extraction;
+pub use extraction_contract::ExtractionLineage;
+pub use extraction_contract::ExtractionRefused;
+pub use extraction_contract::ExtractionStrategy;
+pub use extraction_contract::ProposedReading;
+pub use extraction_contract::ReadingKind;
+pub use extraction_contract::SourceLocation;
+pub use stated::Stated;
