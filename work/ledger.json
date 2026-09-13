@@ -338,6 +338,11 @@
           "holder": "fable",
           "reason": "Everything in this item is built except semantic search. Keyword and neighbourhood queries, both worlds as separate types with no write path guarded by a source-scanning test, kwb-mcp wired against those types and now serving a real corpus by replaying a publication log. Committed at df188a7 and the follow-up. What remains is semantic queries and nothing else: they need embeddings, nothing in this repository produces one, and D-004 holds semantic reconciliation, so it is blocked on held ground rather than on effort. Do not stub it -- a Semantically_Like falling back to keyword matching would be AdmitChunk again, a path that looks wired and is not doing what its name says, which is the failure this item cites in its own why. Read kwb-retrieval before starting; the hard parts are done.",
           "abandoned_at": 1789259352
+        },
+        {
+          "holder": "fable",
+          "reason": "Everything here is built except semantic search. Keyword and neighbourhood queries, both worlds as separate types with no write path, kwb-mcp serving a real corpus by replaying a publication log, and all four declared tools dispatchable with a test that fails if a tool is declared without a handler. Committed through the KWB-6 partial commits. What remains is semantic queries and nothing else: they need embeddings, nothing in this repository produces one, and D-004 holds semantic reconciliation. Do not stub it -- a Semantically_Like falling back to keyword matching would be AdmitChunk again, a path that looks wired and is not doing what its name says, which is the failure this item cites in its own why.",
+          "abandoned_at": 1789262095
         }
       ],
       "displaced": [],
