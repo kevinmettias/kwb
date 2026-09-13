@@ -1,12 +1,20 @@
 //! Platform port traits, mirroring `nomos-platform` in `f:/repos/nomos`.
 //!
-//! `kwb-platform-xvpe` is deliberately absent, for the same reason
-//! `nomos-platform-xvpe` is: XVPE's foundations tier does not currently compile
-//! (`xvpe-dataflow` fails at 62 errors as of the last check from the Nomos side), and a
-//! `path` dependency on a workspace mid-refactor would make this repository's
-//! buildability a function of another product's refactor. When XVPE stabilizes, a
-//! second implementation of these traits is a new crate behind an existing seam, never
-//! a change to the traits themselves.
+//! The seam argument these traits rest on: **a second implementation is a new crate behind an
+//! existing seam, never a change to the traits themselves.** That was never about whether XVPE
+//! compiled, and it is the part worth keeping.
+//!
+//! What this file said until 2026-09-12 — that `kwb-platform-xvpe` is deliberately absent
+//! because XVPE's foundations tier fails at 62 errors — was wrong twice over by the time
+//! anybody read it. The premise was retired months earlier and `D-007` measured it dead; and
+//! `kwb-platform-xvpe` **exists**, created by `KWB-24`, so this file was contradicting its own
+//! workspace. It is recorded here rather than quietly deleted because it is the fourth copy of
+//! one fact found in this repository, three of which had already been corrected — which is
+//! what a restated fact costs, and why the reasons now live in records and the code points at
+//! them.
+//!
+//! `D-007` is why adoption is by git reference and commit SHA rather than by `path`.
+//! `D-012` is what was adopted and why it was adopted rather than written.
 //!
 //! Nothing is implemented yet.
 

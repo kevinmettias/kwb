@@ -328,7 +328,13 @@
         "timeout_seconds": 300
       },
       "verified": null,
-      "abandoned": [],
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Two of the three query kinds are built and committed at df188a7: keyword and neighbourhood, both worlds as separate types with no write path, and kwb-mcp wired against them. Semantic search is not, and was not stubbed. It needs embeddings, nothing in this repository produces one, and D-004 holds semantic reconciliation -- so the remaining third is blocked on held ground rather than on effort. A Semantically_Like falling back to keyword matching would be AdmitChunk again, a path that looks wired and is not doing what its name says, which is the failure this item cites in its own why. What is left for whoever takes this: semantic queries, and nothing else. Re-read the crate before starting; the read-only guard and the two-world split are already done and tested.",
+          "abandoned_at": 1789258287
+        }
+      ],
       "displaced": [],
       "declined": null
     },
@@ -1406,6 +1412,61 @@
           "exit_code": 0
         },
         "revision": "95a6df4963dd1d1de19621e4b3e6477705832d44"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-27",
+      "title": "A fourth copy of the retired XVPE premise survived KWB-18, and it now contradicts a crate that exists",
+      "why": "KWB-18 corrected the retired compile premise in README.md and the workspace manifest after D-007 measured it dead, and said the premise lived in three places. It lived in four. kwb-platform/src/lib.rs still tells every reader that XVPE fails at 62 errors and that kwb-platform-xvpe is deliberately absent -- and KWB-24 created that crate, so the file now contradicts the workspace it is part of as well as repeating a false fact. This is the defect in its purest form: one fact restated in several places, corrected in some, and the copies that were missed are indistinguishable to a reader from the ones that are right. It is also the third time in this session that a stale premise has been found in a file nobody re-reads, after AGENTS.md and after an admission doc comment that a later item falsified the same day.",
+      "done_when": "kwb-platform states no technical premise about XVPE and does not claim kwb-platform-xvpe is absent. It routes to D-007 for why adoption is by commit SHA and to D-012 for what was adopted, so the reason lives in one place and the crate docs point at it. The seam argument it makes -- that a second implementation of a port trait is a new crate behind an existing seam rather than a change to the traits -- is kept, because that part was never about whether XVPE compiled.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4f7768ef98d35c58.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-1740151ea0c9a712.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-a2c09ed556691458.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_xvpe-5b031c4775ef2ea0.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-821b4542ba84fec7.exe)\n     Running tests\\read_only.rs (target\\debug\\deps\\read_only-5962ebcd336de170.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-5a7d6df53ef981c8.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-3245f4c681e8a862.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_platform_xvpe\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789258363,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "df188a75d6958fcb1cc1aedd5e191756c1a286c6"
       },
       "abandoned": [],
       "displaced": [],
