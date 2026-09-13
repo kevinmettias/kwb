@@ -3758,6 +3758,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-68",
+      "title": "The record that decided where a reading's provenance lives says nothing here reads a source, and the extractor shipped an hour later",
+      "why": "D-015 states three deferrals with conditions and a section titled Why it is not built here, which rests on three sentences: nothing in this repository reads a source, every reading is a person through Stated, and today there is exactly one reading per assertion and no two of them can differ. KWB-66 falsified all three. kwb-extract reads sources; ReadsText is a reader that is not a person; a read now returns one reading per passage, and two readers over different models produce different lineage. Measured: D-015 mentions KWB-66 zero times. Its conditions are Settled by the first reader whose readings differ, Settled by the same condition, and Settled by a reader that splits -- and KWB-66 is a reader that splits and whose readings can differ, so all three fired. The third was settled in the extraction contract's own documentation by that item and the record was never told, which is the one-crate-away gap between a decision and the code that answers it. This is KWB-62's shape with a shorter fuse: there a held subject went stale eight minutes after the amendment warning that lists go stale, and here a record's entire reason for not building something was destroyed by the next item but one, both written in this session. The consequence is not cosmetic. A reader of D-015 today is told that readings cannot differ, which is the premise the whole deferral rests on, and would conclude the provenance gap is unreachable rather than live.",
+      "done_when": "D-015 records that all three conditions are met, names KWB-66 in the checkable form so the board guard holds the claim, and replaces the three false sentences rather than leaving them for a reader to disbelieve. What the unstranding costs is stated: a claim admitted from a model now enters the graph with no record of which model or which passage produced it, so the requirement that every admitted claim identifies its source occurrence and extraction protocol is live rather than theoretical -- and the reason it is still not built here is the honest one, that nothing yet produces claims from a model because no provider exists, not the one the record currently gives. The decision itself is untouched: a reading is still its own fact and an assertion still identifies by neither location nor lineage, because the corroboration-count argument that settled that does not depend on any of this.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-015-a-reading-is-its-own-fact-and-nothing-an-assertion-identifies-by.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789281933,
+        "lease_expires_at": 1789289133
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

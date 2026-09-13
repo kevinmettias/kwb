@@ -34,7 +34,9 @@ scope*, and that is the question corroboration is counted by.
 **Neither may be carried on an assertion as a non-identifying field either.**
 
 **A reading is a separate fact about an assertion**, and it is built when something produces
-readings that differ — which nothing here does yet. The condition is named below.
+readings that differ. That condition was named below and has since been met by `KWB-66`; what
+still holds the build is that no provider exists, which is a different and weaker reason. The
+amendment at the end says so.
 
 ## The measurement
 
@@ -104,26 +106,47 @@ says and lineage is something the **reader** did.
   repository is derived from content (`D-002`), and what a reading's content *is* — the passage,
   the answer, both — is a question nothing can answer without a reader that produces one.
   *Settled by:* the same condition.
-- **Whether the extraction contract's one-location-per-reading shape survives.** Today
-  `ProposedReading` carries one location for any number of proposals, so a reader that returned
-  claims from two passages would locate them identically. That is honest while every reading is
-  a whole document, and it is wrong the moment a reader splits a source into passages.
-  *Settled by:* a reader that splits.
+- **Whether the extraction contract's one-location-per-reading shape survives.** ~~Today
+  `ProposedReading` carries one location for any number of proposals~~ — it still does, and a
+  *read* now returns one reading per passage instead, so each location describes the passage it
+  came from rather than an average of several. *Settled by:* a reader that splits. **Settled by
+  `KWB-66`**, which is that reader; `ExtractionStrategy::Read` returns `Vec<ProposedReading>` and
+  its documentation carries the reasoning. A failed passage refuses the whole read, because a
+  source two thirds read that reported the shape of a source fully read is the prototype's 1,367
+  rows again.
 
 ## Why it is not built here
 
-Nothing in this repository reads a source. Every reading is a person, through `Stated`, and a
-person supplies one location and one protocol per invocation — so today there is exactly one
-reading per assertion and no two of them can differ. A mechanism for many readings of one
-assertion would be a structure with no second case to justify its shape.
+**Condition met:** `KWB-66`
 
-That is the same reasoning `D-012` used to defer durability until `kwb admit` lost something, and
-`D-014` then closed it once `KWB-26` built the consumer. It is also what `D19` is about from the
-other side: work handed to a consumer that does not exist is marked as having succeeded.
+This section said, in three sentences: *nothing in this repository reads a source*; *every
+reading is a person, through `Stated`*; *today there is exactly one reading per assertion and no
+two of them can differ*. `KWB-66` falsified all three within the hour. `kwb-extract` reads
+sources, `ReadsText` is a reader that is not a person, and a read now returns one reading per
+passage — so readings differ by passage, and two readers over different models differ by lineage
+as well.
 
-**The decision above is still owed now**, because the argument for it does not need a model. The
-corroboration count is already wrong under the obvious design, and recording that before anything
-is built is the difference between a decision and an excavation.
+All three conditions above therefore fired, and this record mentioned `KWB-66` nowhere until
+`KWB-68`. The third was settled in the extraction contract's own documentation *by that item*
+and the record was never told, which is the gap between a decision and the code that answers it,
+one crate apart.
+
+**The honest reason it is still not built is a different one.** No provider exists in this
+workspace and none is coming into it, so nothing yet produces a claim from a model: every
+reading is still exercised through recordings. A mechanism for many readings of one assertion
+would have a second case to justify its shape — that objection is gone — and would have no
+traffic. That is a weaker reason than the one this section used to give, and it is the true one.
+
+**What it costs while it waits, stated because it is now live.** A claim admitted from a model
+enters the graph with no record of which model or which passage produced it. `Admit` carries a
+reading's location and lineage to the door and drops both; an `Assertion` holds a source, a claim
+and a scope. So *every admitted claim identifies its source occurrence and extraction protocol*
+is unmet in practice rather than in theory, and the first corpus read by a provider is the first
+corpus that cannot answer where its claims came from.
+
+**The decision above is untouched.** A reading is still its own fact, and an assertion still
+identifies by neither location nor lineage, because the corroboration-count argument that settled
+that turns on how corroboration is counted and not on what reads a source.
 
 ## Consequences
 
