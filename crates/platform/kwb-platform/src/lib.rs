@@ -24,12 +24,17 @@
 //! enough to be a filesystem would let a caller reach past `kwb-store`'s single write door,
 //! which is the second route into storage `D-008` measured the cost of.
 //!
+//! [`RecordLogStrategy`]: an append-only sequence of records. `D-014`'s other half — a graph
+//! is a fold over what was published, so recording the publications records the graph.
+//!
 //! The clock, lock and process ports the prototype's platform had are not here yet. They will
 //! arrive when something needs them, one at a time, rather than as a set nothing consumes.
 
 #![forbid(unsafe_code)]
 
 mod content_store_port;
+mod record_log_port;
 
 pub use content_store_port::ContentStoreStrategy;
 pub use content_store_port::StorageError;
+pub use record_log_port::RecordLogStrategy;

@@ -7,5 +7,7 @@
 #![forbid(unsafe_code)]
 
 mod directory_content_store;
+mod file_record_log;
 
 pub use directory_content_store::DirectoryContentStore;
+pub use file_record_log::FileRecordLog;

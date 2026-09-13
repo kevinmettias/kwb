@@ -1758,6 +1758,69 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-33",
+      "title": "D-014 decided the graph becomes durable by replaying what was published and nothing records a publication",
+      "why": "kwb admit keeps its bytes since KWB-31 and forgets everything it learned. D-014 decided the shape -- an append-only record of publications, replayed to reconstruct, with the temporal read falling out as a prefix rather than needing a second mechanism -- and named what a port must offer: append a record, read the records in order. Neither the port nor the record exists. KWB-32 makes this cleanly possible for a reason worth stating: every text a domain type keeps is now normalized, and Normalize strips every control character, so no field can contain a separator or a newline. A separator-framed record is therefore unambiguous because the domain guarantees it, not because an encoder escapes it -- the same guarantee KWB-1 established for identity derivation, used a second time. That removes the serialization-library decision D-014 said nothing forced.",
+      "done_when": "kwb-platform declares a record-log port and kwb-platform-std implements it over a file, one record per line. kwb-domain encodes a publication and replays a sequence of them into a graph, and a graph replayed from its own publications equals the graph that produced them -- asserted by comparing what both hold rather than by trusting the encoder. A record whose value would derive a different address than the record names is refused rather than admitted, because a replayed graph that silently differed from the one recorded would break the property everything here rests on. A value containing a separator cannot forge a field boundary, and there is a test that would fail if the domain stopped normalizing.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform",
+          "crates/platform/kwb-platform-std",
+          "crates/domain/kwb-domain"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-platform-std",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-platform-std",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "sult: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 5 tests\ntest Test_An_Absent_Address_Should_Be_Refused_Rather_Than_Empty ... ok\ntest Test_Storing_One_Address_Twice_Should_Be_Idempotent ... ok\ntest Test_A_Completed_Write_Should_Leave_No_Staged_File_Behind ... ok\ntest Test_A_Write_Should_Be_Staged_And_Renamed_Rather_Than_Written_In_Place ... ok\ntest Test_Stored_Bytes_Should_Read_Back_Unchanged ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 4 tests\ntest Test_A_New_Log_Should_Be_Empty_Rather_Than_Absent ... ok\ntest Test_Records_Should_Read_Back_Oldest_First ... ok\ntest Test_Records_Should_Survive_The_Log_That_Wrote_Them ... ok\ntest Test_Reopening_Should_Append_Rather_Than_Overwrite ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-domain v0.1.0 (F:\\repos\\kwb\\crates\\domain\\kwb-domain)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.80s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running tests\\publication.rs (target\\debug\\deps\\publication-59a684649459b0cc.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running tests\\directory_content_store.rs (target\\debug\\deps\\directory_content_store-dd0fa236681e73ed.exe)\n     Running tests\\file_record_log.rs (target\\debug\\deps\\file_record_log-13f3a6956e7c72b6.exe)\n   Doc-tests kwb_domain\n   Doc-tests kwb_platform_std\n",
+        "verified_at": 1789259178,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "f549783f915d57a06e9b5214c556742a521f544e"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
