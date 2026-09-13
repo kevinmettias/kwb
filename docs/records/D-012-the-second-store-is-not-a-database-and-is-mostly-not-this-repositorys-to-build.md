@@ -3,7 +3,7 @@ id: D-012
 type: decision
 title: The second store is not a database, and most of it is not this repository's to build
 status: accepted
-version: 2
+version: 4
 authority: canonical-normative-record
 tags:
   - storage

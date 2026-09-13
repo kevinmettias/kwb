@@ -3,7 +3,7 @@ id: D-014
 type: decision
 title: What must survive a process, and why the two halves are not the same question
 status: accepted
-version: 1
+version: 3
 authority: canonical-normative-record
 tags:
   - storage

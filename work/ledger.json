@@ -4244,6 +4244,113 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-77",
+      "title": "A record's frontmatter carries two fields meant to convey its standing, and one never varies while the other disagrees with the body",
+      "why": "The projection programme's last target was decision status, and measuring it first says the target is not a missing document. It is that the fields meant to carry status do not. All fifteen records read status: accepted -- one value across the whole set, so the field distinguishes nothing, and neither AGENTS.md nor README says what another value would mean or when it would be set. Meanwhile version is hand-maintained and disagrees with the body: D-009 carries one amendment at version 1, D-014 carries two at version 1, and D-012 carries three at version 2, while D-004, D-008 and D-013 each carry one at version 2. So the convention version equals one plus amendments is observed in three records and broken in three, and all three breaks are amendments written in this session -- mine. Nothing reads either field and nothing checks them, which is why the drift was invisible. That is the same family as everything else found here, one level up: a field that looks like a signal and carries none is worse than an absent field, because a reader takes it for maintained. Projecting a status document from this would have projected the wrong thing accurately.",
+      "done_when": "D-009, D-012 and D-014 carry the version their bodies imply, and the convention -- a record's version is one plus the number of amendments it carries, because an amendment is what a new version of a record is here -- is written down where a record author will see it rather than inferred from three examples out of six. A guard fails when a record's version disagrees with its amendment count, shown to discriminate by mutating a real record each way, with a floor asserting it found the records and at least one amendment so it cannot pass by reading nothing. What status means is settled rather than left: either it is given the values that would make it informative and what each means, or it is recorded that it has one value because no record has yet been superseded wholesale and that this is the condition under which it would change. Whichever, a reader can tell what the field is for. Nothing about any decision changes.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract",
+          "docs/records/D-009-what-must-be-inspectable-between-stages-and-why-the-stage-list-is-not-the-answer.md",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md",
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md"
+        ],
+        "patterns": []
+      },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-78, which is the same subject with AGENTS.md reserved. Kept visible rather than deleted because the defect that ended it is the one worth reading: an item whose done_when names an artifact its territory does not reserve cannot be finished honestly, and the failure is invisible until the last step."
+        }
+      },
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Authored one path short of its own done_when. The clause 'the convention is written down where a record author will see it' has exactly one honest home in this repository -- AGENTS.md, beside the docs/records/ routing row an author reads before writing a record -- and AGENTS.md is not in this item's territory, which is tests/contract plus the three records amended. The three record versions are corrected and the guard is written and mutation-proven in the working tree; what is missing is the sentence that cannot be written from here. Re-authored as KWB-78 with AGENTS.md reserved. Abandoned rather than declined because the work is real and nearly whole, and abandoned rather than quietly widened because KWB-73 was declined for being one path short and writing outside territory would be the same defect with the check removed.",
+          "abandoned_at": 1789288325
+        }
+      ],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789288333
+      }
+    },
+    {
+      "id": "KWB-78",
+      "title": "A record's frontmatter carries two fields meant to convey its standing, and one never varies while the other disagrees with the body",
+      "why": "KWB-77's subject, re-authored with the one file it was missing. The projection programme's last target was decision status, and measuring it first says the target is not a missing document: it is that the fields meant to carry status do not. All fifteen records read status: accepted -- one value across the whole set, so the field distinguishes nothing, and nothing says what another value would mean. Meanwhile version is hand-maintained and disagrees with the body: D-009 carried one amendment at version 1, D-014 two at version 1, D-012 three at version 2, while D-004, D-008 and D-013 each carry one at version 2. The convention version equals one plus amendments was observed in three records out of six and broken in three, and all three breaks were amendments written in one session. Nothing reads either field and nothing checks them, which is why the drift was invisible. A field that looks like a signal and carries none is worse than an absent field, because a reader takes it for maintained. Projecting a status document from this would have projected the wrong thing accurately. KWB-77 itself ended one path short: its done_when named AGENTS.md and its territory did not reserve it.",
+      "done_when": "D-009, D-012 and D-014 carry the version their bodies imply. The convention -- a record's version is one plus the number of amendments it carries, because an amendment is what a new version of a record is here -- is written in AGENTS.md where a record author meets it before writing, rather than inferred from three examples out of six. A guard fails when a record's version disagrees with its amendment count, shown to discriminate by mutating a real record each way, with a floor asserting it found the records and at least one amendment so it cannot pass by reading nothing. What status means is settled rather than left: it is recorded that the field has one value because no record has yet been superseded wholesale, and that this is the condition under which it would change. Nothing about any decision changes.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract",
+          "AGENTS.md",
+          "docs/records/D-009-what-must-be-inspectable-between-stages-and-why-the-stage-list-is-not-the-answer.md",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md",
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789288483,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "a05bdb61cb246dc68382ca5b1c6aa273ea7b8d17"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

@@ -3,7 +3,7 @@ id: D-009
 type: decision
 title: What must be inspectable between stages, why the stage list is not the answer, and what this subject is actually waiting for
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - prototype

@@ -57,6 +57,16 @@ relation reachable from both ends belongs to the sibling repository and is owed 
 A decision that outlives your item belongs in a record, not in a comment and not in this
 file.
 
+**A record's `version` is one plus the number of amendments it carries.** An amendment is
+what a new version of a record is here: this repository leaves a superseded claim visible
+beside its correction rather than replacing it, so the unit that goes out of date is a
+paragraph and not a record. Add an `## Amendment` section, bump `version`. The frontmatter's
+other standing field, `status`, reads `accepted` on every record because no record has yet
+been superseded *wholesale* — that is the condition under which it would change, and until
+one is, the field carries no signal to read. `tests/contract/tests/boundaries.rs` enforces
+the first of those and states both; it is the authority, and this paragraph is the route to
+it.
+
 ## Operating hazards
 
 **No path dependency on `f:/repos/xvpe`.** `D-007` is why, and it is worth reading

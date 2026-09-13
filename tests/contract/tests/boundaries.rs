@@ -967,3 +967,137 @@ fn Test_Every_Tool_The_Surface_Declares_Should_Be_One_The_Readme_Names()
          file for what it can ask cannot find them: {undocumented:?}"
     );
 }
+
+// ---- KWB-78: a record's frontmatter says what its body says ----
+
+/// A record's declared version, and how many amendments its body carries.
+fn Versions_And_Amendments(records: &BTreeMap<String, String>) -> Vec<(String, usize, usize)>
+{
+    let mut found = Vec::new();
+    for (identifier, text) in records
+    {
+        let declared = text
+            .lines()
+            .find_map(|line| return line.trim().strip_prefix("version:"))
+            .and_then(|value| return value.trim().parse::<usize>().ok());
+        let Some(declared) = declared
+        else
+        {
+            continue;
+        };
+
+        let amendments = text
+            .lines()
+            .filter(|line| return line.starts_with("## Amendment"))
+            .count();
+        found.push((identifier.clone(), declared, amendments));
+    }
+
+    return found;
+}
+
+/// A record's version is one plus the number of amendments it carries.
+///
+/// # Why that is the rule, and why it is written down rather than inferred
+///
+/// An amendment *is* what a new version of a record is here. `D-004` went to version 2 with its
+/// *Two Lists Were Not Enough* amendment, `D-008` and `D-013` likewise — the convention was
+/// already practice in three records out of six.
+///
+/// It was broken in the other three, and `KWB-78` measured that all three breaks were amendments
+/// written in one session: `D-009` carried one amendment at version 1, `D-014` two at version 1,
+/// `D-012` three at version 2. Nothing read the field and nothing checked it, which is why the
+/// drift was invisible — a field that looks like a signal and carries none is worse than an
+/// absent field, because a reader takes it for maintained.
+///
+/// The rule is stated here rather than in each record's frontmatter, because a convention
+/// repeated fifteen times is fifteen places to change it. `AGENTS.md` carries a paragraph that
+/// routes an author here before they write a record, which is the only place the rule is any
+/// use — a guard tells you afterwards. That paragraph is a route and this is the authority, the
+/// arrangement `AGENTS.md` uses for everything else it points at.
+#[test]
+fn Test_A_Records_Version_Should_Be_What_Its_Amendments_Make_It()
+{
+    let records = Records();
+    let found = Versions_And_Amendments(&records);
+
+    assert!(
+        found.len() >= 10,
+        "only {} records declared a version, so this guard covers almost nothing",
+        found.len()
+    );
+    assert!(
+        found.iter().any(|(_, _, amendments)| return *amendments > 0),
+        "no record carries an amendment, so this guard would pass on a rule nothing exercises"
+    );
+
+    let disagreeing: Vec<String> = found
+        .iter()
+        .filter(|(_, declared, amendments)| return *declared != amendments.saturating_add(1))
+        .map(|(identifier, declared, amendments)| {
+            return format!(
+                "{identifier} says version {declared} and carries {amendments} amendments"
+            );
+        })
+        .collect();
+
+    assert!(
+        disagreeing.is_empty(),
+        "these records' frontmatter disagrees with their own bodies about how many times they \
+         have been revised: {disagreeing:#?}"
+    );
+
+    // The route is part of the rule. A guard nobody is sent to before writing only ever reports
+    // the mistake after it is made, so `AGENTS.md` has to still be pointing here -- and at *this*
+    // file, derived rather than spelled out, so renaming it breaks the pointer loudly.
+    let contract = std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
+        .expect("AGENTS.md should be readable");
+    let here = file!().replace('\\', "/");
+
+    assert!(
+        contract.contains(&here),
+        "AGENTS.md does not name {here}, so the paragraph telling a record author what version \
+         means either went away or is pointing at a file that has moved"
+    );
+    assert!(
+        contract.contains("one plus the number of amendments"),
+        "AGENTS.md no longer states the convention, so an author meets it for the first time as \
+         a failing test rather than before writing the record"
+    );
+}
+
+/// `status` is one value across every record, and that is a fact rather than an oversight.
+///
+/// # What the field is for
+///
+/// Every record reads `status: accepted`, because **no record here has been superseded
+/// wholesale**. Parts of several have — `D-012`'s durability half, `D-014`'s deferral,
+/// `D-009`'s reasoning — and each of those is an amendment inside a record that still stands.
+/// That is deliberate: this repository leaves a superseded claim visible beside its correction
+/// rather than replacing it, so the unit that goes out of date is a *paragraph*, not a record.
+///
+/// So the field would change when a record is replaced in full by another — which has not
+/// happened and may not. This test exists to say that out loud, because a field with one value
+/// and no explanation reads as a maintained signal to anyone who has not counted.
+///
+/// It asserts the field is *present and uniform* rather than pinning the word: a record that
+/// genuinely is superseded should be able to say so without failing a test written before it.
+#[test]
+fn Test_Every_Record_Should_Declare_A_Status()
+{
+    let records = Records();
+
+    let silent: Vec<&String> = records
+        .iter()
+        .filter(|(_, text)| {
+            return !text.lines().any(|line| return line.trim().starts_with("status:"));
+        })
+        .map(|(identifier, _)| return identifier)
+        .collect();
+
+    assert!(
+        silent.is_empty(),
+        "these records declare no status, so a reader cannot tell whether they still stand: \
+         {silent:?}"
+    );
+}
