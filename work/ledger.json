@@ -3698,6 +3698,45 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-67",
+      "title": "The binary's own help omits a verb it dispatches and asserts a capability the repository now has, and the guard between surfaces covers two of three",
+      "why": "Measured by running the binary rather than by reading it. kwb help mentions history zero times; the dispatch carries it and README documents it twice. So a person cannot discover the temporal read from the tool itself -- and the README routes them there for exactly that, saying kwb help has the flags, they are not repeated here, because a copy of a help text is a copy that drifts. The copy drifted in the direction the sentence was written to prevent. Second, kwb help still says there is no extractor, nothing here reads the document and decides what it says. KWB-66 built one and KWB-56 corrected that sentence in the README, so the two surfaces now contradict each other and I made that happen by fixing one copy and not the other -- the two-copies defect, committed by the session that has closed it five times. Third, the guard that would have caught either covers README against dispatch, which KWB-61 made bidirectional; it does not read the help text at all, so the surface a person actually runs is checked by nothing.",
+      "done_when": "kwb help names every verb the binary dispatches with the flags each takes, so the README's promise that the help has the flags is true rather than aspirational. Its statement about reading says what is now the case: an extractor exists, this command does not use one, and why -- without implying either that KWB still cannot read or that this command can. A guard reads the help text the binary actually prints rather than the source that prints it, because the defect is that a person running the tool is told something false, and a check on the source would pass on a help string that is assembled and never emitted. Shown to discriminate by mutating the real file for each direction it claims to check, and the collector asserted to have found the verbs, since a guard that reads none passes anywhere.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789281253,
+        "lease_expires_at": 1789288453
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "-p",
+          "kwb-cli"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

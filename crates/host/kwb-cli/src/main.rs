@@ -726,6 +726,15 @@ fn Print_Usage()
     );
     eprintln!("       kwb retire <concept> --store <dir> --because <reason>");
     eprintln!("       kwb supersede <concept> --into <concept> --store <dir> --because <reason>");
+    eprintln!(
+        "       kwb history --store <dir> [--through <count> | --as-of <unix seconds>]"
+    );
+    eprintln!();
+    eprintln!("  history replays the publication log and reports the graph as it was. --through");
+    eprintln!("  takes a count of publications, --as-of takes a time; given neither it reports");
+    eprintln!("  all of it. Asking for more history than the log holds is refused, and so is");
+    eprintln!("  --as-of on a log written before publications carried a time -- every answer");
+    eprintln!("  would otherwise be the same answer whatever was asked.");
     eprintln!();
     eprintln!("  retire and supersede close a concept, and --because is required rather than");
     eprintln!("  optional. D17: destruction requires evidence, and the question it demands be");
@@ -735,10 +744,14 @@ fn Print_Usage()
     eprintln!("  Admits a file: the bytes are written to the content-addressed store and");
     eprintln!("  whatever is supplied by --says is linked, normalized and published.");
     eprintln!();
-    eprintln!("  There is no extractor. Nothing here reads the document and decides what it");
-    eprintln!("  says, so --says is how a passage's claims get in. A run given none reports");
-    eprintln!("  coverage `unmet` -- it was never given anything to examine -- which is not");
-    eprintln!("  the same as `barren`, which means it looked and found nothing.");
+    eprintln!("  This command does not read the document. An extractor exists -- kwb-extract");
+    eprintln!("  reads a source and proposes what it says -- and it has no provider in this");
+    eprintln!("  workspace, so there is nothing here for a flag to invoke. Until one arrives,");
+    eprintln!("  --says is how a passage's claims get in.");
+    eprintln!();
+    eprintln!("  A run given no --says reports coverage `unmet` -- it was never given anything");
+    eprintln!("  to examine -- which is not the same as `barren`, which means it looked and");
+    eprintln!("  found nothing.");
     eprintln!();
     eprintln!("  --store <dir> keeps both halves: the document bytes as one file per address,");
     eprintln!("  and what was published as an append-only log. A run replays that log before");
