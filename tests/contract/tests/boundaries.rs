@@ -574,3 +574,59 @@ fn Remember(verbs: &mut Vec<String>, verb: &str)
         verbs.push(verb.to_owned());
     }
 }
+
+// ---- KWB-49: the ownership route reaches both records that decide it ----
+
+/// Both records that decide ownership are routed, not just the one that is quoted.
+///
+/// # Why this names identifiers when the test above scans a directory
+///
+/// The test above enumerates `docs/` and asks whether each authority is routed, which is the
+/// stronger shape: it finds an authority nobody thought to add. It cannot be used here, because
+/// these two records live in **another repository**. There is nothing under this root to
+/// enumerate, and a test that cannot enumerate has to name.
+///
+/// # What it guards, and what it deliberately does not
+///
+/// It guards against the rows being deleted or the second one never being noticed. It does
+/// **not** check that the sibling's records exist or say what this file claims they say — a
+/// test that read across the repository boundary would fail for reasons this repository cannot
+/// fix, and a test that fails for reasons you cannot fix gets turned off, taking the part that
+/// worked with it.
+///
+/// # Why the second row is load-bearing
+///
+/// `ARC-ECOSYSTEM-001` adopts `D-122` and quotes it: a shared mechanism moves to XVPE only
+/// after two products have demonstrated materially identical domain-neutral semantics. `D-135`
+/// is later and narrows that to code which *started* product-specific. The two give opposite
+/// instructions for code designed for sharing from the outset, and `D-135` names this
+/// repository as one of the two products it was written for.
+///
+/// `D-135` declares a relation to `ARC-ECOSYSTEM-001`; `ARC-ECOSYSTEM-001` does not mention
+/// `D-135`. So a session that followed the route and stopped at the first record would read the
+/// un-narrowed gate — the same one-directional-relation defect `KWB-38` fixed inside this
+/// repository, one repository over, where `KWB-38` could not reach.
+#[test]
+fn Test_Both_Records_That_Decide_Ownership_Should_Be_Routed()
+{
+    let contract = std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
+        .expect("AGENTS.md should be readable");
+
+    let unrouted: Vec<&str> = ["ARC-ECOSYSTEM-001", "D-135"]
+        .into_iter()
+        .filter(|record| return !contract.contains(record))
+        .collect();
+
+    assert!(
+        unrouted.is_empty(),
+        "AGENTS.md routes ownership to only one of the two records that decide it, so a \
+         session following the operating contract reads a burden of proof that a later \
+         record narrowed: {unrouted:?}"
+    );
+
+    assert!(
+        contract.contains("narrow"),
+        "both records are named and nothing says D-135 narrows the gate ARC-ECOSYSTEM-001 \
+         quotes, so a reader has two rows and no reason to prefer either"
+    );
+}

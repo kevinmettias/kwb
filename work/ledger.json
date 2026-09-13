@@ -2673,15 +2673,61 @@
         ],
         "patterns": []
       },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-49, which covers the same ground with tests/contract in territory and a predicate that can be run. KWB-48's own done_when had to record 'nothing mechanical holds this row in place' as a gap it could not close, and a routing row nothing holds is exactly the drift this repository already has a contract test for."
+        }
+      },
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": null,
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Authored with no verification predicate, so finish refuses it and territory cannot be amended to add one. The AGENTS.md routing edit is done and committed; what is left is the guard, which needs tests/contract in territory. Declining in favour of KWB-49.",
+          "abandoned_at": 1789272796
+        }
+      ],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789272796
+      }
+    },
+    {
+      "id": "KWB-49",
+      "title": "The ownership route reaches one of the two records that decide it, and nothing holds the route in place",
+      "why": "AGENTS.md routed every ownership question to nomos ARC-ECOSYSTEM-001 and said this repository does not restate it, which is right. ARC-ECOSYSTEM-001 version 4 adopts D-122 and quotes it: a shared mechanism moves to XVPE only after two products have demonstrated materially identical domain-neutral semantics. D-135 is later and narrows that -- the proof gate governs only code that started product-specific, and code designed for shared use is proposed in XVPE the first time it is written. D-135 names this repository by name as one of the two products the narrowing is for. D-135 declares a relation to ARC-ECOSYSTEM-001 and ARC-ECOSYSTEM-001 does not mention D-135, so it is reachable from one side only and the side a KWB session arrives from is the blind one. KWB-48 added the second row and could not be finished, because it was authored with no predicate and territory cannot be amended; it also had to record that nothing mechanical holds the row. That gap is the substance here. The repository already has a contract test for exactly this failure -- a routing table that drifts, where a reader who cannot find an authority does not know one is missing -- and it scans only directories under docs, so a row naming a sibling repository's record is held by nothing at all.",
+      "done_when": "The two ownership rows are in AGENTS.md with what each settles and why the first cannot be followed to the second, restating no record content beyond the route, and the one-directional relation is named as owed to the sibling rather than worked around. A contract test fails if either record stops being routed. The test states why it names two specific record identifiers when the neighbouring test deliberately scans a directory instead: these live in another repository, so there is nothing here to enumerate, and a test that cannot enumerate must name. It is a guard against deletion and not a check that the sibling's records exist, because a test that read across the repository boundary would fail for reasons this repository cannot fix and would be turned off.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "AGENTS.md",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
       "state": "Claimed",
       "depends_on": [],
       "blocked": null,
       "claim": {
         "holder": "fable",
-        "acquired_at": 1789272714,
-        "lease_expires_at": 1789279914
+        "acquired_at": 1789272827,
+        "lease_expires_at": 1789280027
       },
-      "verification": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
       "verified": null,
       "abandoned": [],
       "displaced": [],
