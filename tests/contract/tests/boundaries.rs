@@ -462,3 +462,115 @@ fn Test_The_Manifest_Reader_Should_Take_The_Quoted_Value()
          would compare equal to one whose description is empty"
     );
 }
+
+// ---- KWB-45: the README shows commands that exist ----
+
+/// Every `kwb` verb the README shows is one the composition root dispatches.
+///
+/// # Why this is a test
+///
+/// A usage example rots the way every copy does: the code moves and the example does not, and
+/// the reader who follows it is the one who finds out. This repository has spent a session
+/// fixing five copies of one fact that were corrected in some places and not others, so adding
+/// a sixth on the way out — with no check — would be a poor ending.
+///
+/// It scans the composition root's own dispatch rather than running the binary, so the check
+/// costs nothing and cannot leave a store directory behind.
+#[test]
+fn Test_Every_Command_The_Readme_Shows_Should_Be_One_The_Binary_Dispatches()
+{
+    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+        .expect("README.md should be readable");
+    let dispatch =
+        std::fs::read_to_string(Repository_Root().join("crates/host/kwb-cli/src/main.rs"))
+            .expect("the composition root should be readable");
+
+    let mut missing: Vec<String> = Vec::new();
+    for verb in Verbs_Shown(&readme)
+    {
+        if !dispatch.contains(&format!("&\"{verb}\""))
+        {
+            missing.push(verb);
+        }
+    }
+
+    assert!(
+        missing.is_empty(),
+        "the README shows commands the binary does not dispatch, so a reader following it would \
+         find out the hard way: {missing:?}"
+    );
+}
+
+/// Every `kwb-mcp` tool the README names is one the surface declares.
+#[test]
+fn Test_Every_Tool_The_Readme_Names_Should_Be_One_The_Surface_Declares()
+{
+    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+        .expect("README.md should be readable");
+    let surface = std::fs::read_to_string(Repository_Root().join("crates/host/kwb-mcp/src/lib.rs"))
+        .expect("the tool surface should be readable");
+
+    let mut missing: Vec<String> = Vec::new();
+    for line in readme.lines()
+    {
+        let Some(rest) = line.trim().strip_prefix("$ kwb-mcp ")
+        else
+        {
+            continue;
+        };
+        // `kwb-mcp <store> <tool> ...` — the tool is the second word, when there is one.
+        if let Some(tool) = rest.split_whitespace().nth(1)
+        {
+            if !surface.contains(&format!("name: \"{tool}\""))
+            {
+                missing.push(tool.to_owned());
+            }
+        }
+    }
+
+    assert!(
+        missing.is_empty(),
+        "the README names tools the surface does not declare: {missing:?}"
+    );
+}
+
+/// Every `kwb` verb the README shows, in a console block or named in prose.
+///
+/// Both, because a verb mentioned in a sentence is as much a promise to a reader as one in an
+/// example. The first version of this collector saw only the console blocks, which would have
+/// left `retire` and `supersede` unchecked -- two of the three verbs the README names. A guard
+/// covering a third of what it claims to is worse than none, because it reads as coverage.
+fn Verbs_Shown(readme: &str) -> Vec<String>
+{
+    let mut verbs: Vec<String> = Vec::new();
+
+    for line in readme.lines()
+    {
+        if let Some(rest) = line.trim().strip_prefix("$ kwb ")
+        {
+            Remember(&mut verbs, rest.split_whitespace().next().unwrap_or_default());
+        }
+    }
+
+    for fragment in readme.split("`kwb ").skip(1)
+    {
+        let Some(inside) = fragment.split('`').next()
+        else
+        {
+            continue;
+        };
+        Remember(&mut verbs, inside.split_whitespace().next().unwrap_or_default());
+    }
+
+    assert!(verbs.len() >= 3, "only {verbs:?} were found, so this guard covers almost nothing");
+    return verbs;
+}
+
+/// Keep a verb once.
+fn Remember(verbs: &mut Vec<String>, verb: &str)
+{
+    if !verb.is_empty() && !verbs.iter().any(|held| return held == verb)
+    {
+        verbs.push(verb.to_owned());
+    }
+}

@@ -2489,6 +2489,64 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-45",
+      "title": "The README says what this product does and nothing anywhere says how to run it",
+      "why": "The first line of README.md describes KWB in the present tense -- it ingests references and builds a durable graph of the concepts they teach, deduplicated across sources by content-derived identity. That is now true: kwb admit reads a file, kwb supersede closes a concept with the evidence D17 requires, kwb-mcp answers four read-only tools over a replayed corpus, and knowledge accumulates across runs. Nothing in the repository says any of that. README has Bands, a pointer to AGENTS.md, and Ecosystem; AGENTS.md is explicit that it holds how to act safely rather than what is true, and routes only to authorities. So a reader arriving at a repository that claims a capability has no route to it, which is adjacent to the class this audit has been clearing all session -- not a false statement, but a claim with nothing behind it that a reader can reach. It is also the last thing that would make the work of the last several hours legible to anyone who did not do it.",
+      "done_when": "README shows the shape of an actual session end to end, with output that was really produced rather than invented, and points at kwb help for the flags instead of restating them -- a copy of the help text is the drifting-duplicate defect this session has fixed five times and must not be introduced on the way out. A check asserts that every verb the README shows is one the composition root actually dispatches, so an example that stops working fails a test rather than misleading a reader, and it fails when a verb is renamed, verified by renaming one. Nothing about how the pipeline works internally moves into README; the records own that and it routes to them.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 10 tests\ntest Test_The_Relation_Reader_Should_Find_Nothing_Where_Nothing_Is_Declared ... ok\ntest Test_The_Manifest_Reader_Should_Take_The_Quoted_Value ... ok\ntest Test_The_Relation_Reader_Should_Find_Declared_Relations ... ok\ntest Test_Every_Readme_Table_Row_Should_Name_A_Real_Workspace_Member ... ok\ntest Test_Every_Command_The_Readme_Shows_Should_Be_One_The_Binary_Dispatches ... ok\ntest Test_Every_Tool_The_Readme_Names_Should_Be_One_The_Surface_Declares ... ok\ntest Test_Every_Authority_Under_Docs_Should_Be_Routed_By_The_Operating_Contract ... ok\ntest Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table ... ok\ntest Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places ... ok\ntest Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends ... ok\n\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n",
+        "verified_at": 1789271141,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "41455a3870e95a682822bc5ad08502977e20dcc2"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

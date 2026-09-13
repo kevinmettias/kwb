@@ -14,6 +14,52 @@ data-loss incidents, verdicted requirement by requirement as this repository is 
 never ported wholesale. That relationship mirrors the one `f:/repos/nomos` has to its own
 prototype, `code-standards`.
 
+## Trying it
+
+Two books asserting the same thing become **one claim with two citations**. That is the
+mechanism every identity decision here was made to support, and it is the shortest way to see
+whether this repository does what the paragraph above says.
+
+```console
+$ kwb admit callen.txt --store ./corpus --scope "physical theory"       --says entropy "It is non-decreasing in an isolated system."
+source     0cc40cb7fc596e1b5ab40585ef8369a3bfa79eff11096ba46400b5d61df52a2d
+coverage   yielded
+concepts   1
+claims     1
+citations  1
+documents  kept
+knowledge  kept
+
+$ kwb admit kittel.txt --store ./corpus --scope "physical theory"       --says entropy "It is non-decreasing in an isolated system."
+source     cfcb53adb1aec951a6ecefc8a9087dc78f35bb19201d902fab7f4448602ff2aa
+concepts   1
+claims     1
+citations  2
+```
+
+A different book, a different source address, and still **one** claim — because a claim's
+identity excludes the source it was read from (`D-002`). The second run replays what the first
+published before it admits, so the count is the corpus rather than the run.
+
+```console
+$ kwb-mcp ./corpus neighbours entropy
+concept  entropy
+claim    It is non-decreasing in an isolated system.
+cited    0cc40cb7fc596e1b5ab40585ef8369a3bfa79eff11096ba46400b5d61df52a2d [physical theory]
+cited    cfcb53adb1aec951a6ecefc8a9087dc78f35bb19201d902fab7f4448602ff2aa [physical theory]
+```
+
+Each citation is the **content address of the document the claim was read out of**, so following
+one returns those exact bytes or fails loudly because they are gone.
+
+`kwb retire` and `kwb supersede` close a concept, and both require `--because`: `D17` is that
+destruction requires evidence, and a merge with no recorded reason cannot answer the question it
+demands. `kwb-mcp <store>` with no tool lists the four it answers.
+
+**There is no extractor.** Nothing here reads a document and decides what it says — that is what
+`--says` is for, and it is the interesting half. `kwb help` has the flags; they are not repeated
+here, because a copy of a help text is a copy that drifts.
+
 ## Bands
 
 The authoritative statement of what each crate owns. `tests/contract` asserts this table
