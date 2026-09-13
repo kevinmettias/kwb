@@ -48,7 +48,13 @@ resolver = "3"
 
 [workspace.package]
 edition = "2024"
-rust-version = "1.85"
+# Measured rather than inferred from the edition: 1.85.0 and 1.86.0 fail to build this
+# workspace and 1.87.0 is the first that does. The floor is not this repository's own, whose
+# lowest crates still compile on 1.85. It arrives through `kwb-platform-xvpe`, where the
+# pinned `xvpe-collections-map` uses `integer_sign_cast`, stable since 1.87. `D-007`'s
+# quarantine confines the XVPE edge to one manifest; it does not confine the toolchain floor
+# that edge carries, so this number moves when that pin moves and is re-measured when it does.
+rust-version = "1.87"
 license = "UNLICENSED"
 publish = false
 

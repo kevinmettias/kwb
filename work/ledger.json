@@ -4920,6 +4920,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-90",
+      "title": "The workspace declares a minimum Rust version it does not compile on, and the two releases between the claim and the truth are imported through the crate that exists to quarantine XVPE",
+      "why": "Measured 2026-09-13 on Linux, against four toolchains, with a target directory of its own so nothing contended: `cargo +1.85.0 check --workspace --all-targets` fails, 1.86.0 fails, 1.87.0 passes, 1.88.0 passes. Cargo.toml line 51 says `rust-version = \"1.85\"`. The true floor is 1.87.0, so the declared value is wrong by two releases.\n\nWhose floor it is, measured rather than assumed. `cargo +1.85.0 check -p kwb-contracts -p kwb-model -p kwb-platform --lib` exits 0: this repository's own lowest crates do compile on the declared version. What fails is `xvpe-collections-map`, on six uses of the unstable library feature `integer_sign_cast`, stabilized in 1.87. `cargo tree -i` puts it at xvpe-collections-map <- xvpe-collections-persistent <- kwb-platform-xvpe, and from there into kwb-domain, kwb-retrieval, kwb-ingest, kwb-extract, kwb-mcp, kwb-cli and kwb-contract-tests - every crate above band 1p.\n\nThat is the fact worth keeping. `D-007` adopts XVPE by git reference into a crate that exists to quarantine it, and structurally the quarantine holds: the XVPE edge is declared in exactly one manifest and `Test_Only_The_Quarantine_Crate_Should_Name_Xvpe` proves it. The toolchain floor that edge carries is not quarantined. It propagates to every dependent, it is set by a pinned commit in another repository, and it moves silently when the pin moves.\n\nWhat the wrong number costs is a refusal that fires for the wrong reason. `rust-version` is what Cargo reads to refuse a too-old toolchain by name. Declaring 1.85 means a contributor on 1.85 or 1.86 is not told the toolchain is too old; they get E0658 six times from inside a dependency they did not add and cannot see from this workspace.\n\nNot in this item, and named so it is not mistaken for done: this repository pins no toolchain at all. XVPE pins nightly and Nomos pins 1.88.0 exactly, each with its reason written beside it, and Nomos cites OD-GATE-012 for pinning the toolchain the same way it pins everything it depends on. Whether this repository follows is a decision and belongs in a record, not in a correction that only makes an existing number true.",
+      "done_when": "Cargo.toml declares the minimum Rust version this workspace actually compiles on, which was measured as 1.87.0 and is not 1.85. Nothing else changes: no toolchain file is added, because that is a decision this item does not make. `cargo test -p kwb-contract-tests` passes, which shows the manifest still parses and every boundary guard still reads it. That predicate is not evidence of the floor and is not offered as any - the floor was established by building the workspace on 1.85.0, 1.86.0, 1.87.0 and 1.88.0 directly, as recorded above.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "Cargo.toml"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.73s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789316718,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "ef2dec5ae2bc5655f84fa9dddf78720255200f6d"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
