@@ -14,6 +14,8 @@ path = "src/main.rs"
 [dependencies]
 # A read-only surface names the read-only query types and nothing that can write.
 kwb-domain = { workspace = true }
+kwb-platform = { workspace = true }
+kwb-platform-std = { workspace = true }
 kwb-retrieval = { workspace = true }
 
 [lints]
