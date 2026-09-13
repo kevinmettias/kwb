@@ -333,6 +333,11 @@
           "holder": "fable",
           "reason": "Two of the three query kinds are built and committed at df188a7: keyword and neighbourhood, both worlds as separate types with no write path, and kwb-mcp wired against them. Semantic search is not, and was not stubbed. It needs embeddings, nothing in this repository produces one, and D-004 holds semantic reconciliation -- so the remaining third is blocked on held ground rather than on effort. A Semantically_Like falling back to keyword matching would be AdmitChunk again, a path that looks wired and is not doing what its name says, which is the failure this item cites in its own why. What is left for whoever takes this: semantic queries, and nothing else. Re-read the crate before starting; the read-only guard and the two-world split are already done and tested.",
           "abandoned_at": 1789258287
+        },
+        {
+          "holder": "fable",
+          "reason": "Everything in this item is built except semantic search. Keyword and neighbourhood queries, both worlds as separate types with no write path guarded by a source-scanning test, kwb-mcp wired against those types and now serving a real corpus by replaying a publication log. Committed at df188a7 and the follow-up. What remains is semantic queries and nothing else: they need embeddings, nothing in this repository produces one, and D-004 holds semantic reconciliation, so it is blocked on held ground rather than on effort. Do not stub it -- a Semantically_Like falling back to keyword matching would be AdmitChunk again, a path that looks wired and is not doing what its name says, which is the failure this item cites in its own why. Read kwb-retrieval before starting; the hard parts are done.",
+          "abandoned_at": 1789259352
         }
       ],
       "displaced": [],
