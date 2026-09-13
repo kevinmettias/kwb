@@ -220,7 +220,7 @@ fn Entropy() -> (Concept, Claim)
 fn Test_Two_Sources_Asserting_One_Claim_Should_Be_Two_Assertions_Of_One_Claim()
 {
     let (_, claim) = Entropy();
-    let thermodynamics = Scope::Named("physical theory");
+    let thermodynamics = Scope::Named("physical theory").expect("a named scope");
 
     let callen = Assertion::By("Callen 1985", &claim, thermodynamics.clone());
     let kittel = Assertion::By("Kittel 1980", &claim, thermodynamics);
@@ -238,8 +238,8 @@ fn Test_One_Source_Asserting_One_Claim_Twice_Should_Be_One_Assertion()
 {
     let (_, claim) = Entropy();
 
-    let once = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
-    let twice = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
+    let once = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
+    let twice = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
 
     assert_eq!(once.Identity(), twice.Identity(), "re-reading a book is not a second citation");
 }
@@ -249,8 +249,8 @@ fn Test_The_Same_Source_At_A_Different_Scope_Should_Be_A_Different_Assertion()
 {
     let (_, claim) = Entropy();
 
-    let broad = Assertion::By("Callen 1985", &claim, Scope::Named("universal mathematics"));
-    let narrow = Assertion::By("Callen 1985", &claim, Scope::Named("this game workload"));
+    let broad = Assertion::By("Callen 1985", &claim, Scope::Named("universal mathematics").expect("a named scope"));
+    let narrow = Assertion::By("Callen 1985", &claim, Scope::Named("this game workload").expect("a named scope"));
 
     assert_ne!(
         broad.Identity(),
@@ -270,8 +270,8 @@ fn Test_A_Preference_And_A_Measurement_Saying_One_Thing_Should_Meet_At_The_Claim
     let text = "Under workload W, target H, constraints C, it was preferred.";
     let claim = Claim::About(&concept, text);
 
-    let measured = Assertion::By("benchmark run 41", &claim, Scope::Named("project evidence"));
-    let preferred = Assertion::By("the user", &claim, Scope::Named("user preference"));
+    let measured = Assertion::By("benchmark run 41", &claim, Scope::Named("project evidence").expect("a named scope"));
+    let preferred = Assertion::By("the user", &claim, Scope::Named("user preference").expect("a named scope"));
 
     assert_eq!(
         measured.Claim(),
@@ -288,7 +288,7 @@ fn Test_An_Assertion_Should_Carry_No_Strength_Of_Any_Kind()
     // alternative in forty types: Confidence { get; set; } = 1.0. This fixes the absence --
     // adding a grade changes the derivation and every assertion identity in the corpus.
     let (_, claim) = Entropy();
-    let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
+    let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
 
     assert_eq!(assertion.Source(), "Callen 1985");
     assert_eq!(assertion.Scope().Name(), "physical theory");
@@ -299,10 +299,28 @@ fn Test_An_Assertion_Should_Carry_No_Strength_Of_Any_Kind()
 #[test]
 fn Test_An_Unstated_Scope_Should_Be_Recognisable_Rather_Than_Guessed()
 {
+    // # What this test used to assert, and why it changed
+    //
+    // It passed `Scope::Named("   ")` and asserted the result was unstated. That was true, and
+    // it was the defect: the mapping is defensible -- whitespace does name nothing -- but it
+    // happened **silently**, so `kwb admit --scope "   "` wrote an assertion record
+    // byte-identical to one from a run given no `--scope` at all. A person who typed a scope
+    // was told nothing and the record said they had said nothing. `KWB-50` measured it.
+    //
+    // The rule is now that blank text names no scope and the caller says `Unstated` when that
+    // is what it means. Left as a comment rather than replaced quietly, because a test that
+    // encoded the old behaviour as intended is evidence about what was believed.
     let (_, claim) = Entropy();
-    let unstated = Scope::Named("   ");
 
+    assert_eq!(
+        Scope::Named("   "),
+        None,
+        "text that names nothing quietly became the unstated scope again"
+    );
+
+    let unstated = Scope::Unstated();
     assert!(unstated.Is_Unstated());
+
     let assertion = Assertion::By("Callen 1985", &claim, unstated);
     assert!(
         assertion.Scope().Is_Unstated(),
@@ -314,10 +332,10 @@ fn Test_An_Unstated_Scope_Should_Be_Recognisable_Rather_Than_Guessed()
 fn Test_A_Reflowed_Scope_Should_Not_Be_A_Different_Scope()
 {
     assert_eq!(Scope::Named("physical  theory
-"), Scope::Named("physical theory"));
+").expect("a named scope"), Scope::Named("physical theory").expect("a named scope"));
     assert_ne!(
-        Scope::Named("Physical theory"),
-        Scope::Named("physical theory"),
+        Scope::Named("Physical theory").expect("a named scope"),
+        Scope::Named("physical theory").expect("a named scope"),
         "case is significant here, as it is for a concept"
     );
 }
@@ -334,7 +352,8 @@ fn Test_Two_Spellings_That_Derive_One_Identity_Should_Render_One_Text()
     assert_eq!(
         spaced.Canonical_Name(),
         tight.Canonical_Name(),
-        "the identity says one concept, so the accessor must not say two different things --          otherwise what a reader gets back depends on which was published first"
+        "the identity says one concept, so the accessor must not say two different things -- \
+         otherwise what a reader gets back depends on which was published first"
     );
 }
 
@@ -357,7 +376,7 @@ fn Test_All_Four_Text_Carrying_Types_Should_Agree_About_What_They_Keep()
     // Two of the four normalized what they stored and two did not, and nothing decided that.
     let concept = Concept::Named("a  b");
     let claim = Claim::About(&concept, "p  q");
-    let assertion = Assertion::By("S  1", &claim, Scope::Named("z  y"));
+    let assertion = Assertion::By("S  1", &claim, Scope::Named("z  y").expect("a named scope"));
 
     assert_eq!(concept.Canonical_Name(), "a b");
     assert_eq!(claim.Text(), "p q");

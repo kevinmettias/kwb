@@ -262,12 +262,10 @@ pub fn Admit(
         }
     };
 
-    // `Scope::Named("")` is how this repository spells an unstated scope. `Scope` has the
-    // query -- `Is_Unstated` -- and no constructor for it, so every caller spells it out and
-    // this is the third place that does. Not fixed here: `kwb-domain` is not this item's
-    // territory, and reaching into it would be the slip rather than the fix.
-    let unstated = || return Scope::Named("");
-    let scope = reader.map_or_else(unstated, ExtractionStrategy::Scope);
+    // A reader that was never asked has no scope to offer, and `Scope::Unstated` is what that
+    // is. This spelled it `Scope::Named("")` until `KWB-50`, which is how a blank `--scope`
+    // came to record the same thing as no `--scope` at all.
+    let scope = reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
     let extractions = reading.Proposed();
     let normalized = Normalize_Concepts(Link_Concepts(extractions));
 

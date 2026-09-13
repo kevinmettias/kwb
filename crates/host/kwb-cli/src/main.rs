@@ -72,11 +72,9 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
         return ExitCode::from(USAGE_EXIT);
     };
 
-    let (store_root, rest) = Store_Root_From(rest);
-    let (scope, rest) = Scope_From(rest);
-    let extractions = match Extractions_From(rest)
+    let (store_root, scope, extractions) = match Arguments_Of_Admit(rest)
     {
-        Ok(extractions) => extractions,
+        Ok(parsed) => parsed,
         Err(complaint) =>
         {
             eprintln!("kwb admit: {complaint}");
@@ -382,18 +380,57 @@ fn Flag_From<'arguments>(
     };
 }
 
+/// Everything `kwb admit` reads off its command line, in the order a misplaced flag is caught.
+///
+/// Gathered into one function so the command has one refusal path rather than three that have
+/// drifted apart -- and because each of the three ends the same way, which is the shape a
+/// reader has to check three times to be sure of.
+///
+/// # Errors
+///
+/// The first complaint any of the three readers makes, in their declared order: a misplaced
+/// `--store` is an unexpected argument rather than a concept named `--store`, and a `--scope`
+/// that names nothing is refused rather than recorded as an unstated scope.
+fn Arguments_Of_Admit<'arguments>(
+    arguments: &'arguments [&'arguments str],
+) -> Result<(Option<&'arguments str>, Scope, Vec<Extraction>), String>
+{
+    let (store_root, rest) = Store_Root_From(arguments);
+    let (scope, rest) = Scope_From(rest)?;
+    let extractions = Extractions_From(rest)?;
+
+    return Ok((store_root, scope, extractions));
+}
+
 /// `--scope <name>`, if it leads the remaining arguments.
 ///
 /// An absent scope is a real answer and not a default. `D-010`: a source that did not say how
 /// far it meant has not said the narrowest thing, so an unstated scope stays distinguishable
 /// from every stated one rather than being filled in with a guess.
-fn Scope_From<'arguments>(arguments: &'arguments [&'arguments str])
-    -> (Scope, &'arguments [&'arguments str])
+///
+/// # Errors
+///
+/// A `--scope` whose text names nothing. Until `KWB-50` that was accepted and recorded as an
+/// *unstated* scope, byte-identical to passing no `--scope` at all — so somebody who typed a
+/// scope and had it swallowed was told nothing, and the record said they had said nothing.
+/// Refusing here is the fix, because this is where a person's input arrives; `Scope::Named`
+/// refusing to return the unstated scope is what makes it impossible to get wrong elsewhere.
+fn Scope_From<'arguments>(
+    arguments: &'arguments [&'arguments str],
+) -> Result<(Scope, &'arguments [&'arguments str]), String>
 {
     return match arguments
     {
-        [flag, name, rest @ ..] if *flag == "--scope" => (Scope::Named(name), rest),
-        _ => (Scope::Named(""), arguments),
+        [flag, name, rest @ ..] if *flag == "--scope" => match Scope::Named(name)
+        {
+            Some(scope) => Ok((scope, rest)),
+            None => Err(format!(
+                "--scope was given {name:?}, which names nothing. Leave --scope out to record \
+                 that the source did not say how far it reached; that is a real answer and is \
+                 not the same as this"
+            )),
+        },
+        _ => Ok((Scope::Unstated(), arguments)),
     };
 }
 

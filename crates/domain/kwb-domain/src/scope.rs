@@ -30,11 +30,55 @@ pub struct Scope(String);
 
 impl Scope
 {
-    /// A scope named by text.
+    /// A scope named by text, or [`None`] if the text names nothing.
+    ///
+    /// # Why this refuses rather than returning the unstated scope
+    ///
+    /// It used to return `Self(Normalize(name))`, so `Named("")` and `Named("   ")` *were* the
+    /// unstated scope. Measured on 2026-09-12 against a rebuilt binary: `kwb admit --scope "   "`
+    /// and `kwb admit` with no `--scope` at all wrote byte-identical assertion records. A person
+    /// who typed a scope and had it swallowed was told nothing, and the record said they had
+    /// said nothing.
+    ///
+    /// That is `D-010` inverted. The decision is that an unstated scope stays distinguishable
+    /// from every stated one, because a source that did not say how far it meant has not said
+    /// the narrowest thing — and the way it failed was not a default filling in a guess, which
+    /// is what `D-010` guards, but a **constructor quietly producing the absent case from
+    /// present input**.
+    ///
+    /// `kwb-store` already refuses this shape one crate down: a document of zero bytes is
+    /// `StoreError::Vacuous`, because something indistinguishable from a failed read is not
+    /// worth recording as admitted. Named in prose rather than linked, because `kwb-domain`
+    /// does not depend on `kwb-store`.
+    ///
+    /// So the two cases now have two constructors, and neither can produce the other.
     #[must_use]
-    pub fn Named(name: &str) -> Self
+    pub fn Named(name: &str) -> Option<Self>
     {
-        return Self(Normalize(name));
+        let normalized = Normalize(name);
+        if normalized.is_empty()
+        {
+            return None;
+        }
+
+        return Some(Self(normalized));
+    }
+
+    /// The scope of a source that did not say how far it reached.
+    ///
+    /// A real answer and not a missing one, which is why it is a constructor with a name rather
+    /// than an empty string every caller has to recognise. Three callers spelled it
+    /// `Scope::Named("")` before this existed, and each of them had to know that the empty
+    /// string meant *unstated* rather than *a scope whose name is blank*.
+    ///
+    /// The type it returns is the same type a named scope returns, deliberately. An unstated
+    /// scope participates in an assertion's identity exactly like a stated one — two sources
+    /// that both declined to say how far they reached are agreeing about something, and
+    /// splitting the type would make that unsayable.
+    #[must_use]
+    pub fn Unstated() -> Self
+    {
+        return Self(String::new());
     }
 
     /// The scope's name, normalized.

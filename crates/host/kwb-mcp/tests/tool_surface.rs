@@ -9,7 +9,7 @@ fn Corpus() -> KnowledgeGraph
 {
     let entropy = Concept::Named("entropy");
     let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.");
-    let assertion = Assertion::By("callen", &claim, Scope::Named("physical theory"));
+    let assertion = Assertion::By("callen", &claim, Scope::Named("physical theory").expect("a named scope"));
     let loser = Concept::Named("C");
     let keeper = Concept::Named("C++");
 

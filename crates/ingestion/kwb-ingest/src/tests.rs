@@ -428,7 +428,7 @@ fn Test_A_Published_Concept_Should_Be_Addressed_By_Its_Content()
 /// A scope a source did not state. `D-010`: an answer, not a default.
 fn Unstated() -> Scope
 {
-    return Scope::Named("");
+    return Scope::Unstated();
 }
 
 // ---- KWB-36: the citation, which is what all of this was for ----
@@ -522,7 +522,7 @@ fn Test_A_Stated_Scope_Should_Reach_The_Assertion()
     let mut store = DocumentStore::Empty();
     let report = Admit(
         b"a source".to_vec(),
-        Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Scope::Named("physical theory"))),
+        Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Scope::Named("physical theory").expect("a named scope"))),
         ReadingKind::Text,
         &mut store,)
     .expect("admits");
@@ -707,7 +707,7 @@ fn Test_A_Reading_Should_Carry_The_Address_Of_What_Was_Read()
         vec![Offered("entropy", "It is non-decreasing.")],
         SourceLocation::Named("chapter two"),
         A_Reading("a person"),
-        Scope::Named("physical theory"),
+        Scope::Named("physical theory").expect("a named scope"),
     )
     .expect("a reader")
     .Read(source, b"the passage", ReadingKind::Text)

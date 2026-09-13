@@ -16,7 +16,7 @@ fn Corpus() -> (KnowledgeGraph, Vec<String>)
     let entropy = Concept::Named("entropy");
     let enthalpy = Concept::Named("enthalpy");
     let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.");
-    let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
+    let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
 
     let publications = [
         Publication::Concept {
@@ -227,4 +227,99 @@ fn Recorded(name: &str) -> String
 fn Fields(record: &str) -> usize
 {
     return record.split(SEPARATOR).count();
+}
+
+// ---- KWB-50: a stated scope and an unstated one are two different records ----
+
+#[test]
+fn Test_Text_That_Names_Nothing_Should_Not_Name_A_Scope()
+{
+    // The door. `Scope::Named` used to return the unstated scope for this input, which is how
+    // `kwb admit --scope "   "` came to write the record of a source that said nothing about
+    // how far it reached. Closing it here rather than at the command line is what makes it
+    // unreachable instead of guarded in one place.
+    for names_nothing in ["", "   ", "\t", "\n  \n"]
+    {
+        assert_eq!(
+            Scope::Named(names_nothing),
+            None,
+            "{names_nothing:?} named a scope, so blank input can reach a record again"
+        );
+    }
+
+    assert!(
+        Scope::Named("physical theory").is_some(),
+        "a scope with a name was refused, so this test would pass on a constructor that \
+         refuses everything"
+    );
+}
+
+#[test]
+fn Test_A_Stated_Scope_And_An_Unstated_One_Should_Not_Write_The_Same_Record()
+{
+    // Compared as **records** rather than as values, because the values comparing equal is
+    // exactly what hid this: `Scope::Named("")` *was* `Scope::Unstated()`, so a test asserting
+    // the types differ had nothing to assert. The record is what a later replay reads and what
+    // a person inspecting a log sees, so it is the thing that has to differ.
+    let concept = Concept::Named("entropy");
+    let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
+
+    let recorded_with = |scope| {
+        return Publication::Assertion {
+            assertion: Assertion::By("Callen 1985", &claim, scope),
+            standing: Standing::Asserted,
+        }
+        .Record();
+    };
+
+    let stated = recorded_with(Scope::Named("physical theory").expect("a named scope"));
+    let unstated = recorded_with(Scope::Unstated());
+
+    assert_ne!(
+        stated, unstated,
+        "a source that said how far it reached and one that did not wrote the same record, \
+         so D-010's distinction is gone from the only place it survives a process"
+    );
+    assert_eq!(
+        Fields(&stated),
+        Fields(&unstated),
+        "the two differ in field count rather than in the scope field, which would mean \
+         replay reads one of them as a different kind of record"
+    );
+}
+
+#[test]
+fn Test_An_Unstated_Scope_Should_Survive_A_Replay_As_Unstated()
+{
+    // The other half: refusing blank input at the constructor must not make the *absent* case
+    // unreadable. Logs on disk carry an empty trailing field for every assertion whose source
+    // did not say how far it reached, and replay still has to read them.
+    let concept = Concept::Named("entropy");
+    let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
+    let records: Vec<String> = [
+        Publication::Concept {
+            concept: concept.clone(),
+            standing: Standing::Asserted,
+        },
+        Publication::Claim {
+            claim: claim.clone(),
+            standing: Standing::Asserted,
+        },
+        Publication::Assertion {
+            assertion: Assertion::By("Callen 1985", &claim, Scope::Unstated()),
+            standing: Standing::Asserted,
+        },
+    ]
+    .iter()
+    .map(Publication::Record)
+    .collect();
+
+    let replayed = Replay(&records).expect("a run's own publications must replay");
+    let assertions = replayed.Current().Assertions();
+
+    assert_eq!(assertions.len(), 1);
+    assert!(
+        assertions.first().expect("one").Scope().Is_Unstated(),
+        "an unstated scope came back from a replay as something else"
+    );
 }

@@ -10,7 +10,7 @@ fn Corpus() -> (KnowledgeGraph, Concept, Claim)
 {
     let entropy = Concept::Named("entropy");
     let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.");
-    let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
+    let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
 
     let graph = KnowledgeGraph::Empty()
         .With_Concept(Versioned::Asserted(entropy.clone()))

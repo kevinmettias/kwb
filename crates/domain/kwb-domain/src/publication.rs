@@ -223,7 +223,14 @@ fn Applied(
                     missing: (*claim).to_owned(),
                 };
             })?;
-            let assertion = Assertion::By(source, &held, Scope::Named(scope));
+            // An empty trailing field is an unstated scope, and reading it that way is
+            // deliberate rather than the swallow `Scope::Named` now refuses. A record is what
+            // was already written: logs on disk carry the empty field for every assertion whose
+            // source did not say how far it reached, and the record format is not what was
+            // wrong. What was wrong was a *person's blank input* becoming that field, and that
+            // is refused where the input arrives, not here where it is read back.
+            let scope = Scope::Named(scope).unwrap_or_else(Scope::Unstated);
+            let assertion = Assertion::By(source, &held, scope);
             let standing = Standing_Of(standing, successor, because).ok_or_else(malformed)?;
             Ok(graph.With_Assertion(Versioned::Asserted(assertion).Closed(standing)))
         }

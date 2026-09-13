@@ -2751,6 +2751,45 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-50",
+      "title": "A stated scope that normalizes to nothing is recorded as an unstated scope, so a source that said how far it reached is recorded as having said nothing",
+      "why": "D-010 decided that an unstated scope stays distinguishable from every stated one, because a source that did not say how far it meant has not said the narrowest thing. Scope::Named normalizes its input and an unstated scope is Scope::Named of the empty string, so the two are the same value and the distinction is carried by a magic value every caller has to know. Measured on 2026-09-12 against a rebuilt binary: kwb admit --scope '   ' and kwb admit with no --scope at all write byte-identical assertion records, both ending in an empty trailing field. A person who typed a scope and had it swallowed is told nothing, and the record says they said nothing, which is the exact reading D-010 exists to prevent -- arriving through the constructor rather than through a default. kwb-store already refuses this shape one crate down: a zero-byte document is StoreError::Vacuous because a document indistinguishable from a failed read is not something to record having admitted. A blank scope is indistinguishable from an unstated one and is admitted. Scope has the query Is_Unstated and no constructor for the thing it queries, so three callers spell Scope::Named of the empty string to mean it.",
+      "done_when": "An unstated scope has its own constructor and is not spelled as a named scope of empty text. Scope::Named refuses text that normalizes to nothing rather than returning the unstated scope, so the silent swallow is unreachable rather than guarded at one caller -- the shape kwb-store already uses for a vacuous document, and the shape Stated::Of uses for a reader who stated nothing. kwb-cli refuses --scope with blank text and says so, rather than accepting it and recording an unstated scope. A test fails if a blank scope ever again produces the same record as an absent one, and it compares the records rather than the types, because the types agreeing is what hid this. Replay still reads an empty trailing field as unstated, because existing logs carry it and the record format is not what is wrong here.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain",
+          "crates/ingestion/kwb-ingest",
+          "crates/host/kwb-cli",
+          "crates/host/kwb-mcp",
+          "crates/retrieval/kwb-retrieval"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789273250,
+        "lease_expires_at": 1789280450
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
