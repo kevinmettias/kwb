@@ -3466,6 +3466,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-63",
+      "title": "The measurement D-014 deferred adoption on is made, and it says the blocker is a clock rather than a fit",
+      "why": "D-014 decided the graph becomes durable by replaying an append-only record and deliberately did not adopt xvpe-event-journal, saying: this record does not adopt it, because adopting needs a second measurement nobody has made -- whether a record written for a mining run fits a knowledge publication. Settled by measuring its record shape against a publication, which nothing has done. Nothing has done it since, and it is the one prose-stated condition in this repository that a session can actually discharge: nine others need a reader that splits, a second writer, a corpus where replay time is measurable, or a clock, and none of those exist. Measured against xvpe at the commit kwb-platform-xvpe already pins. EventJournal::Event is generic over WallClockStrategy and writes record.Text(EVENT, kind).Number(AT, Unix_Seconds(clock)), so every record carries a timestamp by construction, and JournalRecord::At documents that a failure to read one means the line was not written by that crate. KWB has no clock. D-014's own consequences say kwb-platform is owed a clock for the record's own timestamps and kwb-platform's module documentation says the clock, lock and process ports are not here yet. So the answer is not that the shapes disagree about knowledge -- it is that KWB cannot write a record of that shape at all. That is the same dependency D-012's amendment named under KWB-60 as what would make a real instant answerable, so two deferrals in two records converge on one port.",
+      "done_when": "D-014 carries the measurement and its answer: the record shape requires a clock for every record, KWB has none, and adoption is therefore blocked on the clock port rather than on whether a mining record fits a knowledge publication -- which is a different answer from the one the deferral anticipated and is recorded as such. The cost of adopting when the port exists is stated rather than left for whoever does it: the shapes are not compatible, a separator-delimited positional record and a JSON object with named fields, so existing publication logs would not replay and that is a migration and not a swap. The convergence with D-012's instant deferral is recorded in D-014, so a reader deciding whether to build the clock port sees both things it would settle rather than one. Nothing is adopted and no clock port is built here: a port with no implementation and no caller is what this repository has a name for, and the item that builds it should build all three.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789278635,
+        "lease_expires_at": 1789285835
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

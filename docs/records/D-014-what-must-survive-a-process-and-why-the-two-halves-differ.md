@@ -155,6 +155,64 @@ motivated the database are met more strongly by a value that cannot be queried w
 *compaction* and *locking*, which this record defers for exactly that reason. They do not gate
 whether anything survives at all, and `kwb admit` currently loses its work every time it runs.
 
+## Amendment: The Deferred Measurement Is Made, 2026-09-12
+
+This record deferred adopting `xvpe-event-journal` and named its condition: *measuring its
+record shape against a publication, which nothing has done.* `KWB-63` did it, against xvpe at
+the commit `kwb-platform-xvpe` already pins.
+
+**The answer is not the one the deferral anticipated.** The question was whether a record
+written for a *mining run* fits a *knowledge* publication. It does not get that far.
+
+`EventJournal::Event` is generic over `WallClockStrategy` and writes
+
+```text
+record.Text(EVENT, kind).Number(AT, Unix_Seconds(clock))
+```
+
+so **every record carries a timestamp by construction**, and the crate imports
+`xvpe_clock::WallClockStrategy` to get it. KWB has no clock: this record's own consequences say
+`kwb-platform` is owed *a clock for the record's own timestamps*, and `kwb-platform`'s module
+documentation says the clock, lock and process ports are not here yet.
+
+So KWB cannot write a record of that shape at all. **Adoption is blocked on the clock port, not
+on fit.**
+
+**Measured at the pinned commit, after first measuring the wrong thing.** The reading above was
+taken from xvpe's *working tree* and then re-taken from `a7eee3c6e`, which is what
+`kwb-platform-xvpe` pins. The lines quoted are present at the pin. Two things seen in the
+working tree are **not**: `journal_record.rs` and a reader beside it are untracked, so a reader
+API that looked available is another session's in-flight work. Reading a sibling's working tree
+and calling it the dependency is exactly what `D-007` refuses `path` edges to prevent, and it
+was walked into while writing this amendment — recorded because the next person measuring a
+sibling will be equally sure they looked at the right thing.
+
+**A dependency comes with it.** `xvpe-event-journal` depends on `xvpe-clock`, which `D-012`
+already measured as bringing `web-time` into the closure — *a `wasm` shim for
+`std::time::Instant`, which this repository has no use for and inherits anyway*. So the clock
+port and the journal arrive together in more than one sense.
+
+### What it would cost when the port exists
+
+The two shapes are not compatible. A publication here is separator-delimited and positional,
+read by matching on field arity and kind; a journal record is a JSON object with named fields.
+Adopting is therefore a **migration and not a swap** — existing publication logs would not
+replay — and whoever does it owns that, rather than discovering it.
+
+### Two deferrals, one port
+
+`D-012`'s amendment under `KWB-60` names the clock port as what would make *a real instant*
+answerable, because a publication carries no time and `kwb history` can therefore only answer
+*as of the first N publications*. That is the same port.
+
+Recorded here so that a reader weighing whether to build it sees **both** things it settles.
+Adopting the journal would give every record a time, which is precisely what `KWB-60` found
+missing — so the port, the adoption and the temporal read are one piece of work and not three.
+
+*Settled by:* the clock port, and an item that builds the port, adopts the journal and migrates
+the log together. A port with no implementation and no caller is what this repository has a name
+for.
+
 ## Referenced By
 
 
