@@ -1526,6 +1526,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-29",
+      "title": "D-012 deferred durability and named the condition that would settle it, and KWB-26 built that condition",
+      "why": "D-012 answered seven of D-008 eight storage requirements and left durability, saying explicitly that it is a backend rather than a schema and that settling it needs a consumer which actually loses something when the process ends -- and that nothing here had one, because nothing ran longer than a test. KWB-26 is that consumer: kwb admit reads a file, admits it, prints what happened and exits, and everything it built is gone. The condition D-012 named has been met by building the thing whose absence made the question unanswerable, which is the sequence D-012 asked for rather than an argument for skipping it. There is a measurement to make first and it is cheap, so the decision should not be taken without it: the two things that are lost are not lost in the same way, and a single durability answer covering both would be answering two questions with one.",
+      "done_when": "A record states what must survive a process and why, separately for the content-addressed documents and for the versioned graph, with the reproducibility of each measured rather than assumed. It says what the platform port must offer for each, naming no library and no file format beyond what the measurement forces. Where it defers, it names the condition. D-012 warning attaches and is repeated in it: a retrieval shape cost is invisible to correctness tests, measured at 38 ms against 1.3 ms on byte-identical rows, so a choice made here cannot be validated by the tests passing.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4f7768ef98d35c58.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-1740151ea0c9a712.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-a2c09ed556691458.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_xvpe-5b031c4775ef2ea0.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-821b4542ba84fec7.exe)\n     Running tests\\read_only.rs (target\\debug\\deps\\read_only-5962ebcd336de170.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-5a7d6df53ef981c8.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-3245f4c681e8a862.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_platform_xvpe\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789258510,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "6d1176fbdf1348139456a7e72b6938509935e9d6"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
