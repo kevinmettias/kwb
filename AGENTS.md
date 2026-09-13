@@ -67,6 +67,17 @@ one is, the field carries no signal to read. `tests/contract/tests/boundaries.rs
 the first of those and states both; it is the authority, and this paragraph is the route to
 it.
 
+**That paragraph is about `docs/records/` only. An observation's two fields mean different
+things, and carrying the record rule across gets both wrong.** An observation's `version`
+counts revisions made **in place**: a finding that overstated itself should simply say what
+was measured, so there is nothing to keep visible beside it and no `## Amendment` section to
+count — `OD-LEDGER-001` is at version 2 with none, correctly, because `KWB-43` rewrote it.
+The difference is not stylistic: a record's superseded claim stays because somebody may have
+acted on it, and an observation is a finding nobody has acted on yet. Its `status` is
+correspondingly the field that *does* carry a signal — `open` until something acts on the
+finding, where a record's `status` carries none — which is the reverse of the record case and
+the reason both are spelled out rather than left to symmetry.
+
 ## Operating hazards
 
 **No path dependency on `f:/repos/xvpe`.** `D-007` is why, and it is worth reading

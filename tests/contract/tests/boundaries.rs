@@ -1470,3 +1470,169 @@ fn Rust_Sources(directory: &std::path::Path, into: &mut Vec<(std::path::PathBuf,
         }
     }
 }
+
+// ---- KWB-84: an observation's fields are not a record's fields ----
+
+/// What an observation's `status` may say.
+///
+/// Two values, and both mean something: an observation is `open` until something acts on the
+/// finding, and `closed` once something has. This is the reverse of a record's `status`, which
+/// reads `accepted` on all fifteen and discriminates nothing — see the record guard above.
+const OBSERVATION_STATUSES: [&str; 2] = ["open", "closed"];
+
+/// Every observation's identifier, mapped to its text.
+fn Observations() -> BTreeMap<String, String>
+{
+    let directory = Repository_Root().join("docs/observations");
+    let entries = std::fs::read_dir(&directory).expect("docs/observations should be readable");
+
+    let mut found = BTreeMap::new();
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if !path.extension().is_some_and(|extension| return extension == "md")
+        {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .and_then(|name| return name.to_str())
+            .unwrap_or_default();
+        // `OD-LEDGER-001-a-record-cannot-...` — the identifier is the first three segments.
+        let parts: Vec<&str> = name.splitn(4, '-').collect();
+        let Some(identifier) = parts.get(..3).map(|segments| return segments.join("-"))
+        else
+        {
+            continue;
+        };
+        let text = std::fs::read_to_string(&path).expect("a readable observation");
+        found.insert(identifier, text);
+    }
+
+    return found;
+}
+
+/// The value of a frontmatter field, from the field and not from text near it.
+fn Field_Of(document: &str, field: &str) -> Option<String>
+{
+    return document
+        .lines()
+        .find_map(|line| return line.trim().strip_prefix(&format!("{field}:")))
+        .map(|value| return value.trim().to_owned());
+}
+
+/// Every observation declares a version and a status, and the status is one that means something.
+///
+/// # Why this is not the record guard pointed at another directory
+///
+/// `AGENTS.md` routes readers to `docs/observations/` as one of three authorities, and until
+/// `KWB-84` nothing here read it at all. The obvious fix — run the record checks over it — is
+/// wrong, and measurably so.
+///
+/// `OD-LEDGER-001` is at version 2 and carries **no** `## Amendment` section. Under the record
+/// rule that is a defect. It is not one: the bump was `KWB-43`, whose subject is *my own
+/// observation overstated its finding, and now says what was measured*, and which rewrote the
+/// text in place. That is what an observation's version counts, because a finding nobody has
+/// acted on yet has nothing to keep visible beside its correction, where a record's superseded
+/// claim stays precisely because somebody may have acted on it.
+///
+/// `status` goes the other way. A record's is inert — all fifteen read `accepted` — while an
+/// observation's is the whole point of the document, because an observation is open until
+/// something acts on it. So the field that carries no signal in one directory is load-bearing in
+/// the other, and a guard that treated the two kinds alike would be wrong twice in opposite
+/// directions.
+#[test]
+fn Test_Every_Observation_Should_Declare_A_Version_And_A_Meaningful_Status()
+{
+    let observations = Observations();
+
+    assert!(
+        observations.len() >= 2,
+        "only {} observations were read, so this guard covers almost nothing",
+        observations.len()
+    );
+
+    let mut wrong: Vec<String> = Vec::new();
+    for (identifier, text) in &observations
+    {
+        match Field_Of(text, "version").and_then(|value| return value.parse::<usize>().ok())
+        {
+            Some(version) if version >= 1 =>
+            {}
+            _ =>
+            {
+                wrong.push(format!("{identifier} declares no usable version"));
+            }
+        }
+
+        let Some(status) = Field_Of(text, "status")
+        else
+        {
+            wrong.push(format!("{identifier} declares no status"));
+            continue;
+        };
+        if !OBSERVATION_STATUSES.contains(&status.as_str())
+        {
+            wrong.push(format!(
+                "{identifier} says status {status}, which is not one of {OBSERVATION_STATUSES:?}"
+            ));
+        }
+    }
+
+    assert!(
+        wrong.is_empty(),
+        "an observation's status says whether anything has acted on the finding, and its version \
+         counts revisions made in place -- these carry neither usably: {wrong:#?}"
+    );
+
+    // The route is part of the rule, for the reason the record guard above gives: a convention an
+    // author meets only as a failing test is one they have already broken.
+    let contract = std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
+        .expect("AGENTS.md should be readable");
+
+    assert!(
+        contract.contains("counts revisions made **in place**"),
+        "AGENTS.md no longer says what an observation's version counts, so an author carries the \
+         record rule across -- and gets it wrong in the direction no guard catches, because the \
+         record guard does not read this directory"
+    );
+}
+
+/// The record's version rule does not reach observations, and that is deliberate.
+///
+/// # Why this test exists rather than a comment
+///
+/// The record guard reads `docs/records/` and so passes over `docs/observations/` — which looks
+/// exactly the same as forgetting to include it. `OD-LEDGER-001` would fail that rule, being at
+/// version 2 with no amendments, and it is correct as it stands.
+///
+/// So this asserts the distinguishing fact directly: an observation at a version above one, with
+/// no amendment section, exists and is right. If observations were ever brought under the record
+/// rule, this test fails and says why, instead of the repository quietly acquiring a false defect
+/// report against a document that was always correct.
+#[test]
+fn Test_An_Observation_May_Be_Revised_Without_An_Amendment_Section()
+{
+    let observations = Observations();
+
+    let revised_in_place: Vec<&String> = observations
+        .iter()
+        .filter(|(_, text)| {
+            let version = Field_Of(text, "version")
+                .and_then(|value| return value.parse::<usize>().ok())
+                .unwrap_or_default();
+            let amendments = text.lines().filter(|line| return line.starts_with("## Amendment")).count();
+
+            return version > 1 && amendments == 0;
+        })
+        .map(|(identifier, _)| return identifier)
+        .collect();
+
+    assert!(
+        !revised_in_place.is_empty(),
+        "no observation is at a version above one without an amendment section, so this test no \
+         longer demonstrates what it was written to demonstrate -- that an observation is revised \
+         in place. Either the convention changed, in which case AGENTS.md is now wrong, or the \
+         one example was edited away and a new one is needed"
+    );
+}
