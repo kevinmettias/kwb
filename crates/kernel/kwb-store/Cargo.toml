@@ -1,7 +1,7 @@
 [package]
 name = "kwb-store"
 version = "0.1.0"
-description = "The content-addressed document store: one write door, evidence-first."
+description = "The content-addressed document store; one write door."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

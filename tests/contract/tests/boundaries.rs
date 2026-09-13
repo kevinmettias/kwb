@@ -209,3 +209,143 @@ fn Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends()
          reach the record that relates to it: {one_way:#?}"
     );
 }
+
+// ---- KWB-39: one description per crate, in the two places that must each carry one ----
+
+/// Every crate's `description`, from its manifest.
+fn Manifest_Descriptions() -> BTreeMap<String, String>
+{
+    let mut found = BTreeMap::new();
+    Collect_Manifests(&Repository_Root().join("crates"), &mut found);
+    assert!(!found.is_empty(), "no manifests were scanned, so this test proves nothing");
+    return found;
+}
+
+/// Walk for `Cargo.toml` files, reading the name and description out of each.
+fn Collect_Manifests(directory: &std::path::Path, found: &mut BTreeMap<String, String>)
+{
+    let Ok(entries) = std::fs::read_dir(directory)
+    else
+    {
+        return;
+    };
+
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if path.is_dir()
+        {
+            Collect_Manifests(&path, found);
+            continue;
+        }
+        if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+        {
+            continue;
+        }
+
+        let text = std::fs::read_to_string(&path).expect("a readable manifest");
+        let name = Quoted_After(&text, "name = ");
+        let description = Quoted_After(&text, "description = ");
+        if let (Some(name), Some(description)) = (name, description)
+        {
+            found.insert(name, description);
+        }
+    }
+}
+
+/// The double-quoted value on the first line beginning with `prefix`.
+fn Quoted_After(text: &str, prefix: &str) -> Option<String>
+{
+    return text
+        .lines()
+        .find(|line| return line.starts_with(prefix))
+        .and_then(|line| return line.split('"').nth(1))
+        .map(str::to_owned);
+}
+
+/// Every crate row in `README.md`'s Bands table, as `crate -> what it owns`.
+fn Readme_Band_Descriptions() -> BTreeMap<String, String>
+{
+    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+        .expect("README.md should be readable");
+
+    let mut rows = BTreeMap::new();
+    let mut in_band_table = false;
+    for line in readme.lines()
+    {
+        if line.starts_with("| Band | Crate | Owns |")
+        {
+            in_band_table = true;
+            continue;
+        }
+        if !in_band_table
+        {
+            continue;
+        }
+        if !line.starts_with('|')
+        {
+            break;
+        }
+
+        let cells: Vec<&str> = line.split('|').map(str::trim).collect();
+        let (Some(crate_cell), Some(owns)) = (cells.get(2), cells.get(3))
+        else
+        {
+            continue;
+        };
+        if let Some(name) = crate_cell
+            .strip_prefix('`')
+            .and_then(|rest| return rest.strip_suffix('`'))
+        {
+            rows.insert(name.to_owned(), (*owns).to_owned());
+        }
+    }
+
+    return rows;
+}
+
+/// A crate says one thing about itself, and says it the same way in both places.
+///
+/// # What this caught, and what it cannot
+///
+/// `kwb-platform` was described in its manifest **and** in this table as offering port traits
+/// for clock, filesystem, lock and process. It exports two traits, neither of them in that
+/// list, and its own `lib.rs` says the clock, lock and process ports are not there yet — one
+/// fact in three places, two agreeing with each other and both disagreeing with the code.
+/// `kwb-retrieval` advertised semantic and hybrid queries, one of which `D-004` holds the
+/// ground for and this repository has deliberately refused to stub.
+///
+/// **This check would not have caught either**, because the two copies agreed. What fixed them
+/// was making each description a *charter* — what the crate is for — instead of an inventory of
+/// what it contains. An inventory is a copy of the source and drifts whenever the source
+/// changes; a charter does not. That is the real remedy and it is not mechanizable.
+///
+/// What this check does is close the remaining drift mode: two places must still each carry a
+/// description, and now they cannot disagree.
+#[test]
+fn Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places()
+{
+    let manifests = Manifest_Descriptions();
+    let readme = Readme_Band_Descriptions();
+
+    let mut disagreements: Vec<String> = Vec::new();
+    for (name, owns) in &readme
+    {
+        let Some(description) = manifests.get(name)
+        else
+        {
+            continue;
+        };
+        if description != owns
+        {
+            disagreements.push(format!("{name}\n  README:   {owns}\n  manifest: {description}"));
+        }
+    }
+
+    assert!(
+        disagreements.is_empty(),
+        "a crate describes itself differently in two places, so one of them is already wrong \
+         and a reader cannot tell which: {}",
+        disagreements.join("\n")
+    );
+}

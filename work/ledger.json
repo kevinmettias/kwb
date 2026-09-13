@@ -2132,6 +2132,66 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-39",
+      "title": "Two crates advertise capabilities they do not have, and one contradicts its own source file",
+      "why": "Found by sweeping the authorities the way KWB-38 swept the records. kwb-platform is described in its manifest and in the README bands table as offering port traits for clock, filesystem, lock and process. It exports two traits, ContentStoreStrategy and RecordLogStrategy, and neither is in that list, and its own lib.rs says in as many words that the clock, lock and process ports are not here yet. One fact in three places, two of them agreeing with each other and both disagreeing with the code. kwb-retrieval advertises keyword, semantic, hybrid and neighbourhood queries; semantic and hybrid do not exist, its own lib.rs says semantic is absent and deliberately not stubbed, and D-004 holds the ground it would need. So a crate is advertising the one capability this repository has explicitly refused to fake. The underlying mistake is the same in both: a description that inventories what a crate has goes stale every time the crate changes, while a description that says what a crate is for cannot. The bands table is asserted by tests/contract for crate names and not for descriptions, so the descriptions have been drifting unwatched since the first commit.",
+      "done_when": "Neither crate advertises a capability it does not have. Both descriptions say what the crate is for rather than listing what it contains, because an inventory in a description is a copy of the source that drifts and a charter is not -- and the fix for a fact restated in three places is to stop restating it, not to check it harder. The bands table and the manifests agree, and a check asserts that, so the remaining drift mode between the two places that must still each carry a description is closed rather than left to notice. The check fails if one is edited without the other, verified by editing one.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md",
+          "crates/platform/kwb-platform",
+          "crates/retrieval/kwb-retrieval",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 4 tests\ntest Test_Every_Readme_Table_Row_Should_Name_A_Real_Workspace_Member ... ok\ntest Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table ... ok\ntest Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends ... ok\ntest Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n",
+        "verified_at": 1789265564,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "3edca4fba90916a59868717b375dccfb721b17a2"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

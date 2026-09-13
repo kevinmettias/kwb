@@ -1,7 +1,7 @@
 [package]
 name = "kwb-platform-xvpe"
 version = "0.1.0"
-description = "The one crate permitted to name XVPE. Adopts the persistent map versioned state is built on."
+description = "The one crate permitted to name XVPE. Adopts the persistent map versioned state is built on, by git reference and commit SHA. `D-007`, `D-012`."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

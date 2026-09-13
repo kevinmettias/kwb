@@ -1,7 +1,11 @@
 [package]
 name = "kwb-platform"
 version = "0.1.0"
-description = "Port traits: clock, filesystem, lock, process. Implementations live beside this crate, never inside it."
+# A charter rather than an inventory. A description that lists what a crate contains is
+# a copy of its source and drifts every time the source changes -- which is how this
+# one came to name four ports, three of which do not exist, while the crate exported
+# two it did not mention. What a crate is *for* does not go stale that way.
+description = "The seam an implementation is chosen behind: one port per thing the outside world does for this repository."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

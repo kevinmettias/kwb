@@ -1,7 +1,7 @@
 [package]
 name = "kwb-contracts"
 version = "0.1.0"
-description = "Band 0. The only authoritative statement of KnowledgeWorkbench protocol semantics."
+description = "Protocol vocabulary crossing a product boundary. Depends on `serde` and nothing else."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

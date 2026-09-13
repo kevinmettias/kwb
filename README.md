@@ -24,12 +24,12 @@ against the real workspace, both directions.
 | 0 | `kwb-contracts` | Protocol vocabulary crossing a product boundary. Depends on `serde` and nothing else. |
 | 1 | `kwb-model` | Canonical, content-derived identity. |
 | 1 | `kwb-store` | The content-addressed document store; one write door. |
-| 1p | `kwb-platform` | Port traits: clock, filesystem, lock, process. |
+| 1p | `kwb-platform` | The seam an implementation is chosen behind: one port per thing the outside world does for this repository. |
 | 1p | `kwb-platform-std` | The standard-library implementation of those traits. |
 | 1p | `kwb-platform-xvpe` | The one crate permitted to name XVPE. Adopts the persistent map versioned state is built on, by git reference and commit SHA. `D-007`, `D-012`. |
 | 2 | `kwb-domain` | Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel. |
 | 3 | `kwb-ingest` | The admission pipeline: link-concepts, normalize-concepts, admit. |
-| 3 | `kwb-retrieval` | Search and graph traversal over the domain model. |
+| 3 | `kwb-retrieval` | Answering questions about the graph, and never changing it. |
 | 10 | `kwb-cli` | The `kwb` composition root. |
 | 10 | `kwb-mcp` | The MCP host: the read-only tool surface an agent speaks to. |
 

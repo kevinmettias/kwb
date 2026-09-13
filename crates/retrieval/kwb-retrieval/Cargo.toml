@@ -1,7 +1,10 @@
 [package]
 name = "kwb-retrieval"
 version = "0.1.0"
-description = "Search and graph traversal over the domain model: keyword, semantic, hybrid, and neighbourhood queries."
+# A charter rather than an inventory, for the reason kwb-platform's carries. This one
+# advertised semantic and hybrid queries that do not exist, one of which D-004 holds
+# the ground for and this repository has deliberately refused to stub.
+description = "Answering questions about the graph, and never changing it."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

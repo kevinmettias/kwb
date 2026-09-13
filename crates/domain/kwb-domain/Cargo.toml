@@ -1,7 +1,7 @@
 [package]
 name = "kwb-domain"
 version = "0.1.0"
-description = "The epistemic reasoning surface: claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel domain packs specialize."
+description = "Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
