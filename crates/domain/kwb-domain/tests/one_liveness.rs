@@ -241,3 +241,49 @@ fn Test_The_Listing_Should_Not_Depend_On_The_Order_Concepts_Arrived_In()
     );
     assert_eq!(one.len(), 4);
 }
+
+// ---- KWB-44: the detector is shown to detect ----
+
+/// A detector that always returned nothing would report one definition of liveness forever.
+///
+/// The guard above expects exactly one, and this crate has exactly one, so a passing guard is
+/// consistent with a parser that has stopped parsing — it would report zero, and zero is not
+/// one, so that case would in fact fail. What it could not catch is a parser that stopped
+/// finding *second* definitions, which is the failure that matters: these cases show it finds
+/// them.
+#[test]
+fn Test_The_Liveness_Detector_Should_Find_Every_Definition()
+{
+    assert_eq!(Liveness_Definitions("pub fn Is_Current(&self) -> bool { }"), ["Is_Current"]);
+    assert_eq!(
+        Liveness_Definitions("fn Is_Current(a: &A) -> bool {} pub fn Is_Current(&self) -> bool {}"),
+        ["Is_Current", "Is_Current"],
+        "a second definition is the whole defect, so both must be found"
+    );
+    assert_eq!(
+        Liveness_Definitions("pub fn Is_Current(\n    &self,\n) -> bool { }"),
+        ["Is_Current"],
+        "a signature broken across lines must not slip past"
+    );
+}
+
+#[test]
+fn Test_The_Liveness_Detector_Should_Not_Report_A_Use_As_A_Definition()
+{
+    // The distinction that makes this count copies of the rule rather than places that respect
+    // it: calling Is_Current is not defining it.
+    let quiet: [&str; 4] = [
+        "if standing.Is_Current() { }",
+        "return held.Standing().Is_Current();",
+        "/// See Is_Current for the rule.",
+        "fn Is_Currently_Held(&self) -> bool { }",
+    ];
+
+    for source in quiet
+    {
+        assert!(
+            Liveness_Definitions(source).is_empty(),
+            "counted a use as a definition in: {source:?}"
+        );
+    }
+}

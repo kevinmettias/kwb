@@ -248,3 +248,49 @@ fn Test_A_Claim_Of_A_Retired_Concept_Should_Leave_The_Current_Keyword_Index()
         "and it is still findable by whoever says which world they are asking"
     );
 }
+
+// ---- KWB-44: the detector is shown to detect, and the two copies are compared ----
+
+/// The same cases `kwb-store`'s `tests/one_door.rs` runs, deliberately.
+///
+/// This crate and that one each carry their own copy of this detector, and the two bodies were
+/// found to differ. Extracting them into one crate was weighed and not done: a shared
+/// test-support crate to hold twenty lines is a real cost too, and the thing that actually goes
+/// wrong with a copy is that it drifts unnoticed. Running both against the same cases makes
+/// drift a failure, which is what was wanted — if a third copy ever appears, extracting becomes
+/// the cheaper answer and this note is the record of where that line is.
+#[test]
+fn Test_The_Mutating_Method_Detector_Should_Detect()
+{
+    assert_eq!(Mutating_Public_Methods("pub fn Write(&mut self) -> bool { }"), ["Write"]);
+    assert_eq!(
+        Mutating_Public_Methods("pub fn Insert(\n    &mut self,\n    value: usize,\n) { }"),
+        ["Insert"],
+        "a signature broken across lines must not slip past; whitespace is collapsed first"
+    );
+    assert_eq!(
+        Mutating_Public_Methods("pub fn A(&mut self){} pub fn B(&mut self){}"),
+        ["A", "B"],
+        "it must find every one, not stop at the first"
+    );
+}
+
+#[test]
+fn Test_The_Mutating_Method_Detector_Should_Not_Report_What_Is_Not_One()
+{
+    let quiet: [&str; 5] = [
+        "pub fn Read(&self) -> bool { }",
+        "fn Private(&mut self) { }",
+        "/// A doc comment mentioning &mut self, which is not a signature.",
+        "pub const fn Empty() -> Self { }",
+        "",
+    ];
+
+    for source in quiet
+    {
+        assert!(
+            Mutating_Public_Methods(source).is_empty(),
+            "reported a mutating method in: {source:?}"
+        );
+    }
+}

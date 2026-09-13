@@ -417,3 +417,50 @@ fn Test_An_Unbacked_Store_Should_Decide_Its_Admissions_Exactly_As_Before()
     assert_eq!(second.Admission(), Admission::AlreadyPresent);
     assert_eq!(store.Length(), 1);
 }
+
+// ---- KWB-44: the detector is shown to detect ----
+
+/// A detector that always returned nothing would pass every run against the real tree.
+///
+/// The guard above only ever scans this crate's own source, which has one mutating method and
+/// is expected to. So a passing guard is consistent with two very different worlds: a crate
+/// with one write door, or a parser that has stopped parsing. These cases separate them.
+///
+/// Synthetic input rather than a mutation of the tree. A test that edits source to prove a
+/// point can leave the tree broken when it fails partway, and this repository would rather not
+/// introduce that failure mode to guard against another one.
+#[test]
+fn Test_The_Mutating_Method_Detector_Should_Detect()
+{
+    assert_eq!(Mutating_Public_Methods("pub fn Write(&mut self) -> bool { }"), ["Write"]);
+    assert_eq!(
+        Mutating_Public_Methods("pub fn Insert(\n    &mut self,\n    value: usize,\n) { }"),
+        ["Insert"],
+        "a signature broken across lines must not slip past; whitespace is collapsed first"
+    );
+    assert_eq!(
+        Mutating_Public_Methods("pub fn A(&mut self){} pub fn B(&mut self){}"),
+        ["A", "B"],
+        "it must find every one, not stop at the first"
+    );
+}
+
+#[test]
+fn Test_The_Mutating_Method_Detector_Should_Not_Report_What_Is_Not_One()
+{
+    let quiet: [&str; 5] = [
+        "pub fn Read(&self) -> bool { }",
+        "fn Private(&mut self) { }",
+        "/// A doc comment mentioning &mut self, which is not a signature.",
+        "pub const fn Empty() -> Self { }",
+        "",
+    ];
+
+    for source in quiet
+    {
+        assert!(
+            Mutating_Public_Methods(source).is_empty(),
+            "reported a mutating method in: {source:?}"
+        );
+    }
+}

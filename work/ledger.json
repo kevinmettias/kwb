@@ -2417,6 +2417,78 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-44",
+      "title": "The guards detect defects with parsers nothing has ever shown can detect anything, and one parser exists twice with two different bodies",
+      "why": "A clean audit pass produced this. All eleven guards were re-broken and all eleven caught their defect, so nothing they guard is wrong. What the pass exposed is one level up. Every guard works by scanning source text with a small parser -- Mutating_Public_Methods, Liveness_Definitions, Declared_Relations, the routing and description readers -- and every one of those parsers is only ever run against the real tree, which passes. A parser that always returned empty would pass identically. The eleven verifications this session did were done by hand, mutating real files and restoring them, which is neither repeatable nor something the suite does, so a detector that silently stopped detecting would look exactly like a green test. That is the defect class this audit exists for, applied to the audit itself. Separately, Mutating_Public_Methods exists in kwb-store and in kwb-retrieval with different bodies -- one fact copied and drifted, which is the other class, and it means the two crates are guarded by two detectors nobody has compared.",
+      "done_when": "Each source-scanning detector is exercised against input that should trip it and input that should not, so a detector that stopped detecting fails the suite rather than passing it quietly. The inputs are synthetic strings, not the real tree and not a mutation of it: a test that edits source to prove a point can leave a tree broken when it fails, and this repository has enough respect for that failure mode to not introduce it. The two copies of the mutating-method detector are both covered by the same cases, so drift between them becomes a failure rather than something nobody compares -- and whether to extract them into one is recorded either way, because twenty duplicated lines and a new shared crate are both real costs and the choice should be visible.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-store",
+          "crates/retrieval/kwb-retrieval",
+          "crates/domain/kwb-domain",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "-p",
+          "kwb-retrieval",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "-p",
+          "kwb-retrieval",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ment_Twice_Should_Say_So_Rather_Than_Report_Two_Admissions ... ok\ntest Test_An_Unbacked_Store_Should_Decide_Its_Admissions_Exactly_As_Before ... ok\ntest Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In ... ok\ntest Test_The_Crate_Should_Expose_Exactly_One_Mutating_Method ... ok\ntest Test_A_Document_Held_Only_On_The_Medium_Should_Still_Read_Back ... ok\ntest Test_A_Backed_Store_Should_Keep_What_It_Wrote_Beyond_Its_Own_Lifetime ... ok\ntest Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call ... ok\ntest Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present ... ok\n\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Blocking waiting for file lock on package cache\n    Blocking waiting for file lock on package cache\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.56s\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running tests\\publication.rs (target\\debug\\deps\\publication-59a684649459b0cc.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-821b4542ba84fec7.exe)\n     Running tests\\read_only.rs (target\\debug\\deps\\read_only-5962ebcd336de170.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-4847c775acd9e625.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-6a0d6ef67be080af.exe)\n   Doc-tests kwb_domain\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789267175,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "5a28ff550b5850ac174bba841db23a34cc859777"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

@@ -402,3 +402,63 @@ fn Test_Every_Authority_Under_Docs_Should_Be_Routed_By_The_Operating_Contract()
          the operating contract cannot find them: {unrouted:?}"
     );
 }
+
+// ---- KWB-44: the readers are shown to read ----
+
+/// The relation reader finds what a frontmatter declares, and nothing a body mentions.
+///
+/// The guard above passes when every relation is reachable both ways. A reader that found **no**
+/// relations would pass it just as quietly, having checked nothing — which is why this exists.
+#[test]
+fn Test_The_Relation_Reader_Should_Find_Declared_Relations()
+{
+    let mut records = BTreeMap::new();
+    records.insert(
+        "D-900".to_owned(),
+        "---\nid: D-900\nrelations:\n  - target: D-901\n    type: amends\n  - target: D-902\n    \
+         type: relates-to\n---\n\nBody text mentioning D-903, which is not a relation.\n"
+            .to_owned(),
+    );
+
+    let relations = Declared_Relations(&records);
+
+    assert_eq!(
+        relations,
+        vec![
+            ("D-900".to_owned(), "D-901".to_owned()),
+            ("D-900".to_owned(), "D-902".to_owned()),
+        ],
+        "the reader must find every declared relation and nothing the body merely mentions"
+    );
+}
+
+#[test]
+fn Test_The_Relation_Reader_Should_Find_Nothing_Where_Nothing_Is_Declared()
+{
+    let mut records = BTreeMap::new();
+    records.insert(
+        "D-900".to_owned(),
+        "---\nid: D-900\ntags:\n  - storage\n---\n\nA body citing D-901 in prose.\n".to_owned(),
+    );
+
+    assert!(
+        Declared_Relations(&records).is_empty(),
+        "a citation in prose is not a declared relation"
+    );
+}
+
+/// The quoted-value reader, which both description checks depend on.
+#[test]
+fn Test_The_Manifest_Reader_Should_Take_The_Quoted_Value()
+{
+    let manifest = "[package]\nname = \"kwb-example\"\ndescription = \"What it is for.\"\n";
+
+    assert_eq!(Quoted_After(manifest, "name = "), Some("kwb-example".to_owned()));
+    assert_eq!(Quoted_After(manifest, "description = "), Some("What it is for.".to_owned()));
+    assert_eq!(
+        Quoted_After(manifest, "absent = "),
+        None,
+        "an absent key must be None rather than an empty string, or a crate with no description \
+         would compare equal to one whose description is empty"
+    );
+}
