@@ -2824,14 +2824,10 @@
         ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
-      "claim": {
-        "holder": "fable",
-        "acquired_at": 1789273569,
-        "lease_expires_at": 1789280769
-      },
+      "claim": null,
       "verification": {
         "argv": [
           "cargo",
@@ -2843,7 +2839,32 @@
         ],
         "timeout_seconds": 600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-model",
+          "-p",
+          "kwb-store"
+        ],
+        "exit_code": 0,
+        "output_tail": "Unbacked_Store_Should_Decide_Its_Admissions_Exactly_As_Before ... ok\ntest Test_A_Written_Document_Should_Reread_Byte_Identical ... ok\ntest Test_An_Unbacked_Store_Should_Still_Work_And_Say_It_Keeps_Nothing ... ok\ntest Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In ... ok\ntest Test_Reading_An_Address_Nothing_Wrote_Should_Be_Refused_Rather_Than_Empty ... ok\ntest Test_The_Mutating_Method_Detector_Should_Detect ... ok\ntest Test_Two_Documents_Differing_Only_By_Whitespace_Should_Both_Be_Held ... ok\ntest Test_The_Collision_Refusal_Should_Render_Its_Address ... ok\ntest Test_Writing_The_Same_Document_Twice_Should_Say_So_Rather_Than_Report_Two_Admissions ... ok\ntest Test_Every_Address_The_Store_Reports_Should_Read_Back ... ok\ntest Test_The_Mutating_Method_Detector_Should_Not_Report_What_Is_Not_One ... ok\ntest Test_The_Crate_Should_Expose_Exactly_One_Mutating_Method ... ok\ntest Test_A_Document_Held_Only_On_The_Medium_Should_Still_Read_Back ... ok\ntest Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present ... ok\ntest Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call ... ok\ntest Test_A_Backed_Store_Should_Keep_What_It_Wrote_Beyond_Its_Own_Lifetime ... ok\n\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.46s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-4847c775acd9e625.exe)\n     Running tests\\messages.rs (target\\debug\\deps\\messages-f414f87beb9dd74a.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-6a0d6ef67be080af.exe)\n   Doc-tests kwb_model\n   Doc-tests kwb_store\n",
+        "verified_at": 1789273697,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "dd23e266ec7b0cd09afee3574c6d6c6de3c435f4"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
