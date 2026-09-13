@@ -349,3 +349,56 @@ fn Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places()
         disagreements.join("\n")
     );
 }
+
+// ---- KWB-40: the router routes everything there is ----
+
+/// A reader following the operating contract can reach every authority this repository has.
+///
+/// # Why this is a test
+///
+/// `AGENTS.md` opens with *"read the authority, do not infer the architecture from the code
+/// nearest to your task"* and then gives a table mapping each question to where it is answered.
+/// It omitted two of the three directories under `docs/`: the measured surveys the records cite
+/// constantly, and the observations added this session.
+///
+/// So a session doing exactly what the contract says would never have found the prototype
+/// inventory that `KWB-9` spent an item producing. That is the worst place for a routing table
+/// to drift, because **a reader who cannot find an authority does not know one is missing** —
+/// unlike a stale claim, which at least says something checkable.
+#[test]
+fn Test_Every_Authority_Under_Docs_Should_Be_Routed_By_The_Operating_Contract()
+{
+    let contract = std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
+        .expect("AGENTS.md should be readable");
+
+    let entries = std::fs::read_dir(Repository_Root().join("docs"))
+        .expect("docs/ should be readable");
+
+    let mut unrouted: Vec<String> = Vec::new();
+    let mut seen = 0_usize;
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if !path.is_dir()
+        {
+            continue;
+        }
+        let Some(name) = path.file_name().and_then(|name| return name.to_str())
+        else
+        {
+            continue;
+        };
+        seen = seen.saturating_add(1);
+        if !contract.contains(&format!("docs/{name}/"))
+        {
+            unrouted.push(name.to_owned());
+        }
+    }
+
+    assert!(seen >= 3, "only {seen} authorities were scanned, so this test proves little");
+    assert!(
+        unrouted.is_empty(),
+        "these authorities exist and AGENTS.md routes nobody to them, so a session following \
+         the operating contract cannot find them: {unrouted:?}"
+    );
+}

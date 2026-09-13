@@ -2192,6 +2192,64 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-40",
+      "title": "The file that routes every question to an authority omits two of the three authorities this repository has",
+      "why": "AGENTS.md opens by saying read the authority and do not infer the architecture from the code nearest to your task, then gives a table mapping each question to where it is answered. The table names README.md, tests/contract, docs/records, a Nomos record, the ledger, the item predicate and the territory. Under docs/ there are three directories. docs/corpus holds the measured surveys -- prototype-inventory, prototype-incidents, nomos-as-precedent, what-kwb-is-for -- which the records cite constantly and which nothing routes a reader to. docs/observations holds OD-LEDGER-001, added this session and never routed. So a session doing exactly what the operating contract says would never find the prototype inventory that KWB-9 spent an item producing, nor the ledger findings. This is the routing table drifting from what exists, which is the same defect KWB-38 and KWB-39 found in the records and the manifests, in the file whose only job is to be the index. It is also the worst place for it: a reader who cannot find an authority does not know they are missing one.",
+      "done_when": "Every directory of authority under docs/ is routed by AGENTS.md, with the question each answers rather than merely its name, because a table of locations that does not say what each is for is a listing and the file already says it is not one. A check asserts the routing is complete, so a directory added later cannot go unrouted -- and it fails when a directory exists with no entry, verified by adding one. AGENTS.md stays a router: nothing about what the corpus or the observations say moves into it.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "AGENTS.md",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 5 tests\ntest Test_Every_Readme_Table_Row_Should_Name_A_Real_Workspace_Member ... ok\ntest Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table ... ok\ntest Test_Every_Authority_Under_Docs_Should_Be_Routed_By_The_Operating_Contract ... ok\ntest Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends ... ok\ntest Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n",
+        "verified_at": 1789265984,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "096fd7988a839f7af2b901f6f00fcedd8d355516"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

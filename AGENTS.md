@@ -15,6 +15,8 @@ Read the authority. Do not infer the architecture from the code nearest to your 
 | What exists, what owns what, which band may depend on which | `README.md` |
 | Is that still true? | `tests/contract/` — it asserts the README's tables against the real workspace, both directions |
 | Why was it decided that way? | `docs/records/` — one record per decision, and they are canonical |
+| What was measured, and on what? | `docs/corpus/` — surveys of the prototype and of Nomos. Evidence the records cite, kept apart from them because a measurement outlives the decision it informed |
+| What has this repository learned about how it works? | `docs/observations/` — findings about the process rather than the product. Open until something acts on them, and they are not decisions |
 | What does KWB own versus Nomos, XVPE, or repository tooling? | `f:/repos/nomos/docs/records/ARC-ECOSYSTEM-001-...md` — this repository does not restate it |
 | What work is available, claimed, blocked, or already refused? | `work/ledger.json` |
 | What must pass before I finish? | the claimed item's own verification predicate |
