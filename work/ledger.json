@@ -3288,6 +3288,45 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-60",
+      "title": "Temporal reconstruction is recorded as met and nothing can reach it, and as written it is not expressible either",
+      "why": "D-012 answers D-008's eight storage requirements and puts requirements 3 and 4 under the heading met, and met structurally, saying temporal reconstruction is the same mechanism as a which-world read -- the version published at an instant is a value that was kept. D-014 then made the graph durable by replaying an append-only record and said that makes D-008's temporal requirement fall out, the graph as of an instant being a prefix of the record. Measured: Replay is called in five places and every one of them passes the whole log. Nothing anywhere takes a prefix, so no user can reach the graph as of anything. The mechanism permits it and the capability does not exist, which is this repository's most-cited defect shape written into a canonical record as a completed requirement. The phrase is wrong too, and more quietly: a publication record carries a kind, a standing, a successor, a reason and the entity, and no time at all. D-014 said kwb-platform is owed a clock for the record's own timestamps and kwb-platform's own module doc says the clock, lock and process ports are not here yet. So as of an instant cannot be asked today in any form, and what a prefix actually answers is as of the first N publications. That is not nothing: merge_losers reports what was merged away and D19-B is the incident where a merge audit could resolve none of it, so seeing the graph before a merge is the capability that incident asks for.",
+      "done_when": "The graph as of a publication count is reachable from the command line, built on the existing replay rather than a second mechanism, and a run given a count past the end of the log is refused rather than silently returning everything. A test fixes that replaying a prefix gives the graph before a later publication, using a corpus where the difference is a concept that exists at one point and not the other, so the test would fail if the prefix were ignored. D-012 is amended to say what is true rather than being edited to look right: requirement 4 is met in mechanism, its consumer arrived with this item, and the instant in its own wording is a publication position and not a time, because no record carries one and no clock port exists. The amendment names what would make a real instant answerable rather than leaving it implied. No timestamp is added to the record format here -- that needs the clock port D-014 already says is owed, and inventing a time field without one is the shape D20 is about.",
+      "kind": "Capability",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789277335,
+        "lease_expires_at": 1789284535
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-domain"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

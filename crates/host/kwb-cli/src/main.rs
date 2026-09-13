@@ -47,6 +47,7 @@ fn main() -> ExitCode
         Some((&"admit", rest)) => Admit_Command(rest),
         Some((&"retire", rest)) => Close_Command(rest, None),
         Some((&"supersede", rest)) => Close_Command(rest, Some(())),
+        Some((&"history", rest)) => History_Command(rest),
         Some((&"help" | &"--help" | &"-h", _)) =>
         {
             Print_Usage();
@@ -184,6 +185,126 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
     }
 
     return ExitCode::SUCCESS;
+}
+
+/// `kwb history --store <dir> [--through <count>]`: the graph as of a publication count.
+///
+/// # Why a count and not a time
+///
+/// `D-012` records temporal reconstruction as met and describes it as *the version published at
+/// an instant*. A publication record carries a kind, a standing, a successor, a reason and the
+/// entity, and **no time at all** — so an instant cannot be asked for in any form, and what a
+/// prefix of the log actually answers is *as of the first N publications*. `D-012`'s amendment
+/// says so; this command is the honest version of what the mechanism supports.
+///
+/// # Why it is worth having as a count
+///
+/// `D19-B`: a global query filter rewrote every query, so `merge-audit` resolved none of the
+/// merge log's identifiers and printed *"nothing has been merged away"*. `kwb-mcp` answers
+/// `merge_losers`, which says what was merged; this says what the graph looked like before it.
+/// Those two together are the audit that incident could not perform.
+fn History_Command(arguments: &[&str]) -> ExitCode
+{
+    let (store_root, rest) = Store_Root_From(arguments);
+    let log = match Log_For(store_root)
+    {
+        Ok(Some(log)) => log,
+        Ok(None) =>
+        {
+            eprintln!("kwb history: --store names where the publication log is; there is no");
+            eprintln!("history without one, because history is the log replayed.");
+            return ExitCode::from(USAGE_EXIT);
+        }
+        Err(complaint) =>
+        {
+            eprintln!("kwb history: {complaint}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+
+    let records = match log.Records()
+    {
+        Ok(records) => records,
+        Err(cause) =>
+        {
+            eprintln!("kwb history: cannot read the publication log: {cause}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+
+    let through = match Through_From(rest, records.len())
+    {
+        Ok(through) => through,
+        Err(complaint) =>
+        {
+            eprintln!("kwb history: {complaint}");
+            return ExitCode::from(USAGE_EXIT);
+        }
+    };
+
+    // The prefix, and nothing else. `D-014`: the graph at a point is a fold over the
+    // publications up to it, so this is the same `Replay` every other caller uses and not a
+    // second mechanism that could disagree with it.
+    let Some(prefix) = records.get(..through)
+    else
+    {
+        eprintln!("kwb history: {through} publications were asked for and the log holds");
+        eprintln!("{}. Refusing rather than returning what there is.", records.len());
+        return ExitCode::from(USAGE_EXIT);
+    };
+
+    let graph = match Replay(prefix)
+    {
+        Ok(graph) => graph,
+        Err(cause) =>
+        {
+            eprintln!("kwb history: the publication log cannot be replayed: {cause}");
+            return ExitCode::from(FAILURE_EXIT);
+        }
+    };
+
+    println!("through    {through} of {}", records.len());
+    println!("concepts   {}", graph.Current().Concepts().len());
+    println!("claims     {}", graph.Current().Claims().len());
+    println!("citations  {}", graph.Current().Assertions().len());
+    println!("held       {}", graph.Every_Version().Concepts().len());
+
+    return ExitCode::SUCCESS;
+}
+
+/// `--through <count>`, defaulting to the whole log.
+///
+/// # Errors
+///
+/// A count past the end of the log. Refused rather than clamped: a run that asked for more
+/// history than exists and was quietly given everything would be told the corpus is older than
+/// it is, and would have no way to tell that from a corpus that really is that old.
+fn Through_From(arguments: &[&str], held: usize) -> Result<usize, String>
+{
+    let through = match arguments
+    {
+        [flag, count, rest @ ..] if *flag == "--through" =>
+        {
+            if !rest.is_empty()
+            {
+                return Err(format!("unexpected argument {:?}", rest.first()));
+            }
+            count
+                .parse::<usize>()
+                .map_err(|_| return format!("--through takes a count, and {count:?} is not one"))?
+        }
+        [] => held,
+        _ => return Err(format!("unexpected argument {:?}", arguments.first())),
+    };
+
+    if through > held
+    {
+        return Err(format!(
+            "--through {through} was asked for and the log holds {held} publications"
+        ));
+    }
+
+    return Ok(through);
 }
 
 /// `--store <dir>`, if it leads the remaining arguments.

@@ -210,6 +210,43 @@ them.
 
 What this record decided is untouched. Only its open question has closed.
 
+## Amendment: Requirement 4 Was Met In Mechanism And Unreachable, 2026-09-12
+
+The section above puts requirements 3 and 4 under **met, and met structurally**, and says
+temporal reconstruction is the same mechanism as a which-world read: *the version published at
+an instant is a value that was kept*. `D-014` then said the temporal requirement **falls out**,
+the graph as of an instant being a prefix of the record.
+
+Both were true about the mechanism and false about the repository.
+
+**Measured 2026-09-12.** `Replay` was called in five places and every one passed the whole log.
+Nothing took a prefix, so no user could reach the graph as of anything. *Falls out* described
+what the shape permits; it was read as something the repository does, which is the one-crate-away
+gap this repository has now found four times — here inside a canonical record, as a completed
+requirement.
+
+`KWB-60` built the consumer: `kwb history --store <dir> [--through <count>]` replays a prefix
+through the same `Replay` every other caller uses, and refuses a count past the end of the log
+rather than quietly returning everything.
+
+**And *an instant* is the wrong word, which matters more than it looks.** A publication record
+carries a kind, a standing, a successor, a reason and the entity, and **no time at all**. This
+record's own consequences say `kwb-platform` is owed *a clock for the record's own timestamps*,
+and `kwb-platform`'s module documentation says the clock, lock and process ports are not here
+yet. So an instant cannot be asked for in any form. What a prefix answers is **as of the first N
+publications**, and that is what the command offers.
+
+That is not a lesser thing in the case it was wanted for. `D19-B` is the incident where a merge
+audit resolved none of the merge log's identifiers and printed *"nothing has been merged away"*.
+`kwb-mcp` answers `merge_losers`, which says what was merged away; this says what the graph
+looked like before it. Together they are the audit that incident could not perform.
+
+*Settled by, for a real instant:* the clock port. A time on a record needs one, and a timestamp
+invented without a clock is a field that reports the good case until somebody notices — `D20`.
+
+What this record decided is untouched. Requirement 4's answer is narrowed to what it always
+was, and now has a consumer.
+
 ## Referenced By
 
 
