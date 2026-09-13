@@ -3089,6 +3089,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-56",
+      "title": "The first sentence of the document that answers what exists states three capabilities in the present tense, and the repository has one of them",
+      "why": "AGENTS.md routes 'What exists, what owns what' to README.md, and tests/contract asserts its bands table in both directions. Its prose is asserted by nothing, and its opening sentence says KWB ingests references and builds a durable graph of the concepts they teach, the claims they assert, and the code that implements them. The graph is real: admission, publication and replay build it and it survives a process. The other two are not. Nothing in this repository reads a source -- KWB-47 declared the extraction contract and its only implementation is Stated, a person typing through --says, so what the graph holds is what a person said a reference asserts and not what the reference teaches. KWB-47's own why named this sentence as the thing that cannot be true and could not fix it, because its territory was kwb-ingest and kwb-cli. And there is no code entity at all: the domain is Concept, Claim and Assertion, Publication carries those three, no type mentions code or implementation, and D-004 does not hold the subject either -- so it is a capability with no entity, no decision and no item, stated in the present tense in the document a session is told to trust for what exists. A canonical document asserting what the repository does not do is the stale-premise defect one level above the code, which is what the record-reachability guard exists for and what the bands table is checked for; the prose between them was never looked at.",
+      "done_when": "The opening says what this repository does today and what it intends, and a reader can tell which is which without leaving the paragraph. Ingestion is stated as what it is -- a source is admitted and what it asserts is supplied by a reader, and the only reader is a person -- with the contract that will change that named. The code capability is stated as intent and not as behaviour, and says plainly that nothing here represents code and no record has decided it, rather than being deleted so that a reader cannot tell it was ever meant. The graph claim is left alone: it is true. No new decision is taken here, because deciding whether KWB represents code is a record and not a README edit, and this item reserves README.md alone.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789275610,
+        "lease_expires_at": 1789282810
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

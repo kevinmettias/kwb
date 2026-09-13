@@ -1,11 +1,25 @@
 # KnowledgeWorkbench
 
-KnowledgeWorkbench (KWB) ingests references and builds a durable graph of the concepts
-they teach, the claims they assert, and the code that implements them — deduplicated
-across sources by content-derived identity, not by an authored key. It is one of four
-products sharing one ecosystem seam; `ARC-ECOSYSTEM-001` in `f:/repos/nomos` states what
-each owns. KWB owns knowledge: rationale, semantic intent, requirements elicitation,
-decision context, long-term epistemic memory, and rich authored knowledge models.
+KnowledgeWorkbench (KWB) admits references and builds a durable graph of the concepts and
+claims a reader finds in them — deduplicated across sources by content-derived identity, not
+by an authored key, so two books asserting the same thing become one claim with two citations.
+It is one of four products sharing one ecosystem seam; `ARC-ECOSYSTEM-001` in `f:/repos/nomos`
+states what each owns. KWB owns knowledge: rationale, semantic intent, requirements
+elicitation, decision context, long-term epistemic memory, and rich authored knowledge models.
+
+**What that sentence does and does not say, because this file is what `AGENTS.md` sends a
+session to for what exists.** A source is admitted, stored by its content address and kept; the
+graph is built, published as an append-only record and rebuilt by replaying it. What a source
+*asserts* is supplied by a **reader**, and the only reader this repository has is a person
+typing `--says`. Nothing here opens a document and decides what it says. `D-015` and the
+extraction contract in `kwb-ingest` are where that changes, and until a reader lands, *the
+claims a reference teaches* means *the claims somebody said it teaches*.
+
+**Intended and not built: the code that implements a concept.** The product this is a rewrite
+of was meant to link knowledge to the code that realises it, and that intent stands. This
+repository has no entity for it — the domain is `Concept`, `Claim` and `Assertion`, and no
+record has decided what a code entity would be or whether KWB owns one. Said here rather than
+dropped, so that a reader can tell it was meant rather than forgotten.
 
 This repository is a ground-up Rust rewrite. `D-001` records why: the prior
 implementation, in C# at `C:/Users/kmett/source/repos/KnowledgeWorkbench`, is prototype
@@ -21,16 +35,17 @@ mechanism every identity decision here was made to support, and it is the shorte
 whether this repository does what the paragraph above says.
 
 ```console
-$ kwb admit callen.txt --store ./corpus --scope "physical theory"       --says entropy "It is non-decreasing in an isolated system."
+$ kwb admit callen.txt --store ./corpus --scope "physical theory" --says entropy "It is non-decreasing in an isolated system."
 source     0cc40cb7fc596e1b5ab40585ef8369a3bfa79eff11096ba46400b5d61df52a2d
 coverage   yielded
 concepts   1
 claims     1
 citations  1
+refused    0
 documents  kept
 knowledge  kept
 
-$ kwb admit kittel.txt --store ./corpus --scope "physical theory"       --says entropy "It is non-decreasing in an isolated system."
+$ kwb admit kittel.txt --store ./corpus --scope "physical theory" --says entropy "It is non-decreasing in an isolated system."
 source     cfcb53adb1aec951a6ecefc8a9087dc78f35bb19201d902fab7f4448602ff2aa
 concepts   1
 claims     1
