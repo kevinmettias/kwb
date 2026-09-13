@@ -3304,14 +3304,10 @@
         ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
-      "claim": {
-        "holder": "fable",
-        "acquired_at": 1789277335,
-        "lease_expires_at": 1789284535
-      },
+      "claim": null,
       "verification": {
         "argv": [
           "cargo",
@@ -3323,7 +3319,32 @@
         ],
         "timeout_seconds": 600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-domain"
+        ],
+        "exit_code": 0,
+        "output_tail": "st_The_Listing_Should_Not_Depend_On_The_Order_Concepts_Arrived_In ... ok\ntest Test_The_Liveness_Detector_Should_Not_Report_A_Use_As_A_Definition ... ok\ntest Test_The_Two_Reads_Should_Not_Be_One_Type_With_A_Flag ... ok\ntest Test_The_Merge_Log_Should_Be_Answerable_From_The_All_Versions_Read ... ok\ntest Test_The_Liveness_Detector_Should_Find_Every_Definition ... ok\ntest Test_The_Crate_Should_Define_Liveness_Exactly_Once ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 10 tests\ntest Test_A_Stated_Scope_And_An_Unstated_One_Should_Not_Write_The_Same_Record ... ok\ntest Test_A_Record_Of_An_Unknown_Shape_Should_Be_Refused ... ok\ntest Test_A_Claim_Whose_Concept_Was_Never_Published_Should_Be_Refused ... ok\ntest Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record ... ok\ntest Test_An_Empty_Sequence_Should_Replay_To_An_Empty_Graph ... ok\ntest Test_A_Retired_Concept_Should_Replay_Retired ... ok\ntest Test_Text_That_Names_Nothing_Should_Not_Name_A_Scope ... ok\ntest Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Held ... ok\ntest Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary ... ok\ntest Test_An_Unstated_Scope_Should_Survive_A_Replay_As_Unstated ... ok\n\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.46s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-38f77df29d8226f3.exe)\n     Running tests\\history.rs (target\\debug\\deps\\history-8645593909aa4054.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running tests\\publication.rs (target\\debug\\deps\\publication-59a684649459b0cc.exe)\n   Doc-tests kwb_domain\n",
+        "verified_at": 1789277492,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "dd98030201506b0d0cd0a9663be7ff1f9516ab28"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
