@@ -3540,14 +3540,10 @@
         ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
-      "claim": {
-        "holder": "fable",
-        "acquired_at": 1789279159,
-        "lease_expires_at": 1789286359
-      },
+      "claim": null,
       "verification": {
         "argv": [
           "cargo",
@@ -3556,7 +3552,29 @@
         ],
         "timeout_seconds": 600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "exit_code": 0,
+        "output_tail": "tests\\literals.rs (target\\debug\\deps\\literals-1b56f4ff95289a6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-38a8b2da44763f17.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-33d0ded42f18ca78.exe)\n     Running tests\\publication.rs (target\\debug\\deps\\publication-c9e73229ce8d0ba6.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-e5e407514772c187.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_mcp-93da2c1ea77c28ed.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-b78cf3886dc3e36a.exe)\n     Running tests\\tool_surface.rs (target\\debug\\deps\\tool_surface-bdc3d069f77314fa.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running tests\\directory_content_store.rs (target\\debug\\deps\\directory_content_store-dd0fa236681e73ed.exe)\n     Running tests\\file_record_log.rs (target\\debug\\deps\\file_record_log-13f3a6956e7c72b6.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_xvpe-792e875126788f7d.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-97e4bc4231db9ac5.exe)\n     Running tests\\read_only.rs (target\\debug\\deps\\read_only-d026813e9c4e41ee.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-4847c775acd9e625.exe)\n     Running tests\\messages.rs (target\\debug\\deps\\messages-f414f87beb9dd74a.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-6a0d6ef67be080af.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_mcp\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_platform_xvpe\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789279601,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "f0ebf20e7b0de3bcc1ea2523bc9c52f59e845b3f"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
