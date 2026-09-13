@@ -12,6 +12,11 @@ name = "kwb"
 path = "src/main.rs"
 
 [dependencies]
+# A composition root names the library and no backend the library does not
+# already have. Nothing here is domain logic.
+kwb-domain = { workspace = true }
+kwb-ingest = { workspace = true }
+kwb-store = { workspace = true }
 
 [lints]
 workspace = true

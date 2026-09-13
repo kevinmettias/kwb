@@ -1353,6 +1353,63 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-26",
+      "title": "Every piece of the pipeline is tested and nothing has ever run it, because kwb-cli is an empty main",
+      "why": "kwb-store, kwb-domain and kwb-ingest are built and green, and the only thing that has ever exercised them together is a test harness. The bands table names kwb-cli the composition root and it is a main that does nothing. A pipeline that has never run outside its own tests is the shape this family of repositories keeps producing -- and the repository has spent this session finding instances of it in the prototype and in its own dependencies, so leaving one here would be poor form. There is a second reason and it is concrete. D-012 deferred durability and named the condition precisely: it is settled by an item that decides where durable bytes land, which needs a consumer that actually loses something when the process ends, and nothing here has one because nothing here runs for longer than a test. A composition root is exactly that consumer. Building it does not decide durability and must not; it creates the thing whose absence made the question unanswerable.",
+      "done_when": "kwb-cli admits a real file through the real pipeline and reports what happened, using the same Coverage vocabulary the library does rather than a second one -- so a run that examined nothing says unmet and a run that examined and found nothing says barren, and the two are distinguishable at the command line as well as in the types. It invents no extractor and pretends to no model: what a passage asserts is supplied by the caller, and the help says so plainly rather than leaving a reader to infer that the interesting half is missing. A wrong command line exits differently from a run that failed. The workspace builds, tests and lints green, and the composition root names no backend the library does not already have.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-cli v0.1.0 (F:\\repos\\kwb\\crates\\host\\kwb-cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-4f7768ef98d35c58.exe)\n",
+        "verified_at": 1789257835,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "95a6df4963dd1d1de19621e4b3e6477705832d44"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
