@@ -5031,6 +5031,38 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-92",
+      "title": "This repository pins the commit of every dependency it adopts and pins no toolchain, and the floor it compiles on is set by a crate in another repository",
+      "why": "Authored from the measurement in `KWB-90` rather than ahead of it. That item established, by building the workspace on four toolchains, that the floor is 1.87.0 and that it is imported: this repository's own lowest crates compile on 1.85, and what raises the floor is `xvpe-collections-map`, reached through `kwb-platform-xvpe`, using `integer_sign_cast`. `KWB-90` corrected the declared number and deliberately stopped there, because what follows is a decision and not a correction.\n\nThe decision. This repository has no rust-toolchain.toml. Both siblings have one and both wrote their reason beside it: XVPE pins `channel = \"nightly\"` because its brace style needs an unstable rustfmt option, and Nomos pins `channel = \"1.88.0\"` exactly, citing OD-GATE-012, on the stated grounds that it pins a toolchain the same way it pins everything else it depends on. That argument transfers here without modification: `D-007` adopts XVPE by commit SHA precisely so reproducibility does not depend on another working tree, and leaving the toolchain to whatever rustup happens to default to on a given machine leaves the other half of the same question open.\n\nWhat is already known, so this does not re-measure it. The floor is 1.87.0. Windows and Linux agree on 210 tests and on the test name sets. Linux resolved to stable 1.98.0 and was clean under `-D warnings`. So the spread between the floor and a current stable is eight releases wide and nothing currently fails anywhere in it.\n\nWhat genuinely needs deciding, and why it is not obvious. Pinning to the measured floor makes every build the floor build and stops anyone noticing when newer toolchains break. Pinning to a current stable abandons the floor claim `rust-version` makes. Pinning nothing is today's state and means the gate, if it ever runs, tests whatever ubuntu-latest shipped that morning. `OD-GATE-001` is relevant and does not settle it: the gate has never executed, so no pin has ever been exercised by CI, and a toolchain decision made to serve CI would be serving something that does not currently run.\n\nA caution this repository has already paid for once. `D-004` holds that a decision depending on an open inventory does not proceed. The inventory here is closed - the floor is measured, both sibling precedents are read, and the consequence of each option is stated above - so this is claimable. What is not settled is which option the maintainer wants, and a session that picks one should record the alternatives it refused, with reasons, the way every other record here does.",
+      "done_when": "A record in docs/records/ decides whether this repository pins a toolchain and, if it does, to what and why, naming the alternatives refused and the conditions that would reopen it - the shape every record here already has. If the decision is to pin, rust-toolchain.toml exists and carries its reason beside it as both siblings' do, and the pinned version is one the workspace was built on rather than one inferred from `rust-version`. If the decision is not to pin, that is recorded too, because the absence of a toolchain file currently reads as an omission rather than a choice and that is the ambiguity this item exists to end. The record declares its relations and the other ends carry it back, and `cargo test -p kwb-contract-tests` passes, which is the suite that checks exactly that.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
