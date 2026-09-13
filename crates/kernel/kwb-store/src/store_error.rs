@@ -57,7 +57,8 @@ impl fmt::Display for StoreError
             ),
             Self::NotStored { cause } => write!(
                 formatter,
-                "the document was accepted and could not be made durable: {cause}. Refusing to                  report a write that reached memory and not the medium"
+                "the document was accepted and could not be made durable: {cause}. Refusing to \
+                 report a write that reached memory and not the medium"
             ),
             Self::Collision { document } => write!(
                 formatter,

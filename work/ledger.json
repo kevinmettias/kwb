@@ -2808,6 +2808,45 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-51",
+      "title": "Four string literals lost their line continuations to a scripted edit, and one of them is an error a person reads",
+      "why": "A Rust string literal continued with a trailing backslash strips the newline and the following indentation. Python's triple-quoted strings use the same syntax, so a backslash written inside a python heredoc is consumed by python, which removes the backslash and the newline and keeps the indentation. The result compiles, lints clean and passes tests; it is only visible when the string is printed. Measured on 2026-09-12 after it reached actual CLI output in kwb-ingest and was fixed there. A sweep found five more: one in kwb-domain, fixed under KWB-50 which held that territory, and four here -- three assert messages in kwb-model tests and one in kwb-store's StoreError, which is not a test message but text a person sees when a write is refused. The tell is a run of spaces inside a literal; doc-comment alignment tables are the only legitimate hits.",
+      "done_when": "The four literals read as written, with their continuations restored so no run of spaces survives inside a literal. The StoreError one is checked by printing it rather than by reading the source, because reading the source is what missed it four times. No wording changes beyond restoring the break, since the damage is mechanical and a rewrite would hide which text was affected.",
+      "kind": "Cleanup",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-model",
+          "crates/kernel/kwb-store"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789273569,
+        "lease_expires_at": 1789280769
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-model",
+          "-p",
+          "kwb-store"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

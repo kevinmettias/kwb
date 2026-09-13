@@ -283,7 +283,9 @@ fn Test_Two_Byte_Strings_Differing_Only_By_Whitespace_Should_Have_Different_Iden
     assert_ne!(
         spaced.Identity(),
         tight.Identity(),
-        "a stored document is its octets; if a reflow derived one identity, the second write          would find the first already present, report success, and lose the bytes -- which is          D17 exactly"
+        "a stored document is its octets; if a reflow derived one identity, the second write \
+         would find the first already present, report success, and lose the bytes -- which is \
+         D17 exactly"
     );
 }
 
@@ -309,7 +311,8 @@ fn Test_A_Byte_Field_Should_Not_Collide_With_A_Text_Field_Of_The_Same_Content()
     assert_ne!(
         opaque.Identity(),
         text.Identity(),
-        "normalized and not-normalized are different claims about the same octets, and a          caller that picked the wrong door must not silently land on the right identity"
+        "normalized and not-normalized are different claims about the same octets, and a \
+         caller that picked the wrong door must not silently land on the right identity"
     );
 }
 
@@ -342,7 +345,8 @@ fn Test_Bytes_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
     assert_ne!(
         forged.Identity(),
         honest.Identity(),
-        "the outer layout separates its parts with a byte a raw value can contain, so the          value participates by a fixed-width digest instead"
+        "the outer layout separates its parts with a byte a raw value can contain, so the \
+         value participates by a fixed-width digest instead"
     );
 }
 
