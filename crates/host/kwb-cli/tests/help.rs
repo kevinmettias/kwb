@@ -12,6 +12,17 @@
 //! measured what that missed: `kwb help` named `history` **zero** times while the dispatch
 //! carried it and the README documented it twice — and the README routes a reader to the help
 //! for flags, saying *a copy of a help text is a copy that drifts*.
+//!
+//! # What changed under `KWB-73`, and why these tests survive it
+//!
+//! The drift is now impossible by construction rather than detected after the fact: `VERBS`
+//! declares each verb with its usage line, `main` dispatches by looking it up, and
+//! `Print_Usage` renders it. There is one list, so a verb cannot be dispatched and unlisted.
+//!
+//! These tests are not redundant, because a projection is only a projection while something
+//! **emits** it. `Print_Usage` could stop rendering the table — an early return, a `#[cfg]`, or
+//! somebody putting hand-written lines back — and none of that would fail to compile. So the
+//! binary is still run and what it printed is still read.
 
 use std::path::Path;
 use std::path::PathBuf;
@@ -37,23 +48,49 @@ fn Help() -> String
     );
 }
 
-/// Every verb `main` matches on, minus the ones that exist to find the others.
+/// Every verb the table declares.
+///
+/// # What this guard covers now, which is not what it covered before
+///
+/// Until `KWB-73` the dispatch and the help each listed the verbs, and both directions of this
+/// file compared the two lists. `KWB-73` made them one: `VERBS` declares each verb with its
+/// usage line, `main` dispatches by looking it up, and `Print_Usage` renders it. **The name
+/// direction is now structural** — a verb cannot be dispatched and unlisted, because there is
+/// one list.
+///
+/// What is still worth checking is that the projection is *emitted*. A table nobody renders is
+/// not a projection, and `Print_Usage` could stop rendering it — by an early return, by a
+/// `#[cfg]`, or by somebody replacing the loop with hand-written lines again — without any of
+/// that failing to compile. So these tests still run the binary and read what it printed.
+///
+/// The parse is of `VERBS` rather than of match arms, because that is where the canonical
+/// declaration moved. Reading the source at all is a concession: `kwb-cli` is a binary with no
+/// library target, so a test cannot name the value directly the way `tests/contract` names
+/// `kwb_mcp::TOOLS`.
 fn Dispatched() -> Vec<String>
 {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let dispatch = std::fs::read_to_string(Path::new(&root).join("src/main.rs"))
         .expect("the composition root should be readable");
 
-    let exempt = ["help", "--help", "-h"];
+    let Some(table) = dispatch.split_once("const VERBS:").map(|(_, rest)| return rest)
+    else
+    {
+        return Vec::new();
+    };
+    let table = table
+        .split_once("\n];")
+        .map_or(table, |(inside, _)| return inside);
+
     let mut verbs: Vec<String> = Vec::new();
-    for fragment in dispatch.split("Some((&\"").skip(1)
+    for fragment in table.split("name: \"").skip(1)
     {
         let Some(name) = fragment.split('"').next()
         else
         {
             continue;
         };
-        if !exempt.contains(&name) && !verbs.iter().any(|held| return held == name)
+        if !verbs.iter().any(|held| return held == name)
         {
             verbs.push(name.to_owned());
         }

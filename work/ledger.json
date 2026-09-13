@@ -4026,6 +4026,89 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-73",
+      "title": "The verbs are written twice and a guard keeps the copies in step, where one table would leave nothing to keep in step",
+      "why": "Measured in main.rs: each verb appears in the dispatch match and again as a usage line in Print_Usage. Four verbs, two places, and KWB-67 built a guard that runs the binary and compares them in both directions -- which it had to, because the copies had already drifted: history was dispatched and the help named it nowhere, and the help asserted there is no extractor after KWB-66 built one. KWB-70 then showed the stronger move on the MCP tool table, and the owner's direction is to take it generally: where two artifacts describe one enumeration, stop maintaining two authorities and make one a projection of the other. A bidirectional check makes drift detectable and still leaves two places to edit, which is the arrangement that produced the drift. A verb table the dispatch runs from and the help renders from leaves nothing to keep in step, because there is one value. That is also this product's own thesis applied to its own composition root.",
+      "done_when": "One table declares each verb with the usage line a reader is shown, the dispatch runs from it, and Print_Usage renders from it, so the two cannot disagree. Nothing about what a command does moves into the table -- the handlers stay handlers and the prose explaining D17 or coverage stays prose, because only the enumeration is projected. help and its aliases stay outside the table for the reason they are already exempt from the guard: they are how a reader finds the rest rather than a capability to be listed. KWB-67's guard is kept rather than deleted and its reason updated to say what it now covers: with one authority the name direction is structural, and what remains checkable is that the help actually renders the table, since a projection nobody emits is not a projection. Measured against the rebuilt binary, and shown to discriminate by adding a verb to the table and confirming it reaches both the dispatch and the printed help without a second edit.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli"
+        ],
+        "patterns": []
+      },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-74, which is the same work with tests/contract in territory."
+        }
+      },
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Territory is one path short and cannot be amended. tests/contract/tests/boundaries.rs parses the dispatch by splitting on the match arm's literal, so moving the verbs into a table breaks it, and the workspace cannot be green while it is broken -- which finish requires. The lesson is narrower than the one already recorded. Author items after measuring covered the claim; this is the blast radius. I measured the duplication I was removing and not what else reads the shape I was changing, which a single grep would have shown: three files reference it, and only two are in territory. Measured now: crates/host/kwb-cli/src/main.rs declares it, crates/host/kwb-cli/tests/help.rs reads it, tests/contract/tests/boundaries.rs parses it. Superseded by KWB-74 with tests/contract added. The work itself is sound and measured -- one table, the dispatch runs from it, the help renders from it, and adding a fifth verb to the table alone reached both the printed usage and the dispatch with no second edit.",
+          "abandoned_at": 1789284322
+        }
+      ],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789284322
+      }
+    },
+    {
+      "id": "KWB-74",
+      "title": "The verbs are written twice and two guards keep the copies in step, where one table would leave nothing to keep in step",
+      "why": "Measured in main.rs: each verb appeared in the dispatch match and again as a usage line in Print_Usage. Four verbs, two places, and two separate guards comparing them -- KWB-67's, which runs the binary and checks the help against the dispatch in both directions, and tests/contract's, which checks the README against the dispatch in both directions. Both had to exist because the copies had already drifted: history was dispatched while the help named it nowhere, and the help went on asserting there is no extractor after KWB-66 built one. KWB-70 showed the stronger move on the MCP tool table and the owner's direction is to take it generally: where two artifacts describe one enumeration, stop maintaining two authorities and make one a projection of the other. A bidirectional check makes drift detectable and still leaves two places to edit, which is the arrangement that produced the drift. Blast radius measured this time rather than assumed, which is what sank KWB-73: three files reference the dispatch's shape -- main.rs declares it, kwb-cli/tests/help.rs reads what the binary printed, and tests/contract/tests/boundaries.rs parses the match arm's literal. All three are in territory.",
+      "done_when": "One table declares each verb with the usage line a reader is shown, the dispatch runs from it, and Print_Usage renders from it, so the two cannot disagree. Only the enumeration moves: handlers stay handlers and the prose explaining D17 or coverage stays prose. help and its aliases stay outside the table, being how a reader finds the rest rather than a capability to be listed. Both guards are kept and repointed at the canonical table rather than at the match arms, with their reasons updated to say what they now cover -- the name direction is structural once there is one list, and what stays checkable is that something still emits the projection, since a table nobody renders is not a projection and nothing about failing to render it would fail to compile. Shown by adding a verb to the table alone and confirming it reaches both the printed usage and the dispatch with no second edit.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789284340,
+        "lease_expires_at": 1789291540
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

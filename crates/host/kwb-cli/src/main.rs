@@ -40,29 +40,105 @@ const USAGE_EXIT: u8 = 2;
 /// A run that reached the pipeline and could not complete it.
 const FAILURE_EXIT: u8 = 1;
 
+/// One verb: what a reader types, what they are shown, and what runs.
+///
+/// # Why the usage line lives here and not in the help
+///
+/// It was in both until `KWB-73`, and they drifted: `history` was dispatched while the help
+/// named it nowhere, and the help went on saying *there is no extractor* after `KWB-66` built
+/// one. `KWB-67` added a guard that ran the binary and compared the two in both directions,
+/// which made the drift detectable and still left two places to edit — the arrangement that
+/// produced it.
+///
+/// One table leaves nothing to keep in step. The dispatch runs from it and `Print_Usage`
+/// renders from it, so a verb added in one place cannot be missing from the other.
+///
+/// Only the **enumeration** is here. What a command does stays in its handler and the prose
+/// explaining `D17` or coverage stays prose — `KWB-70` drew that line for the tool table and it
+/// is the same line.
+struct Verb
+{
+    /// What a reader types.
+    name: &'static str,
+
+    /// The usage line they are shown, after `kwb `.
+    usage: &'static str,
+
+    /// What runs.
+    run: fn(&[&str]) -> ExitCode,
+}
+
+/// Every verb this binary answers, in the order a reader is shown them.
+///
+/// `help` and its aliases are deliberately absent: they are how a reader finds the rest rather
+/// than a capability to be listed, which is the same reason `KWB-67`'s guard exempts them.
+const VERBS: [Verb; 4] = [
+    Verb {
+        name: "admit",
+        usage: "admit <file> [--store <dir>] [--scope <name>] [--says <concept> <claim>]...",
+        run: Admit_Command,
+    },
+    Verb {
+        name: "retire",
+        usage: "retire <concept> --store <dir> --because <reason>",
+        run: Retire_Command,
+    },
+    Verb {
+        name: "supersede",
+        usage: "supersede <concept> --into <concept> --store <dir> --because <reason>",
+        run: Supersede_Command,
+    },
+    Verb {
+        name: "history",
+        usage: "history --store <dir> [--through <count> | --as-of <unix seconds>]",
+        run: History_Command,
+    },
+];
+
+/// `kwb retire <concept> ...`, as a function the table can hold.
+///
+/// A named wrapper rather than a closure, because a `fn` pointer cannot capture and a table of
+/// closures would need boxing for no gain. What each wrapper says is which of the two closings
+/// it is, which is the whole difference between them.
+fn Retire_Command(arguments: &[&str]) -> ExitCode
+{
+    return Close_Command(arguments, None);
+}
+
+/// `kwb supersede <concept> --into <concept> ...`
+fn Supersede_Command(arguments: &[&str]) -> ExitCode
+{
+    return Close_Command(arguments, Some(()));
+}
+
 fn main() -> ExitCode
 {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
     let borrowed: Vec<&str> = arguments.iter().map(String::as_str).collect();
 
-    return match borrowed.split_first()
+    let Some((verb, rest)) = borrowed.split_first()
+    else
     {
-        Some((&"admit", rest)) => Admit_Command(rest),
-        Some((&"retire", rest)) => Close_Command(rest, None),
-        Some((&"supersede", rest)) => Close_Command(rest, Some(())),
-        Some((&"history", rest)) => History_Command(rest),
-        Some((&"help" | &"--help" | &"-h", _)) =>
-        {
-            Print_Usage();
-            ExitCode::SUCCESS
-        }
-        _ =>
-        {
-            eprintln!("kwb: expected a verb");
-            Print_Usage();
-            ExitCode::from(USAGE_EXIT)
-        }
+        eprintln!("kwb: expected a verb");
+        Print_Usage();
+        return ExitCode::from(USAGE_EXIT);
     };
+
+    if matches!(*verb, "help" | "--help" | "-h")
+    {
+        Print_Usage();
+        return ExitCode::SUCCESS;
+    }
+
+    let Some(known) = VERBS.iter().find(|known| return known.name == *verb)
+    else
+    {
+        eprintln!("kwb: expected a verb");
+        Print_Usage();
+        return ExitCode::from(USAGE_EXIT);
+    };
+
+    return (known.run)(rest);
 }
 
 /// `kwb admit <file> [--says <concept> <claim>]...`
@@ -721,14 +797,14 @@ fn Extractions_From(arguments: &[&str]) -> Result<Vec<Extraction>, String>
 /// What this tool does, including the half it does not have.
 fn Print_Usage()
 {
-    eprintln!(
-        "usage: kwb admit <file> [--store <dir>] [--scope <name>] [--says <concept> <claim>]..."
-    );
-    eprintln!("       kwb retire <concept> --store <dir> --because <reason>");
-    eprintln!("       kwb supersede <concept> --into <concept> --store <dir> --because <reason>");
-    eprintln!(
-        "       kwb history --store <dir> [--through <count> | --as-of <unix seconds>]"
-    );
+    // Rendered from `VERBS`, not restated beside it. The first line carries the `usage:` label
+    // and the rest align under it, which is the only thing this loop knows that the table does
+    // not -- and it is a fact about layout rather than about what the binary can do.
+    for (position, verb) in VERBS.iter().enumerate()
+    {
+        let label = if position == 0 { "usage:" } else { "      " };
+        eprintln!("{label} kwb {}", verb.usage);
+    }
     eprintln!();
     eprintln!("  history replays the publication log and reports the graph as it was. --through");
     eprintln!("  takes a count of publications, --as-of takes a time; given neither it reports");

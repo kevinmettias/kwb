@@ -485,10 +485,25 @@ fn Test_Every_Command_The_Readme_Shows_Should_Be_One_The_Binary_Dispatches()
         std::fs::read_to_string(Repository_Root().join("crates/host/kwb-cli/src/main.rs"))
             .expect("the composition root should be readable");
 
+    // Against the table, not against the source text. This looked for the match arm's `&"verb"`
+    // until `KWB-74` moved the verbs into `VERBS`, at which point it would have reported every
+    // verb as undispatched -- a guard that fails for the wrong reason, which is worse than one
+    // that passes for the wrong reason because it teaches people to ignore it.
+    let dispatched = Verbs_Dispatched(&dispatch);
+    assert!(
+        dispatched.len() >= 4,
+        "only {dispatched:?} were found in the table, so this guard covers almost nothing"
+    );
+
+    // `help` and its aliases are answered by the binary and are deliberately not capabilities in
+    // the table, so a README that mentions `kwb help` is not naming something undispatched.
+    let aliases = ["help", "--help", "-h"];
     let mut missing: Vec<String> = Vec::new();
     for verb in Verbs_Shown(&readme)
     {
-        if !dispatch.contains(&format!("&\"{verb}\""))
+        let known = dispatched.iter().any(|held| return *held == verb)
+            || aliases.contains(&verb.as_str());
+        if !known
         {
             missing.push(verb);
         }
@@ -545,23 +560,39 @@ fn Test_Every_Verb_The_Binary_Dispatches_Should_Be_One_The_Readme_Shows()
     );
 }
 
-/// Every verb `main` matches on, minus the ones that exist to find the others.
+/// Every verb the composition root's table declares.
+///
+/// # Why this reads a table and not the match arms
+///
+/// Until `KWB-74` each verb was written twice in `main.rs` — once as a match arm and once as a
+/// usage line — and this parsed the arms. `KWB-74` made `VERBS` the one declaration that the
+/// dispatch runs from and the help renders from, so the arms are gone and the table is where
+/// the canonical answer lives.
+///
+/// `help` and its aliases are absent from the table rather than filtered out of it here, which
+/// is the better place for that fact: they are how a reader finds the rest rather than a
+/// capability to be listed, and a list that had to be filtered would be a list that included
+/// them.
 fn Verbs_Dispatched(dispatch: &str) -> Vec<String>
 {
-    let exempt = ["help", "--help", "-h"];
-    let mut verbs: Vec<String> = Vec::new();
+    let Some((_, table)) = dispatch.split_once("const VERBS:")
+    else
+    {
+        return Vec::new();
+    };
+    let table = table
+        .split_once("\n];")
+        .map_or(table, |(inside, _)| return inside);
 
-    for fragment in dispatch.split("Some((&\"").skip(1)
+    let mut verbs: Vec<String> = Vec::new();
+    for fragment in table.split("name: \"").skip(1)
     {
         let Some(inside) = fragment.split('"').next()
         else
         {
             continue;
         };
-        if !exempt.contains(&inside)
-        {
-            Remember(&mut verbs, inside);
-        }
+        Remember(&mut verbs, inside);
     }
 
     return verbs;
