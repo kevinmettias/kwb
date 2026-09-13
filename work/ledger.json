@@ -3831,7 +3831,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-71: correct territory, and a why that does not carry the false bump measurement recorded in the abandon reason above."
+        }
+      },
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -3844,9 +3848,23 @@
         "timeout_seconds": 600
       },
       "verified": null,
-      "abandoned": [],
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Correcting a false measurement in this item's own why before continuing. It says the bump is not free, that HamtMap takes three generic parameters where it took two, and that the crate moved from foundations/collections to foundations/data/collections. All three are wrong. HamtMap takes Key, Value and Policy at a7eee3c6e as well, kwb-domain already declares VersionedMap with RandomState as its third argument, and the crate sits at foundations/data/collections at both commits. The compiler error that produced the claim came from my scratch probe passing two parameters; I attributed my own code's error to the dependency, which is the instrument-failure hazard this board has recorded twice. Measured properly by bumping the real pin in kwb-platform-xvpe and building the real workspace: it compiles with no source change, 199 tests pass and clippy is clean. The bump is free. Abandoned and re-claimed rather than declined so the false claim and its correction stay visible together, which is what OD-LEDGER-001 records as this board's best property.",
+          "abandoned_at": 1789282909
+        },
+        {
+          "holder": "fable",
+          "reason": "Territory is wrong and cannot be amended. The journal owns its own file IO -- EventJournal::Open and Write -- so a journal-backed log names XVPE and must live in kwb-platform-xvpe, the one crate permitted to. That makes the composition root name a different type, and crates/host/kwb-cli is not in this item's territory, so the done_when requiring kwb-platform-std to keep no second append-only implementation is unreachable under it. Same defect that sank KWB-59. Superseded by KWB-71 with kwb-cli added and the why corrected.",
+          "abandoned_at": 1789282949
+        }
+      ],
       "displaced": [],
-      "declined": null
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789282949
+      }
     },
     {
       "id": "KWB-70",
@@ -3900,6 +3918,93 @@
         },
         "revision": "cdd0caad985db9bd79410647455ae6c586e71b44"
       },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-71",
+      "title": "The publication log is a bespoke append-only mechanism beside the XVPE one it deferred to, which is now remotely resolvable",
+      "why": "D-014 decided the graph becomes durable by replaying an append-only record and deliberately did not adopt xvpe-event-journal, naming the condition: measure its record shape against a publication. KWB-63 made that measurement and found the blocker was a clock rather than a fit. KWB-64 adopted the clock. What remained was the adoption itself, blocked on the rewrite being unpushed -- KWB-67's iteration measured that directly as revspec not found, because KWB resolves git dependencies from the remote. origin/dev has now moved to 8ff98a8fd. Under D-135 an append-only journal is domain-neutral and XVPE owns one, so FileRecordLog and the separator-delimited positional record are a bespoke restatement that was legitimate only while the deferral stood. Measured, and correcting a false claim made in KWB-69's why: the pin bump is free. The whole workspace builds at 8ff98a8fd with no source change, 199 tests pass, clippy is clean, and the third-party closure is unchanged at web-time, hashbrown and smallvec. HamtMap takes Key, Value and Policy at both commits and the crate sits at foundations/data/collections at both; the earlier claim that either had changed came from a scratch probe passing two type arguments, which was my code's error attributed to the dependency.",
+      "done_when": "The pin is at the measured commit and the workspace is green on it. The publication log is XVPE's journal: a journal-backed RecordLogStrategy lives in kwb-platform-xvpe because the journal owns its file IO and must be named by the one crate permitted to name XVPE, kwb-platform-std keeps no second append-only implementation, and the composition root names the new one. The port is unchanged -- D-012's own words, a new implementation behind an existing seam and not a change to the seam. A publication becomes a record of the journal's shape, and the migration is faced rather than discovered: a log written before this item still replays, because D-014 made the graph durable BY replay and a format change that orphans existing logs loses the thing it was built for, so the reader accepts both shapes and writes only the new one, and a test replays a pre-existing log copied rather than constructed. D-014's last deferral closes and states what it cost. D-012 is amended on a separate point the owner raised: its decision reads KWB does not need a database, which is stronger than the evidence and risks becoming an ideological rule; what the evidence supports is that the requirements which justified the prototype's EF and Postgres architecture are currently met more strongly by this design, and the record names what would reopen it -- scale, concurrent querying, analytics or retrieval pressure -- rather than leaving the absence of a condition to read as never.",
+      "kind": "Capability",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/platform/kwb-platform-std",
+          "crates/platform/kwb-platform",
+          "crates/domain/kwb-domain",
+          "crates/host/kwb-cli",
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md"
+        ],
+        "patterns": []
+      },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-72. The measurement D-014 deferred is now complete and its answer is a refusal, so an item whose done_when is the adoption cannot close."
+        }
+      },
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "The adoption is refused on a measurement, and the done_when requiring it cannot be met honestly. EventJournal::Write returns unit and swallows failures -- it prints to standard error and continues, and the crate documents that as deliberate: a write failure is reported to standard error rather than propagated. That is right for what it is. A mining run should not die because its observability journal failed. KWB's publication log is not that. D-014 made the graph durable by replay and says the graph is not reproducible at all, so a lost publication loses information no re-run recovers; KWB-34 built Record_Into to return a Result and kwb admit to fail on it, because a report must not outrun the work. Adopting that write path would mark a run Succeeded when its publications never landed, which is D19 exactly -- the incident this repository's admission pipeline is shaped around. The two are the same shape with opposite failure contracts: an observability record versus a system of record. Detecting the failure through Line_Count before and after would work and would depend on an implementation detail rather than a contract, which is the kind of guarantee this repository refuses to build on. What XVPE would need is a fallible write, and naming that is the D-135-consistent move rather than working around it here. Superseded by KWB-72, which records the answer, keeps the free pin bump, and makes the D-012 correction the owner asked for.",
+          "abandoned_at": 1789283056
+        }
+      ],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789283056
+      }
+    },
+    {
+      "id": "KWB-72",
+      "title": "D-014's last deferral is answerable now and the answer is that the two records have opposite failure contracts",
+      "why": "D-014 deferred adopting xvpe-event-journal pending a measurement of its record shape against a publication. KWB-63 made a first pass and found a clock missing; KWB-64 adopted the clock; the rewrite was then unpushed, which KWB-67's iteration measured as revspec not found. origin/dev has moved to 8ff98a8fd and the deferral is finally answerable. The answer is a refusal and it is not about shape. EventJournal::Write returns unit and swallows failures, printing to standard error and continuing, and the crate documents that as deliberate. That is correct for an observability record: a mining run should not die because its journal failed. KWB's publication log is a system of record. D-014 itself says the graph is not reproducible at all, so a lost publication loses information no re-run recovers, and KWB-34 built Record_Into to return a Result and kwb admit to fail on it because a report must not outrun the work. Adopting that write would mark a run Succeeded when its publications never landed, which is D19, the incident the admission pipeline is shaped around. Two mechanisms of the same shape with opposite failure contracts are not one mechanism restated, so D-135 does not require this adoption -- and KWB keeping its own log is not a second authority for something XVPE owns. Separately the pin bump is free and measured: the workspace builds at 8ff98a8fd with no source change, 199 tests pass, clippy is clean, the third-party closure is unchanged, and the claim in KWB-69's why that HamtMap had gained a parameter was my scratch probe's error.",
+      "done_when": "The pin is at the measured commit and the workspace is green on it, since kwb-extract and the clock are adopted from that tree and a stale pin is a decision nobody took. D-014's last deferral closes with the refusal and its reason, stating that the shapes were never the obstacle and the failure contract is, and naming what XVPE would need for the answer to change -- a write that reports failure -- rather than leaving the refusal to read as permanent or as a complaint. It does not work around the gap by inspecting Line_Count, and says why: a guarantee resting on an implementation detail rather than a contract is not a guarantee. D-012 is amended on the point the owner raised: its decision reads KWB does not need a database, which is stronger than its own evidence supports; what the evidence supports is that the requirements which justified the prototype's EF and Postgres architecture are currently met more strongly by this design, and the record names what would reopen it -- scale, concurrent querying, analytics or retrieval pressure -- so that the absence of a condition does not read as never.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md",
+          "docs/records/D-012-the-second-store-is-not-a-database-and-is-mostly-not-this-repositorys-to-build.md"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789283090,
+        "lease_expires_at": 1789290290
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
       "abandoned": [],
       "displaced": [],
       "declined": null

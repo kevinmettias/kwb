@@ -268,6 +268,30 @@ asked.
 What this record decided is untouched. Requirement 4's answer is narrowed to what it always
 was, and now has a consumer.
 
+## Amendment: The Database Claim Is Narrower Than It Reads, 2026-09-13
+
+This record's decision opens **KWB does not need a database.** That is stronger than the evidence
+below it supports, and left alone it becomes an ideological rule rather than a finding.
+
+**What the evidence supports** is narrower and survives scrutiny: the prototype's EF and Postgres
+architecture was **not itself a requirement**, and the requirements that justified it — which-world
+reads, temporal reconstruction, uniqueness, idempotence, atomicity — are currently met more
+strongly by this design than they were by that one. Every one of those is answered above on the
+prototype's own measurements, and that argument is untouched.
+
+**What it does not support** is a permanent answer. Rejecting 91,527 lines of generated migrations
+is a verdict on *that* architecture reached for *those* requirements, not a standing position
+against a class of tool. A repository that reads its own rejection as *never* would meet the next
+real requirement with an argument instead of a measurement.
+
+*Reopened by:* a requirement this design does not meet — scale that makes a linear replay
+expensive, concurrent querying, analytics over the corpus, or retrieval pressure once embeddings
+are real. `D-008`'s seventh requirement is already the shape of the last one, and this record
+already defers it. Any of those is a measurement, not a preference, and would be answered here on
+the same footing as the eight above.
+
+Nothing decided above changes. Only the sentence that reads like a rule.
+
 ## Referenced By
 
 

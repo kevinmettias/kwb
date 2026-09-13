@@ -24,7 +24,7 @@ publish.workspace = true
 # make visible.
 [dependencies.xvpe-collections-persistent]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "a7eee3c6e361371b269217201233a2e7d7e36122"
+rev = "8ff98a8fd"
 default-features = false
 
 [lints]
@@ -42,7 +42,7 @@ workspace = true
 # which `D-012` already measured as arriving through `xvpe-clock` and accepted.
 [dependencies.xvpe-clock]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "a7eee3c6e361371b269217201233a2e7d7e36122"
+rev = "8ff98a8fd"
 
 # Reading a source, and asking something about what it says. `D-135` again: neither has
 # knowledge-domain semantics -- a chunker cuts text and an inference strategy turns a question
@@ -52,8 +52,8 @@ rev = "a7eee3c6e361371b269217201233a2e7d7e36122"
 # extractor sits behind separable rather than aspirational.
 [dependencies.xvpe-corpus-text]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "a7eee3c6e361371b269217201233a2e7d7e36122"
+rev = "8ff98a8fd"
 
 [dependencies.xvpe-ai-inference]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "a7eee3c6e361371b269217201233a2e7d7e36122"
+rev = "8ff98a8fd"

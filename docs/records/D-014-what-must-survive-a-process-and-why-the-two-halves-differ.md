@@ -232,6 +232,47 @@ with it.
 *Still settled by:* an item that adopts the journal and migrates the log. The cost is unchanged
 and stated above; what has changed is that it no longer has to carry the clock as well.
 
+## Amendment: The Deferral Closes With A Refusal, 2026-09-13
+
+`KWB-63` measured the record shape and found a clock missing. `KWB-64` adopted the clock.
+`KWB-67`'s iteration then measured that the rewrite was unpushed. `origin/dev` has since moved
+and the deferral is finally answerable.
+
+**Condition met:** `KWB-72`
+
+**The answer is a refusal, and the shapes were never the obstacle.**
+
+`EventJournal::Write` returns unit and swallows failures — it prints to standard error and
+continues — and the crate documents that as deliberate. That is *correct for what it is*: a
+mining run should not die because its observability journal failed.
+
+A publication log is not that. This record says the graph **is not reproducible at all**, so a
+lost publication loses information no re-run recovers, and `KWB-34` built `Record_Into` to
+return a `Result` with `kwb admit` failing on it, because a report must not outrun the work.
+Adopting that write would mark a run `Succeeded` when its publications never landed — `D19`, the
+incident the admission pipeline is shaped around.
+
+So the two are **the same shape with opposite failure contracts**: an observability record and a
+system of record. That is not one mechanism restated twice, which is why `D-135` does not require
+this adoption and why `kwb-platform-std` keeping its own log is not a second authority for
+something XVPE owns.
+
+### What was not done, and why it would have worked
+
+`EventJournal` increments its line count only after a successful write, so comparing
+`Line_Count()` before and after would detect the failure the signature hides. It is not done. A
+guarantee resting on an implementation detail rather than on a contract is not a guarantee — and
+the detail is one XVPE is free to change without telling anyone, because it never promised it.
+
+### What would change the answer
+
+A write that reports failure. Naming that is the move `D-135` actually asks for: a gap in a
+shared mechanism is XVPE's to close, not KWB's to work around. If it closes, the measurement
+here is the only thing standing between this repository and the adoption — the record shape fits,
+the clock is adopted, and the pin already resolves.
+
+*Settled by:* a fallible write in `xvpe-event-journal`.
+
 ## Referenced By
 
 

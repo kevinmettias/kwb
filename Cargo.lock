@@ -394,7 +394,7 @@ dependencies = [
 [[package]]
 name = "xvpe-ai-inference"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 dependencies = [
  "xvpe-json-text",
  "xvpe-primitives",
@@ -403,7 +403,7 @@ dependencies = [
 [[package]]
 name = "xvpe-clock"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 dependencies = [
  "web-time",
  "xvpe-primitives",
@@ -412,7 +412,7 @@ dependencies = [
 [[package]]
 name = "xvpe-collections-handle"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 dependencies = [
  "xvpe-primitives",
 ]
@@ -420,7 +420,7 @@ dependencies = [
 [[package]]
 name = "xvpe-collections-map"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 dependencies = [
  "hashbrown",
  "xvpe-collections-handle",
@@ -430,7 +430,7 @@ dependencies = [
 [[package]]
 name = "xvpe-collections-persistent"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 dependencies = [
  "xvpe-collections-map",
  "xvpe-collections-sequence",
@@ -440,7 +440,7 @@ dependencies = [
 [[package]]
 name = "xvpe-collections-sequence"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 dependencies = [
  "smallvec",
  "xvpe-primitives",
@@ -449,7 +449,7 @@ dependencies = [
 [[package]]
 name = "xvpe-corpus-text"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 dependencies = [
  "xvpe-primitives",
 ]
@@ -457,9 +457,9 @@ dependencies = [
 [[package]]
 name = "xvpe-json-text"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
 
 [[package]]
 name = "xvpe-primitives"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=a7eee3c6e361371b269217201233a2e7d7e36122#a7eee3c6e361371b269217201233a2e7d7e36122"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=8ff98a8fd#8ff98a8fd478750ca4f8a96ffd7174db902ffd0f"
