@@ -66,6 +66,41 @@ pub enum Coverage
     },
 
     /// The rule was deliberately not run.
+    ///
+    /// # Nothing in this repository produces one, and that is recorded rather than left
+    ///
+    /// Every consumer here handles it — [`Name`], [`Findings`], [`Was_Run`] and
+    /// [`Is_Evidence_Of_Absence`] each have an arm, and the tests exercise it. Nothing
+    /// constructs one, because nothing in the pipeline declines to examine anything: `Admit`
+    /// takes one source and always reads it.
+    ///
+    /// **This is not the same as `kwb-store`'s `StoreError::Collision`**, which is also never
+    /// produced. That one is unreachable by mathematics — reaching it needs a SHA-256 preimage
+    /// break — so it can be written down as a branch that will not be taken. This one is
+    /// perfectly producible and merely unbuilt, and a reader who found the two described alike
+    /// would be told something false about both.
+    ///
+    /// Named in prose rather than linked, because `kwb-domain` does not depend on `kwb-store`
+    /// and a link that cannot resolve is worse than a name that can be searched for.
+    ///
+    /// *What would produce it:* something that walks a **corpus** rather than a source, and so
+    /// has occasion to decline one — a duplicate already admitted, a filter, a source the
+    /// caller excluded. There is no such driver, and this variant is waiting on one.
+    ///
+    /// # Why it exists anyway
+    ///
+    /// The corpus's ontological admission rule at topic 61: a distinction earns its place by
+    /// preventing an invalid coding. Without this variant a deliberate skip would have to be
+    /// recorded as [`Barren`], which is *evidence of absence* and so the 1,367-row incident in
+    /// another guise, or as [`Unmet`], which would claim a prerequisite failed when none did.
+    /// Removing it would make the first skip anybody writes a miscoding.
+    ///
+    /// [`Name`]: Self::Name
+    /// [`Findings`]: Self::Findings
+    /// [`Was_Run`]: Self::Was_Run
+    /// [`Is_Evidence_Of_Absence`]: Self::Is_Evidence_Of_Absence
+    /// [`Barren`]: Self::Barren
+    /// [`Unmet`]: Self::Unmet
     Skipped
     {
         /// Why, written in code. A decision, not a formatted string.
