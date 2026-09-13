@@ -2868,6 +2868,42 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-52",
+      "title": "The guard for an eaten line continuation covers one type, and the damage is a property of every string literal in the workspace",
+      "why": "KWB-51 restored four literals whose continuations were eaten by a scripted edit and guarded StoreError by rendering it. That closes one type. The defect is not a property of StoreError: it is what happens to any Rust literal continued with a trailing backslash when the edit that writes it is itself written in a language whose strings continue the same way. Five literals were damaged across four crates in one session, one reached actual CLI output, and one survived four readings of the source because a reader's eye reconstructs the sentence. A per-type render test cannot cover the class -- ExtractionRefused, ReplayError, IdentityError and StorageError all reach a person through Display, and every assert message reaches whoever is reading a failure. KWB-44 established that a source-scanning guard here is held to showing it detects what it claims to, and this is the same shape as one_door and tool_surface.",
+      "done_when": "A guard in tests/contract fails on a string literal anywhere under crates/ whose value carries a run of spaces in the middle of a sentence. It reconstructs the literal's value first -- removing a backslash-newline and the indentation that follows, which is what Rust itself does -- so a correctly continued literal is not flagged, and that is the property the detector is shown to have rather than asserted to have. It does not flag an aligned column in a printed table, a leading indent in a usage line, or a literal that is itself whitespace, and each of those exemptions is demonstrated by a case in the test rather than described. It is shown to detect a real instance, by reconstructing one of the five and asserting the detector finds it, because a scanner that finds nothing passes on a repository it cannot read.",
+      "kind": "Validation",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789273747,
+        "lease_expires_at": 1789280947
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
