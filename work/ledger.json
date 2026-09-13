@@ -2307,6 +2307,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-42",
+      "title": "The corpus prescribes how three incidents should be encoded here, all three were encoded differently, and nothing says which is right",
+      "why": "The surveys are measurements of the prototype and cannot go stale, but each incident ends with a What would encode it here section, and those are prescriptions about code that did not exist when they were written and does now. D17 says the coverage type should have its unknown value as its default. Coverage has no Default at all, deliberately, because D20 states deriving a status as the primary rule and ordering the zero value only as the fallback if it must be assigned -- Of_Run derives, so the fallback is moot and the implementation took the stronger of the two. The corpus states the fallback as though it were the requirement, so it now under-describes what was built and a reader comparing them cannot tell an improvement from a miss. D19 prescribes a job kind that cannot be enqueued without a registered handler, failing that a status enum whose unhandled arm retains; admission has no queue at all, which is stronger and is not what the prescription describes. And D19-B says two distinct read types and liveness as one expression with a test that no second copy exists, owned by KWB-6 -- both were built under KWB-24, so the routing points at an item that did not do it. Three prescriptions, three divergences, none recorded, in the documents the records cite as evidence.",
+      "done_when": "Each of the three prescriptions says what was actually built and why it differs, where it differs -- as an amendment beside the prescription rather than a rewrite of it, because what the survey recommended before the code existed is the thing a reader is comparing against and editing it away destroys the comparison. Where the implementation took a stronger rule than the prescription named, the record says so and names the rule; where the ownership moved to another item, it names that item. No measurement of the prototype is touched, because none of them has stopped being true.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/corpus"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ttests src\\main.rs (target\\debug\\deps\\kwb-38f77df29d8226f3.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contracts-abf21bb12cca340a.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_domain-1b975f1ceee00b60.exe)\n     Running tests\\one_liveness.rs (target\\debug\\deps\\one_liveness-38bb1e491377e52d.exe)\n     Running tests\\publication.rs (target\\debug\\deps\\publication-59a684649459b0cc.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_ingest-1ea03b34c0548482.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_mcp-f537c1fe7bfe5ff5.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb_mcp-12a0155e8b18d63d.exe)\n     Running tests\\tool_surface.rs (target\\debug\\deps\\tool_surface-b548814d265b5f31.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_model-88608d9b2d60f843.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-115ad4a24a5cce9e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-fcd8ca84fbdebb70.exe)\n     Running tests\\directory_content_store.rs (target\\debug\\deps\\directory_content_store-dd0fa236681e73ed.exe)\n     Running tests\\file_record_log.rs (target\\debug\\deps\\file_record_log-13f3a6956e7c72b6.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_xvpe-5b031c4775ef2ea0.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-821b4542ba84fec7.exe)\n     Running tests\\read_only.rs (target\\debug\\deps\\read_only-5962ebcd336de170.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-4847c775acd9e625.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-6a0d6ef67be080af.exe)\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_ingest\n   Doc-tests kwb_mcp\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_platform_xvpe\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_store\n",
+        "verified_at": 1789266464,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "bf0fab0463852555030da0c341450ff63075ffc8"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

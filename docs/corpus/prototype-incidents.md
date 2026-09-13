@@ -75,6 +75,20 @@ the shape `kwb-store`'s write door already exists to impose, read in the destruc
 
 **Owned by** `KWB-4` (the coverage type) and `KWB-2` (the write door).
 
+> **Built, and differently — 2026-09-12.** `KWB-4` shipped `kwb_domain::Coverage` with **no
+> `Default` at all**, where the prescription above asks for one whose value is *unknown*. That
+> is not a miss. `D20` gives two rules in order: *derive a status from the evidence rather than
+> assigning it*, and only **failing that**, order the enum so the zero value is the unknown or
+> worst case. `Coverage::Of_Run` derives the outcome of a run from what the run found, so the
+> first rule applies and the second is moot — there is no default because nothing assigns. The
+> prescription named the fallback as though it were the requirement.
+>
+> `Barren` and `Skipped` cannot be the same value, as asked, and more strongly than asked: each
+> variant carries the fact that distinguishes it, so writing one for the other means inventing a
+> number for material never examined. The delete path is absent by construction rather than
+> guarded — `KWB-2` made an address derive from content, so there is no overwrite for `D17` to
+> authorise.
+
 ---
 
 ## D18 — A rule proved pairwise is not proved of the algorithm that uses it
@@ -171,6 +185,13 @@ Failing that, a status enum whose zero value is not success and whose unhandled 
 
 **Owned by** `KWB-2`.
 
+> **Built, and differently — 2026-09-12.** There is no queue. `KWB-5`'s `Admit` hands its
+> claims back to its caller in the same call, so the producer and consumer are not merely in one
+> commit, they are in one stack frame. The prescription assumes a queue and asks that it be made
+> safe; the implementation removed the thing that needed making safe. The fallback it names — a
+> status enum whose zero value is not success — is met separately by `Coverage` having no zero
+> value at all, for the reason recorded under `D17` above.
+
 ---
 
 ## D19-B — A filter that applies itself is a check nobody asked for
@@ -218,6 +239,20 @@ a test that no second copy exists.
 
 **Owned by** `KWB-6`. It is not currently named there, and the item's `why` is extended to name
 it.
+
+> **Built, and by a different item — 2026-09-12.** Both halves landed under `KWB-24`, not
+> `KWB-6`. Liveness is `Standing::Is_Current`, and `kwb-domain/tests/one_liveness.rs` is the
+> test that no second copy exists — it scans the crate's own source and fails on a second
+> definition, which is the mechanical check this section says the prototype never had.
+>
+> The two read types are `CurrentKnowledge` and `EveryVersion`, and they are stronger than the
+> prescription asks. `D-012` adopted a persistent map, so a version is a **value**: the two
+> reads are two values a caller holds rather than two interfaces over one mutable store, and
+> there is no filter to bypass and no flag to forget. `IgnoreQueryFilters` has no analogue here
+> because there is nothing to ignore.
+>
+> `KWB-6` still owns the query surface those reads are exposed through, and its remaining third
+> is semantic search.
 
 ---
 
