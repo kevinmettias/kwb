@@ -5046,7 +5046,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Territory is wrong in the way KWB-77 is on this board for: the done_when names rust-toolchain.toml and the territory reserves only docs/records, so the item as written cannot be completed inside what it reserves. It also predates the measurement that decides the components field - cargo fmt --check reports 864 sites where stable rustfmt would collapse this workspace's Allman braces - which belongs in the item rather than arriving after it. Re-authored as KWB-93 reserving docs/records and rust-toolchain.toml, and amending D-007 for the back-link the relation guard requires."
+        }
+      },
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -5060,6 +5064,66 @@
         "timeout_seconds": 600
       },
       "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789328561
+      }
+    },
+    {
+      "id": "KWB-93",
+      "title": "This repository pins the commit of every dependency it adopts and pins no toolchain, and the floor it compiles on is set by a crate in another repository",
+      "why": "Re-authored from KWB-92, which reserved docs/records while its done_when named rust-toolchain.toml. Same finding, correct reservation, and now carrying the measurement KWB-92 was missing.\n\nThe measurement, taken on Linux with a target directory per toolchain so nothing contended. Build and full gate: 1.85.0 fails, 1.86.0 fails, 1.87.0 passes clippy under -D warnings with 210 tests, 1.88.0 the same, and stable 1.98.0 the same. So the floor is 1.87.0, eight releases of stable sit above it, and nothing fails anywhere in that span. KWB-90 established that the floor is imported rather than this repository's own: kwb-contracts, kwb-model and kwb-platform still build on 1.85, and what raises it is xvpe-collections-map reached through kwb-platform-xvpe.\n\nWhy a pin at all. D-007 adopts XVPE by commit SHA so that reproducibility does not depend on another repository's working tree. The toolchain is the other half of that same question and is currently left to whatever rustup defaults to on a given machine. Nomos pins channel = 1.88.0 exactly and says it pins a toolchain the same way it pins everything else it depends on, citing OD-GATE-012; XVPE pins nightly because its brace style needs an unstable rustfmt option. This repository mirrors Nomos's conventions deliberately - its lint policy block says so - and is the only one of the three that pins nothing.\n\nWhat the components field must not contain, measured rather than assumed. cargo +1.87.0 fmt --all --check exits 1 with 864 diff sites, and the diffs are this workspace's Allman braces being collapsed to K and R. There is no rustfmt.toml here to prevent it and stable rustfmt cannot express the style at all - XVPE needs nightly's brace_style = AlwaysNextLine for exactly this. Declaring rustfmt in the pin would install, for every contributor, the one tool that silently reformats the entire workspace away from its own style. The gate needs clippy and nothing here needs rustfmt.\n\nWhat this item does not settle, named so it is not mistaken for settled: that cargo fmt is destructive here is not fixed by leaving rustfmt out of the components list, because a contributor with a global rustfmt still has it. Both siblings say so in prose and this repository says it nowhere. That is its own item.",
+      "done_when": "A record in docs/records/ decides whether this repository pins a toolchain, to what, and why, naming the alternatives refused and the conditions that would reopen it, in the shape every record here has. rust-toolchain.toml exists, pins a version the workspace was actually built and linted on rather than one inferred from rust-version, and carries its reason beside it as both siblings' do. The record declares its relation and D-007 carries the other end, because a relation reachable from one side only is the defect KWB-38 measured. The record has no Referenced By section, because nothing points at it yet and Test_A_Record_Has_A_Referenced_By_Section_Exactly_When_Something_Points_At_It requires the section exactly when something does. cargo test -p kwb-contract-tests passes, which is the suite that checks the relation, the status, the version against amendments, and the note.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records",
+          "rust-toolchain.toml",
+          "docs/records/D-007-no-path-dependency-on-xvpe-and-the-reason-is-not-that-xvpe-is-broken.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.81s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-3bb30553545e158b.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-0044164605fd7d46.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-73274744ce9004c4.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-fc84c1a1773a4dec.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-861087b3b7b09975.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789328814,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "de35fbe6f032b8d6a45112d0a136acbe464f246c"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
