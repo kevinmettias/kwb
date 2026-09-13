@@ -13,12 +13,6 @@ members = [
     "crates/kernel/kwb-store",
 
     # Band 1p — platform port. Traits in kwb-platform, implementations beside it.
-    # kwb-platform-xvpe is deliberately absent, and D-007 is the reason. It is not
-    # that XVPE fails to build; that premise was measured dead on 2026-09-12. It is
-    # that adoption happens by git reference and commit SHA into a crate that
-    # quarantines it, never by path, so that this repository's reproducibility is not
-    # a function of another repository's working tree. When that crate is created it
-    # takes this name, and its creation is an item.
     "crates/platform/kwb-platform",
     "crates/platform/kwb-platform-std",
 
