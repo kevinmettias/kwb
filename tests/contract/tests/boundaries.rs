@@ -154,15 +154,15 @@ fn Declared_Relations(records: &BTreeMap<String, String>) -> Vec<(String, String
 #[test]
 fn Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends()
 {
-    let records = Records();
+    let documents = Relating_Documents();
 
     let mut one_way: Vec<String> = Vec::new();
-    for (source, target) in Declared_Relations(&records)
+    for (source, target) in Declared_Relations(&documents)
     {
-        let Some(target_text) = records.get(&target)
+        let Some(target_text) = documents.get(&target)
         else
         {
-            one_way.push(format!("{source} -> {target} (no such record)"));
+            one_way.push(format!("{source} -> {target} (no such record or observation)"));
             continue;
         };
         if !Referenced_By(target_text).contains(&source)
@@ -174,8 +174,32 @@ fn Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends()
     assert!(
         one_way.is_empty(),
         "these relations are declared in one direction only, so a reader of the target cannot \
-         reach the record that relates to it: {one_way:#?}"
+         reach the document that relates to it: {one_way:#?}"
     );
+}
+
+/// Every document that may declare a relation: the records, and the observations.
+///
+/// # Why this is not `Records()`, and must not become it
+///
+/// `KWB-85` widened the relation checks to cover `docs/observations/`, because an observation
+/// declaring `relates-to D-005` was invisible to them in both directions — the one relation in
+/// this repository unreachable from its target, which is the condition `KWB-38` exists for.
+/// `D-005`'s own *Referenced By* note claimed it was checked both ways, and for observations
+/// both halves were false, in the paragraph whose job is to say the list is trustworthy.
+///
+/// It widens the *relation* readers and nothing else. Widening [`Records`] itself would bring
+/// observations under the record version rule, and `OD-LEDGER-001` — version 2 with no
+/// `## Amendment` section, correctly, because an observation is revised in place — would fail
+/// it. `Test_An_Observation_May_Be_Revised_Without_An_Amendment_Section` is the guard that
+/// catches anyone doing that, including a later reader of this comment who thinks the two maps
+/// ought to be one.
+fn Relating_Documents() -> BTreeMap<String, String>
+{
+    let mut documents = Records();
+    documents.extend(Observations());
+
+    return documents;
 }
 
 // ---- KWB-39: one description per crate, in the two places that must each carry one ----
@@ -737,11 +761,11 @@ fn Referenced_By(record: &str) -> Vec<String>
 #[test]
 fn Test_No_Record_Should_Claim_A_Reference_Nobody_Declared()
 {
-    let records = Records();
-    let declared = Declared_Relations(&records);
+    let documents = Relating_Documents();
+    let declared = Declared_Relations(&documents);
 
     let mut invented: Vec<String> = Vec::new();
-    for (identifier, text) in &records
+    for (identifier, text) in &documents
     {
         for listed in Referenced_By(text)
         {

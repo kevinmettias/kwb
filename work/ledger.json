@@ -4669,6 +4669,133 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-85",
+      "title": "An observation declares a relation to a record and the guard that checks relations both ways cannot see it",
+      "why": "The obligation OD-LEDGER-002 named and deliberately did not discharge, taken now rather than left to sit -- KWB-80 found that real debt correctly recorded still goes unpaid if nothing takes it. Measured: OD-LEDGER-001 declares relations: target D-005, type relates-to. D-005's Referenced By lists D-007, D-012 and D-013, and not OD-LEDGER-001. Nothing fails, because the relation guards read docs/records only and an observation is invisible to them in both directions. So the single relation an observation declares is the one relation in this repository that is unreachable from its target, which is exactly the condition KWB-38 was written for -- and D-013 already reaches for OD-LEDGER-001 in prose twice, so the need is demonstrated rather than hypothetical. Worse, D-005's own Referenced By note says it is checked by tests/contract in both directions: a declared relation with no entry here fails, and an entry here that no record declares a relation to fails too. For observations both halves are false, in the paragraph whose job is to tell a reader the list is trustworthy. THE TRAP, stated so it is not walked into: extending Records() wholesale to cover docs/observations would bring observations under the record version rule, and OD-LEDGER-001 -- version 2 with no amendment section -- would fail it. That is correct as it stands and KWB-84 guards it. Only the relation readers may widen.",
+      "done_when": "The relation guards read observations as well as records, so an observation declaring a relation must be reachable from its target, and a record may list an observation in Referenced By without that being reported as an invented reference. D-005 lists OD-LEDGER-001, which is the one relation this brings under the check, and its version does not move because a Referenced By entry is not an amendment. Records() is NOT widened: KWB-84's guard that an observation may be at a version above one without an amendment section still passes, which is what proves the record version rule was left where it belongs. Shown to discriminate by removing the new entry from D-005 and by pointing the observation's relation at a record that does not exist. D-005's Referenced By note says what is actually checked now. Nothing about any decision changes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract",
+          "docs/records/D-005-this-repository-adopts-the-nomos-ledger-schema-and-defers-owning-any-ledger-code.md"
+        ],
+        "patterns": []
+      },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-86, the same work with a done_when clause removed that a measurement showed could not be satisfied without committing the defect the item exists to remove. Kept visible because the shape is worth reading: a done_when clause can name an artifact that IS in territory and still be wrong to act on, when the artifact turns out to be one copy of eleven."
+        }
+      },
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Authored on an assumption a measurement overturned. The done_when's last clause -- D-005's Referenced By note says what is actually checked now -- read as if that note were D-005's own prose. It is not: the identical paragraph is copied verbatim into ELEVEN records, so editing D-005's copy would make it the one that disagrees with ten others, which is the defect this session has spent nine items removing, committed deliberately. Fixing all eleven is outside this item's territory, and fixing one is worse than fixing none. The other clauses are right and the work is in the working tree: the relation guards now read observations, and they immediately caught OD-LEDGER-001 -> D-005 being unreachable from its target. Re-authored as KWB-86 with the note clause removed, and the eleven-copy note gets its own item rather than riding along on this one -- KWB-80's finding, which this item's own why cited and its done_when then ignored.",
+          "abandoned_at": 1789291905
+        }
+      ],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789291921
+      }
+    },
+    {
+      "id": "KWB-86",
+      "title": "An observation declares a relation to a record and the guard that checks relations both ways cannot see it",
+      "why": "KWB-85 re-authored. The obligation OD-LEDGER-002 named and deliberately did not discharge, taken now rather than left to sit -- KWB-80 found that real debt correctly recorded still goes unpaid if nothing takes it. Measured: OD-LEDGER-001 declares relations: target D-005, type relates-to. D-005's Referenced By lists D-007, D-012 and D-013, and not OD-LEDGER-001. Nothing failed, because the relation guards read docs/records only and an observation is invisible to them in both directions. So the single relation an observation declares is the one relation in this repository unreachable from its target, which is the condition KWB-38 was written for -- and D-013 reaches for OD-LEDGER-001 in prose twice, so the need is demonstrated rather than hypothetical. KWB-85 additionally required correcting D-005's Referenced By note, which claims the check runs in both directions and was false for observations. That clause is REMOVED here and is KWB-87's, because the identical note is copied verbatim into eleven records: correcting one copy would make it the one that disagrees with ten, which is the defect this session has spent nine items removing. THE TRAP, stated so it is not walked into: extending Records() wholesale to cover docs/observations would bring observations under the record version rule, and OD-LEDGER-001 -- version 2 with no amendment section -- would fail it. That is correct as it stands and KWB-84 guards it. Only the relation readers may widen.",
+      "done_when": "The relation guards read observations as well as records, so an observation declaring a relation must be reachable from its target, and a record may list an observation in Referenced By without that being reported as an invented reference. D-005 lists OD-LEDGER-001, which is the one relation this brings under the check, and D-005's version does not move because a Referenced By entry is not an amendment. Records() is NOT widened: KWB-84's guard that an observation may be at a version above one without an amendment section still passes, which is what proves the record version rule was left where it belongs. Shown to discriminate by removing the new entry from D-005 and by pointing the observation's relation at a document that does not exist. D-005's Referenced By note is NOT touched -- that is KWB-87's, and doing it here would be one item doing two things and the second one wrongly. Nothing about any decision changes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract",
+          "docs/records/D-005-this-repository-adopts-the-nomos-ledger-schema-and-defers-owning-any-ledger-code.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-16abbf94d8349107.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-670468fc7aa21e14.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-21903f500415cbc6.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-5c15106c5260855d.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-e94871637bee6123.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789291953,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "9c45e43c9d7d5897377fa9f2430db7551176fdf2"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-87",
+      "title": "Eleven records carry a verbatim copy of the same paragraph describing a check, and it now describes it wrongly",
+      "why": "Found while doing KWB-86 and deliberately not folded into it. Every record's Referenced By section is followed by an italic note beginning Written by hand, and checked by tests/contract in both directions: a declared relation with no entry here fails, and an entry here that no record declares a relation to fails too. That paragraph is copied VERBATIM into eleven records. It is the twelfth instance this session of two or more artifacts claiming to describe one fact with nothing proving they agree -- and here they do agree, which is why it went unnoticed, so it is the truth question rather than the agreement question that bites. KWB-86 widened the relation guards to read docs/observations, so the note's phrase no record is now narrower than what actually fails: an entry may be an observation, and an observation may declare a relation. Correcting one copy would make it the one that disagrees with ten, which is why KWB-86 left it. The eleven are also uneven: fifteen records exist and only eleven carry the note, so four records have a Referenced By section a reader is told nothing about, and nothing says whether that is deliberate. This is the projection programme's shape exactly -- an enumeration of what the guard does, maintained by hand in eleven places -- but the note is prose about a mechanism rather than a list of things, so whether it should be projected, written once and pointed at, or simply corrected in eleven places is the question to MEASURE and decide, not to assume.",
+      "done_when": "Every record's Referenced By note says what the check actually does, including that an observation may sit at either end of a relation since KWB-86. Whether that is achieved by projecting the note, by replacing eleven copies with one statement the records point at, or by correcting eleven copies is decided from measurement and the decision is stated where the next person will meet it rather than inferred from the result. The four records with a Referenced By section and no note are accounted for -- either they gain it or it is recorded why they do not. A guard fails when a record's note disagrees with whatever the chosen single authority is, or -- if the note is projected -- when the projection and the records differ, proven by mutating a real record. Nothing about any decision changes; this is a paragraph about a test, not a claim about the product.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": null,
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
