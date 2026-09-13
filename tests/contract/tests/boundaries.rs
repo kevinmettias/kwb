@@ -322,6 +322,17 @@ fn Readme_Band_Descriptions() -> BTreeMap<String, String>
 ///
 /// What this check does is close the remaining drift mode: two places must still each carry a
 /// description, and now they cannot disagree.
+/// # What this can show, and what it cannot
+///
+/// It proves the two copies **agree**. It cannot prove either is **true**, and `KWB-75` is the
+/// example: `kwb-platform-xvpe`'s description said it adopts *the persistent map versioned state
+/// is built on* long after `KWB-64`, `KWB-66` and `KWB-72` had added the clock, the chunker and
+/// the inference surface. The README said the same thing. Both agreed, both were stale, and this
+/// test passed throughout — by construction, because agreement is all it asks about.
+///
+/// The bands table is now projected from these manifests, so the agreement question is gone:
+/// there is one description and the document renders it. **The truth question stays a person's**,
+/// and no check here replaces reading what a crate does and what it says it does.
 #[test]
 fn Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places()
 {

@@ -150,6 +150,7 @@ drifts.
 The authoritative statement of what each crate owns. `tests/contract` asserts this table
 against the real workspace, both directions.
 
+<!-- generated from crate manifests -->
 | Band | Crate | Owns |
 |---|---|---|
 | 0 | `kwb-contracts` | Protocol vocabulary crossing a product boundary. Depends on `serde` and nothing else. |
@@ -157,13 +158,19 @@ against the real workspace, both directions.
 | 1 | `kwb-store` | The content-addressed document store; one write door. |
 | 1p | `kwb-platform` | The seam an implementation is chosen behind: one port per thing the outside world does for this repository. |
 | 1p | `kwb-platform-std` | The standard-library implementation of those traits. |
-| 1p | `kwb-platform-xvpe` | The one crate permitted to name XVPE. Adopts the persistent map versioned state is built on, by git reference and commit SHA. `D-007`, `D-012`. |
+| 1p | `kwb-platform-xvpe` | The one crate permitted to name XVPE. Adopts the persistent map, the wall clock, the passage splitter and the inference surface, each by git reference and commit SHA. `D-007`, `D-012`. |
 | 2 | `kwb-domain` | Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel. |
 | 3 | `kwb-extract` | A model-backed reader, behind the extraction seam. The only crate that asks a model anything, and it chooses no provider. |
 | 3 | `kwb-ingest` | The admission pipeline: link-concepts, normalize-concepts, admit. |
 | 3 | `kwb-retrieval` | Answering questions about the graph, and never changing it. |
 | 10 | `kwb-cli` | The `kwb` composition root. |
 | 10 | `kwb-mcp` | The MCP host: the read-only tool surface an agent speaks to. |
+<!-- end generated bands -->
+
+*Generated from each crate's manifest — its `description` and its
+`package.metadata.kwb.band` — and checked against them. The band lived only here until
+`KWB-75`, which is why this table could not be projected when the tool table was. The
+order is derived from the band label rather than stored beside it.*
 
 ## Working this repository
 

@@ -4127,6 +4127,44 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-75",
+      "title": "The bands table is the only place a crate's band exists, and the description guard proves agreement rather than truth",
+      "why": "Two findings, measured. First, the bands table is a second authority with no canonical counterpart: a crate's name comes from the workspace and its Owns column equals its manifest description, both checked in both directions, but the band itself -- 0, 1, 1p, 2, 3, 10 -- is written nowhere except the README. So the one column that cannot be projected is the one that decides the table's shape, and KWB-70 and KWB-74 could not be repeated here without first deciding where a band lives. Second, and sharper: kwb-platform-xvpe's description says it adopts the persistent map versioned state is built on, and it now adopts four XVPE crates -- the persistent map, the clock, the chunker and the inference surface, added by KWB-64, KWB-66 and KWB-72. The README says the same thing and the guard passes, because Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places proves the two copies agree and cannot prove either is true. Two agreeing copies of a stale sentence is what an agreement check is blind to by construction, and it is the argument for projections and the limit of them in one example. Blast radius measured rather than assumed, which is what sank KWB-73: only tests/contract/tests/boundaries.rs and README.md read the table or the descriptions, and thirteen manifests carry a description.",
+      "done_when": "A crate's band lives in its own manifest, under package metadata, because a band is a property of the crate and the manifest already holds its description -- so the two halves of a row come from one place. The README's bands table is a projection of the workspace, generated and compared like the tool table, with a marker saying it is generated. Ordering is derived rather than stored: a band sorts by its leading number then its suffix then the crate name, which puts 1 before 1p and 3 before 10 without a second field to keep in step. kwb-platform-xvpe's description says what it now adopts. The description guard is kept and its reason updated to say what it can and cannot show -- that it proves two copies agree, that this is why one stale sentence sat in both, and that a projection removes the agreement question while leaving the truth question to a person. Shown to discriminate by mutating each side of the real files.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md",
+          "tests/contract",
+          "crates"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789285519,
+        "lease_expires_at": 1789292719
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

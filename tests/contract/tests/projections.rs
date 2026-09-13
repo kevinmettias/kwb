@@ -38,25 +38,25 @@
 //! workspace, and decision status against the ledger. This file establishes the pattern on one
 //! of them; the others are checked bidirectionally today and are not yet projections.
 
-use std::path::PathBuf;
+use std::path::Path;
 
+use kwb_contract_tests::Between;
+use kwb_contract_tests::Quoted_After;
+use kwb_contract_tests::Repository_Root;
+use kwb_contract_tests::Workspace_Members;
 use kwb_mcp::TOOLS;
-
-/// The repository root, from this test's own manifest.
-fn Repository_Root() -> PathBuf
-{
-    return PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|tests| return tests.parent())
-        .expect("tests/contract sits two levels below the root")
-        .to_path_buf();
-}
 
 /// The marker a generated block sits between, so a reader knows not to edit it.
 const OPENS: &str = "<!-- generated from kwb_mcp::TOOLS -->";
 
 /// And where it ends.
 const CLOSES: &str = "<!-- end generated -->";
+
+/// The bands table's markers, distinct so two generated blocks cannot be confused for one.
+const BANDS_OPEN: &str = "<!-- generated from crate manifests -->";
+
+/// And where that one ends.
+const BANDS_CLOSE: &str = "<!-- end generated bands -->";
 
 /// The tool table, as the registry says it should read.
 ///
@@ -78,14 +78,6 @@ fn Projected() -> String
     return table;
 }
 
-/// What the README currently carries between the markers.
-fn Carried(readme: &str) -> Option<String>
-{
-    let after = readme.split_once(OPENS)?.1;
-    let (block, _) = after.split_once(CLOSES)?;
-
-    return Some(block.trim().to_owned());
-}
 
 #[test]
 fn Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects()
@@ -94,7 +86,7 @@ fn Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects()
         .expect("README.md should be readable");
 
     let projected = Projected();
-    let carried = Carried(&readme).unwrap_or_else(|| {
+    let carried = Between(&readme, OPENS, CLOSES).unwrap_or_else(|| {
         panic!(
             "README.md carries no generated block. It should contain, between {OPENS} and \
              {CLOSES}:\n\n{projected}"
@@ -135,4 +127,136 @@ fn Test_The_Projection_Should_Actually_Describe_The_Tools()
             tool.name
         );
     }
+}
+
+// ---- KWB-75: the bands table, projected from the manifests ----
+
+/// One crate's row: the band it declares, its name, and what it says it owns.
+struct Row
+{
+    band: String,
+    name: String,
+    owns: String,
+}
+
+/// Where a band sorts, derived from the band itself rather than stored beside it.
+///
+/// A band is a label and not a number — `1p` is the platform tier beside band 1 — so sorting the
+/// strings would put `10` before `1p` before `2`. The order falls out of the label: the leading
+/// digits as a number, then the suffix, then the crate name. `1` precedes `1p` because an empty
+/// suffix precedes `p`, and `3` precedes `10` because ten is larger than three.
+///
+/// Derived rather than stored, because a second field carrying the order would be a second thing
+/// to keep in step — which is the arrangement this whole file exists to remove.
+fn Sorts_At(row: &Row) -> (u32, String, String)
+{
+    let digits: String = row.band.chars().take_while(char::is_ascii_digit).collect();
+    let suffix: String = row.band.chars().skip(digits.len()).collect();
+
+    return (digits.parse().unwrap_or(u32::MAX), suffix, row.name.clone());
+}
+
+/// Every crate that declares a band, read from the manifests that declare it.
+fn Rows() -> Vec<Row>
+{
+    let mut rows = Vec::new();
+    Collect_Rows(&Repository_Root().join("crates"), &mut rows);
+    rows.sort_by_key(Sorts_At);
+
+    return rows;
+}
+
+/// Walk for manifests carrying a band.
+fn Collect_Rows(directory: &Path, rows: &mut Vec<Row>)
+{
+    let Ok(entries) = std::fs::read_dir(directory)
+    else
+    {
+        return;
+    };
+
+    for entry in entries
+    {
+        let path = entry.expect("a readable directory entry").path();
+        if path.is_dir()
+        {
+            Collect_Rows(&path, rows);
+            continue;
+        }
+        if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+        {
+            continue;
+        }
+
+        let text = std::fs::read_to_string(&path).expect("a readable manifest");
+        let (Some(name), Some(owns), Some(band)) = (
+            Quoted_After(&text, "name = "),
+            Quoted_After(&text, "description = "),
+            Quoted_After(&text, "band = "),
+        )
+        else
+        {
+            continue;
+        };
+        rows.push(Row { band, name, owns });
+    }
+}
+
+/// The bands table, as the manifests say it should read.
+fn Projected_Bands() -> String
+{
+    use core::fmt::Write as _;
+
+    let mut table = String::from("| Band | Crate | Owns |\n|---|---|---|\n");
+    for row in Rows()
+    {
+        writeln!(table, "| {} | `{}` | {} |", row.band, row.name, row.owns)
+            .expect("writing into a String cannot fail");
+    }
+
+    return table;
+}
+
+#[test]
+fn Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project()
+{
+    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+        .expect("README.md should be readable");
+
+    let projected = Projected_Bands();
+    let carried = Between(&readme, BANDS_OPEN, BANDS_CLOSE).unwrap_or_else(|| {
+        panic!(
+            "README.md carries no generated bands table. It should contain, between \
+             {BANDS_OPEN} and {BANDS_CLOSE}:\n\n{projected}"
+        )
+    });
+
+    assert_eq!(
+        carried.trim(),
+        projected.trim(),
+        "the README's bands table is not what the manifests project. Replace the block between \
+         the markers with:\n\n{projected}"
+    );
+}
+
+#[test]
+fn Test_Every_Crate_Should_Declare_Which_Band_It_Is_In()
+{
+    // A crate with no band is silently absent from the table, which is the shape of a capability
+    // nobody is told about — the defect `KWB-61` and `KWB-65` each found on a different surface.
+    // The floor is the workspace's own member count, so a crate joining the workspace without a
+    // band fails here rather than disappearing.
+    let rows = Rows();
+    let members = Workspace_Members();
+
+    let bandless: Vec<&String> = members
+        .iter()
+        .filter(|member| return !rows.iter().any(|row| return &row.name == *member))
+        .collect();
+
+    assert!(
+        bandless.is_empty(),
+        "these crates are workspace members and declare no band, so the projected table would \
+         not mention them at all: {bandless:?}"
+    );
 }

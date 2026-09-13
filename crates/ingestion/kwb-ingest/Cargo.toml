@@ -7,6 +7,13 @@ rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
 
+# The band this crate sits in, which decides which bands it may depend on. Read by
+# `tests/contract`, which projects `README.md`'s bands table from these rather than from a
+# second list -- `KWB-75`. Cargo ignores `package.metadata`; it is the place a manifest
+# offers for exactly this.
+[package.metadata.kwb]
+band = "3"
+
 [dependencies]
 kwb-domain = { workspace = true }
 kwb-model = { workspace = true }

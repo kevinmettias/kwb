@@ -10,6 +10,13 @@ publish.workspace = true
 # A library as well as a binary, so the tool surface can be tested. A dispatcher
 # nothing could call from a test would be a surface whose promise is unchecked,
 # which is the defect it exists to prevent.
+# The band this crate sits in, which decides which bands it may depend on. Read by
+# `tests/contract`, which projects `README.md`'s bands table from these rather than from a
+# second list -- `KWB-75`. Cargo ignores `package.metadata`; it is the place a manifest
+# offers for exactly this.
+[package.metadata.kwb]
+band = "10"
+
 [lib]
 name = "kwb_mcp"
 path = "src/lib.rs"

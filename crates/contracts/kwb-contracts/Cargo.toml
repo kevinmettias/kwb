@@ -11,6 +11,13 @@ publish.workspace = true
 # f:/repos/nomos/crates/contracts/nomos-contracts. Every type here may be copied into a
 # Nomos or XVPE implementation that has never seen this repository; a dependency added
 # here makes the protocol KWB-shaped and forces a peer to vendor a Rust crate to speak it.
+# The band this crate sits in, which decides which bands it may depend on. Read by
+# `tests/contract`, which projects `README.md`'s bands table from these rather than from a
+# second list -- `KWB-75`. Cargo ignores `package.metadata`; it is the place a manifest
+# offers for exactly this.
+[package.metadata.kwb]
+band = "0"
+
 [dependencies]
 serde = { workspace = true }
 
