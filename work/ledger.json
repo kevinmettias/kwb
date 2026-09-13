@@ -3481,14 +3481,10 @@
         ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
-      "claim": {
-        "holder": "fable",
-        "acquired_at": 1789278635,
-        "lease_expires_at": 1789285835
-      },
+      "claim": null,
       "verification": {
         "argv": [
           "cargo",
@@ -3498,7 +3494,30 @@
         ],
         "timeout_seconds": 600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "ne_The_Binary_Dispatches ... ok\ntest Test_The_Manifest_Reader_Should_Take_The_Quoted_Value ... ok\ntest Test_The_Relation_Reader_Should_Find_Nothing_Where_Nothing_Is_Declared ... ok\ntest Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table ... ok\ntest Test_Every_Tool_The_Readme_Names_Should_Be_One_The_Surface_Declares ... ok\ntest Test_Every_Verb_The_Binary_Dispatches_Should_Be_One_The_Readme_Shows ... ok\ntest Test_No_Record_Should_Claim_A_Reference_Nobody_Declared ... ok\ntest Test_Every_Declared_Relation_Should_Be_Reachable_From_Both_Ends ... ok\ntest Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board ... ok\ntest Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-33248017a69ece6b.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-acef1b42025cc16f.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-1b56f4ff95289a6b.exe)\n",
+        "verified_at": 1789278711,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "7240e5dcb13f42a661340b8b49eee9cfb113ea7c"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null
