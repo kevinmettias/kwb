@@ -2,6 +2,7 @@
 
 use kwb_model::ContentIdentity;
 use kwb_model::Derivation;
+use kwb_model::Normalize;
 
 /// The kind a concept's identity is derived under.
 const CONCEPT: &str = "concept";
@@ -38,10 +39,10 @@ impl Concept
     ///
     /// The only way to obtain one, and it derives rather than accepts the identity.
     #[must_use]
-    pub fn Named(canonical_name: String) -> Self
+    pub fn Named(canonical_name: &str) -> Self
     {
         let identity = Derivation::Of(CONCEPT)
-            .With_Text(CANONICAL_NAME, &canonical_name)
+            .With_Text(CANONICAL_NAME, canonical_name)
             .Excluding(
                 "source",
                 "a concept named by two references is one concept with two citations",
@@ -51,7 +52,7 @@ impl Concept
 
         return Self {
             identity,
-            canonical_name,
+            canonical_name: Normalize(canonical_name),
         };
     }
 
@@ -62,7 +63,16 @@ impl Concept
         return self.identity;
     }
 
-    /// The name it is addressed by, as given.
+    /// The name it is addressed by, normalized.
+    ///
+    /// **Normalized rather than as given**, so that this never disagrees with
+    /// [`Identity`][Self::Identity]. Two spellings differing only in whitespace derive one
+    /// identity — a reflow is not an edit — and before `KWB-32` they rendered as two different
+    /// names, so which one a reader got back depended on which was published first. In a
+    /// repository whose premise is that content decides everything, insertion order deciding
+    /// anything is the defect.
+    ///
+    /// Case is **not** folded, here or anywhere: `BVH` and `bvh` are different concepts.
     #[must_use]
     pub fn Canonical_Name(&self) -> &str
     {

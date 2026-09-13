@@ -8,8 +8,8 @@ use kwb_retrieval::{CurrentQueries, HistoricalQueries};
 /// A graph holding one concept, one claim about it, and one assertion of that claim.
 fn Corpus() -> (KnowledgeGraph, Concept, Claim)
 {
-    let entropy = Concept::Named("entropy".to_owned());
-    let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.".to_owned());
+    let entropy = Concept::Named("entropy");
+    let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.");
     let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory"));
 
     let graph = KnowledgeGraph::Empty()
@@ -179,8 +179,8 @@ fn Test_A_Neighbourhood_Should_Reach_A_Concepts_Claims_And_Their_Assertions()
 fn Test_A_Neighbourhood_Should_Not_Reach_Another_Concepts_Claims()
 {
     let (graph, entropy, _) = Corpus();
-    let other = Concept::Named("enthalpy".to_owned());
-    let unrelated = Claim::About(&other, "It is a thermodynamic potential.".to_owned());
+    let other = Concept::Named("enthalpy");
+    let unrelated = Claim::About(&other, "It is a thermodynamic potential.");
     let graph = graph
         .With_Concept(Versioned::Asserted(other))
         .With_Claim(Versioned::Asserted(unrelated));
@@ -199,7 +199,7 @@ fn Test_A_Neighbourhood_Should_Not_Reach_Another_Concepts_Claims()
 fn Test_A_Merge_Loser_Should_Be_Invisible_To_Current_And_Visible_To_Historical()
 {
     let (graph, entropy, _) = Corpus();
-    let keeper = Concept::Named("thermodynamic entropy".to_owned());
+    let keeper = Concept::Named("thermodynamic entropy");
     let graph = graph
         .With_Concept(Versioned::Asserted(keeper.clone()))
         .With_Concept(Versioned::Asserted(entropy.clone()).Closed(Standing::Superseded {

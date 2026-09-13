@@ -86,8 +86,8 @@ pub fn Link_Concepts(extractions: &[Extraction]) -> Linked
             continue;
         }
 
-        let concept = Concept::Named(extraction.concept_name.clone());
-        let claim = Claim::About(&concept, extraction.claim_text.clone());
+        let concept = Concept::Named(&extraction.concept_name);
+        let claim = Claim::About(&concept, &extraction.claim_text);
 
         linked.concepts.push(concept);
         linked.claims.push(claim);

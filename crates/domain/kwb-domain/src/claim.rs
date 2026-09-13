@@ -2,6 +2,7 @@
 
 use kwb_model::ContentIdentity;
 use kwb_model::Derivation;
+use kwb_model::Normalize;
 
 use crate::Concept;
 
@@ -53,11 +54,11 @@ impl Claim
     /// renamed concept gives its claims new identities and the staleness is computable
     /// rather than silent.
     #[must_use]
-    pub fn About(concept: &Concept, text: String) -> Self
+    pub fn About(concept: &Concept, text: &str) -> Self
     {
         let identity = Derivation::Of(CLAIM)
             .With_Identity(CONCEPT, &concept.Identity())
-            .With_Text(TEXT, &text)
+            .With_Text(TEXT, text)
             .Excluding(
                 "source",
                 "two references asserting one claim must become one claim with two citations",
@@ -72,7 +73,7 @@ impl Claim
         return Self {
             identity,
             concept: concept.Identity(),
-            text,
+            text: Normalize(text),
         };
     }
 
@@ -90,7 +91,13 @@ impl Claim
         return self.concept;
     }
 
-    /// What the claim says, as given.
+    /// What the claim says, normalized.
+    ///
+    /// Normalized for the reason [`Concept::Canonical_Name`] is: an accessor that disagreed
+    /// with the identity derived from the same input would make what a reader gets back a
+    /// function of publication order rather than of content.
+    ///
+    /// [`Concept::Canonical_Name`]: crate::Concept::Canonical_Name
     #[must_use]
     pub fn Text(&self) -> &str
     {

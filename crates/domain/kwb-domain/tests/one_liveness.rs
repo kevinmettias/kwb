@@ -6,7 +6,7 @@ use kwb_domain::{Concept, KnowledgeGraph, Standing, Versioned};
 
 fn Asserted(name: &str) -> Versioned<Concept>
 {
-    return Versioned::Asserted(Concept::Named(name.to_owned()));
+    return Versioned::Asserted(Concept::Named(name));
 }
 
 // ---- D-008's first requirement: liveness is one expression ----

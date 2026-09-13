@@ -105,8 +105,8 @@ fn Test_A_Yield_Of_Nothing_Should_Be_A_Barren_Rather_Than_A_Yield_Of_Zero()
 #[test]
 fn Test_Two_References_Naming_One_Concept_Should_Produce_One_Identity()
 {
-    let from_one_book = Concept::Named("entropy".to_owned());
-    let from_another = Concept::Named("entropy".to_owned());
+    let from_one_book = Concept::Named("entropy");
+    let from_another = Concept::Named("entropy");
 
     assert_eq!(from_one_book.Identity(), from_another.Identity());
 }
@@ -115,8 +115,8 @@ fn Test_Two_References_Naming_One_Concept_Should_Produce_One_Identity()
 fn Test_Concepts_Differing_Only_In_Case_Should_Be_Two_Concepts()
 {
     // The recorded divergence from the prototype, which folded case in a LOWER() index.
-    let upper = Concept::Named("BVH".to_owned());
-    let lower = Concept::Named("bvh".to_owned());
+    let upper = Concept::Named("BVH");
+    let lower = Concept::Named("bvh");
 
     assert_ne!(
         upper.Identity(),
@@ -128,11 +128,11 @@ fn Test_Concepts_Differing_Only_In_Case_Should_Be_Two_Concepts()
 #[test]
 fn Test_Two_References_Asserting_One_Claim_Should_Produce_One_Claim()
 {
-    let entropy = Concept::Named("entropy".to_owned());
+    let entropy = Concept::Named("entropy");
     let text = "Entropy is non-decreasing in an isolated system.";
 
-    let callen = Claim::About(&entropy, text.to_owned());
-    let kittel = Claim::About(&entropy, text.to_owned());
+    let callen = Claim::About(&entropy, text);
+    let kittel = Claim::About(&entropy, text);
 
     assert_eq!(
         callen.Identity(),
@@ -144,12 +144,12 @@ fn Test_Two_References_Asserting_One_Claim_Should_Produce_One_Claim()
 #[test]
 fn Test_A_Claim_Should_Depend_On_Its_Concepts_Identity_And_Not_Its_Name()
 {
-    let entropy = Concept::Named("entropy".to_owned());
-    let renamed = Concept::Named("Entropy".to_owned());
+    let entropy = Concept::Named("entropy");
+    let renamed = Concept::Named("Entropy");
     let text = "It is non-decreasing in an isolated system.";
 
-    let about_one = Claim::About(&entropy, text.to_owned());
-    let about_other = Claim::About(&renamed, text.to_owned());
+    let about_one = Claim::About(&entropy, text);
+    let about_other = Claim::About(&renamed, text);
 
     assert_ne!(
         about_one.Identity(),
@@ -163,10 +163,10 @@ fn Test_A_Claim_Should_Depend_On_Its_Concepts_Identity_And_Not_Its_Name()
 #[test]
 fn Test_A_Changed_Claim_Should_Not_Keep_Its_Identity()
 {
-    let entropy = Concept::Named("entropy".to_owned());
+    let entropy = Concept::Named("entropy");
 
-    let stated = Claim::About(&entropy, "It is non-decreasing.".to_owned());
-    let edited = Claim::About(&entropy, "It is non-increasing.".to_owned());
+    let stated = Claim::About(&entropy, "It is non-decreasing.");
+    let edited = Claim::About(&entropy, "It is non-increasing.");
 
     assert_ne!(
         stated.Identity(),
@@ -179,10 +179,10 @@ fn Test_A_Changed_Claim_Should_Not_Keep_Its_Identity()
 #[test]
 fn Test_A_Reflowed_Claim_Should_Keep_Its_Identity()
 {
-    let entropy = Concept::Named("entropy".to_owned());
+    let entropy = Concept::Named("entropy");
 
-    let printed = Claim::About(&entropy, "It is  non-decreasing.\n".to_owned());
-    let reflowed = Claim::About(&entropy, "It is non-decreasing.".to_owned());
+    let printed = Claim::About(&entropy, "It is  non-decreasing.\n");
+    let reflowed = Claim::About(&entropy, "It is non-decreasing.");
 
     assert_eq!(
         printed.Identity(),
@@ -196,8 +196,8 @@ fn Test_A_Claim_Should_Carry_No_Scope_And_No_Confidence()
 {
     // D-010 and D20 respectively, asserted the only way a test can assert an absence:
     // by fixing what a claim is made of. A field added later fails this.
-    let entropy = Concept::Named("entropy".to_owned());
-    let claim = Claim::About(&entropy, "anything".to_owned());
+    let entropy = Concept::Named("entropy");
+    let claim = Claim::About(&entropy, "anything");
 
     assert_eq!(claim.Text(), "anything");
     assert_eq!(claim.Concept(), entropy.Identity());
@@ -211,8 +211,8 @@ fn Test_A_Claim_Should_Carry_No_Scope_And_No_Confidence()
 
 fn Entropy() -> (Concept, Claim)
 {
-    let concept = Concept::Named("entropy".to_owned());
-    let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.".to_owned());
+    let concept = Concept::Named("entropy");
+    let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
     return (concept, claim);
 }
 
@@ -266,8 +266,8 @@ fn Test_A_Preference_And_A_Measurement_Saying_One_Thing_Should_Meet_At_The_Claim
     // The contamination D-010 exists to prevent, and the thing that makes preventing it
     // worthwhile: whether the two agree is the one question worth asking of the pair, and it
     // is only askable because the claim is shared.
-    let concept = Concept::Named("static dispatch".to_owned());
-    let text = "Under workload W, target H, constraints C, it was preferred.".to_owned();
+    let concept = Concept::Named("static dispatch");
+    let text = "Under workload W, target H, constraints C, it was preferred.";
     let claim = Claim::About(&concept, text);
 
     let measured = Assertion::By("benchmark run 41", &claim, Scope::Named("project evidence"));
@@ -320,4 +320,58 @@ fn Test_A_Reflowed_Scope_Should_Not_Be_A_Different_Scope()
         Scope::Named("physical theory"),
         "case is significant here, as it is for a concept"
     );
+}
+
+// ---- KWB-32: an accessor never disagrees with the identity derived from the same input ----
+
+#[test]
+fn Test_Two_Spellings_That_Derive_One_Identity_Should_Render_One_Text()
+{
+    let spaced = Concept::Named("a  b");
+    let tight = Concept::Named("a b");
+
+    assert_eq!(spaced.Identity(), tight.Identity(), "a reflow is not an edit");
+    assert_eq!(
+        spaced.Canonical_Name(),
+        tight.Canonical_Name(),
+        "the identity says one concept, so the accessor must not say two different things --          otherwise what a reader gets back depends on which was published first"
+    );
+}
+
+#[test]
+fn Test_A_Claims_Text_Should_Agree_With_Its_Identity_The_Same_Way()
+{
+    let concept = Concept::Named("entropy");
+    let printed = Claim::About(&concept, "It is  non-decreasing.
+");
+    let reflowed = Claim::About(&concept, "It is non-decreasing.");
+
+    assert_eq!(printed.Identity(), reflowed.Identity());
+    assert_eq!(printed.Text(), reflowed.Text());
+    assert_eq!(printed.Text(), "It is non-decreasing.");
+}
+
+#[test]
+fn Test_All_Four_Text_Carrying_Types_Should_Agree_About_What_They_Keep()
+{
+    // Two of the four normalized what they stored and two did not, and nothing decided that.
+    let concept = Concept::Named("a  b");
+    let claim = Claim::About(&concept, "p  q");
+    let assertion = Assertion::By("S  1", &claim, Scope::Named("z  y"));
+
+    assert_eq!(concept.Canonical_Name(), "a b");
+    assert_eq!(claim.Text(), "p q");
+    assert_eq!(assertion.Source(), "S 1");
+    assert_eq!(assertion.Scope().Name(), "z y");
+}
+
+#[test]
+fn Test_Normalization_Should_Still_Not_Fold_Case()
+{
+    // The one normalization that looks obviously helpful and is not.
+    let upper = Concept::Named("BVH");
+    let lower = Concept::Named("bvh");
+
+    assert_ne!(upper.Identity(), lower.Identity());
+    assert_ne!(upper.Canonical_Name(), lower.Canonical_Name());
 }
