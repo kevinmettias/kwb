@@ -102,6 +102,10 @@ dependencies = [
 [[package]]
 name = "kwb-mcp"
 version = "0.1.0"
+dependencies = [
+ "kwb-domain",
+ "kwb-retrieval",
+]
 
 [[package]]
 name = "kwb-model"
@@ -133,6 +137,7 @@ name = "kwb-retrieval"
 version = "0.1.0"
 dependencies = [
  "kwb-domain",
+ "kwb-model",
 ]
 
 [[package]]

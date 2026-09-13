@@ -12,6 +12,9 @@ name = "kwb-mcp"
 path = "src/main.rs"
 
 [dependencies]
+# A read-only surface names the read-only query types and nothing that can write.
+kwb-domain = { workspace = true }
+kwb-retrieval = { workspace = true }
 
 [lints]
 workspace = true
