@@ -234,6 +234,18 @@ fn Code_Of(directory: &Path, into: &mut Vec<(PathBuf, String)>)
         {
             continue;
         }
+        // A scanner cannot scan its own evidence. These two files hold deliberately damaged
+        // strings as fixtures -- that is what they are for, and `KWB-57` is the item that
+        // established the fixture must be the real instance rather than a reconstruction. Named
+        // rather than pattern-matched, because there are two of them and a pattern would quietly
+        // exempt a third file somebody added for another reason.
+        let holds_fixtures = path
+            .file_name()
+            .is_some_and(|name| return name == "literals.rs" || name == "commands.rs");
+        if holds_fixtures
+        {
+            continue;
+        }
 
         let text = std::fs::read_to_string(&path).expect("a readable source file");
         let code: String = text
@@ -248,8 +260,13 @@ fn Code_Of(directory: &Path, into: &mut Vec<(PathBuf, String)>)
 #[test]
 fn Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence()
 {
+    // Both trees. `crates/` is the product; `tests/` is where the guards live, and a guard's
+    // own assert message is read by whoever is looking at a failure -- the worst moment to hand
+    // somebody a sentence with a hole in it. Scanning only `crates/` missed damage that landed
+    // in this very directory the day `KWB-61` was written.
     let mut code = Vec::new();
     Code_Of(&Repository_Root().join("crates"), &mut code);
+    Code_Of(&Repository_Root().join("tests"), &mut code);
 
     let mut damaged: Vec<String> = Vec::new();
     for (path, text) in &code
@@ -277,6 +294,7 @@ fn Test_The_Scan_Should_Actually_Have_Read_The_Workspace()
 {
     let mut code = Vec::new();
     Code_Of(&Repository_Root().join("crates"), &mut code);
+    Code_Of(&Repository_Root().join("tests"), &mut code);
 
     let literals: usize = code
         .iter()

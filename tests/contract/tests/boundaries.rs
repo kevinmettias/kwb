@@ -501,6 +501,72 @@ fn Test_Every_Command_The_Readme_Shows_Should_Be_One_The_Binary_Dispatches()
     );
 }
 
+/// Every verb the binary dispatches is one the README shows.
+///
+/// # The direction that was missing
+///
+/// The test above catches a promise the binary cannot keep. This catches a capability nobody is
+/// told about, and the repository grew one the day this was written: `KWB-60` added
+/// `kwb history` and nothing complained, because the only check ran README-to-binary.
+///
+/// `AGENTS.md` routes *what exists* to `README.md`, so a verb the binary answers and the README
+/// never shows is a capability a reader cannot find. `KWB-56` corrected that file for claiming
+/// what the code does not do; this is the same file failing the other way, and the bands table
+/// and the record relations are both already checked in both directions.
+///
+/// `help` is not a capability a reader has to be told about in prose — it is how they find the
+/// rest — so it is exempt, and the aliases it answers to with it.
+#[test]
+fn Test_Every_Verb_The_Binary_Dispatches_Should_Be_One_The_Readme_Shows()
+{
+    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+        .expect("README.md should be readable");
+    let dispatch =
+        std::fs::read_to_string(Repository_Root().join("crates/host/kwb-cli/src/main.rs"))
+            .expect("the composition root should be readable");
+
+    let shown = Verbs_Shown(&readme);
+    let dispatched = Verbs_Dispatched(&dispatch);
+
+    assert!(
+        dispatched.len() >= 4,
+        "only {dispatched:?} were found in the dispatch, so this guard covers almost nothing"
+    );
+
+    let undocumented: Vec<&String> = dispatched
+        .iter()
+        .filter(|verb| return !shown.iter().any(|seen| return seen == *verb))
+        .collect();
+
+    assert!(
+        undocumented.is_empty(),
+        "the binary answers these and the README never mentions them, so a reader sent to that \
+         file for what exists cannot find them: {undocumented:?}"
+    );
+}
+
+/// Every verb `main` matches on, minus the ones that exist to find the others.
+fn Verbs_Dispatched(dispatch: &str) -> Vec<String>
+{
+    let exempt = ["help", "--help", "-h"];
+    let mut verbs: Vec<String> = Vec::new();
+
+    for fragment in dispatch.split("Some((&\"").skip(1)
+    {
+        let Some(inside) = fragment.split('"').next()
+        else
+        {
+            continue;
+        };
+        if !exempt.contains(&inside)
+        {
+            Remember(&mut verbs, inside);
+        }
+    }
+
+    return verbs;
+}
+
 /// Every `kwb-mcp` tool the README names is one the surface declares.
 #[test]
 fn Test_Every_Tool_The_Readme_Names_Should_Be_One_The_Surface_Declares()

@@ -3348,6 +3348,43 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-61",
+      "title": "The binary dispatches a verb the README never mentions, and the guard between them only looks one way",
+      "why": "KWB-60 added kwb history and the README does not mention it. Nothing complains, because Test_Every_Command_The_Readme_Shows_Should_Be_One_The_Binary_Dispatches reads the README's verbs and asks whether the binary dispatches each -- the direction that catches a promise the binary cannot keep, and not the direction that catches a capability nobody is told about. AGENTS.md routes what exists to README.md, so a verb the binary answers and the README never shows is a capability a reader cannot find, which is the discoverability half of the defect this repository keeps finding: KWB-56 corrected the README for claiming what the code does not do, and this is the same file failing the other way. The bands table is already checked in both directions and the record relations were made bidirectional by KWB-55 for exactly this reason, so the verb guard is the remaining one-way check of the three.",
+      "done_when": "README.md documents kwb history with what it answers and what it does not -- a publication count rather than a time, and why -- so a reader learns the capability exists and what its limit is from the file they are sent to. The guard checks both directions: a verb the README shows must be dispatched, and a verb the binary dispatches must be shown. Shown to discriminate both ways by mutating the real files: a verb removed from the README, and a verb removed from the dispatch. The collector is asserted to have found the verbs it needs, because a guard that reads none passes on any repository.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Claimed",
+      "depends_on": [],
+      "blocked": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1789277510,
+        "lease_expires_at": 1789284710
+      },
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

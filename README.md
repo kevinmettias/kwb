@@ -71,6 +71,25 @@ one returns those exact bytes or fails loudly because they are gone.
 destruction requires evidence, and a merge with no recorded reason cannot answer the question it
 demands. `kwb-mcp <store>` with no tool lists the four it answers.
 
+`kwb history --store <dir> [--through <count>]` replays the publication log and reports the
+graph as of that many publications; left out, it reports all of them. It is **a count and not a
+time**, and that is the honest limit rather than a simplification: a publication record carries
+no timestamp and there is no clock port, so an *instant* cannot be asked for in any form
+(`D-012`'s amendment says what would change that). Asking for more history than the log holds is
+refused rather than quietly given everything.
+
+```console
+$ kwb history --store ./corpus --through 3
+through    3 of 6
+concepts   1
+claims     1
+citations  1
+held       1
+```
+
+That is the other half of an audit `merge_losers` starts: one says what was merged away, this
+says what the graph looked like before it.
+
 **There is no extractor.** Nothing here reads a document and decides what it says — that is what
 `--says` is for, and it is the interesting half. `kwb help` has the flags; they are not repeated
 here, because a copy of a help text is a copy that drifts.
