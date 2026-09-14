@@ -1797,3 +1797,85 @@ fn Test_A_Record_Has_A_Referenced_By_Section_Exactly_When_Something_Points_At_It
          does -- these say otherwise: {wrong:#?}"
     );
 }
+
+// ---- KWB-96: the XVPE edge adopts one commit, not several ----
+
+/// The manifest carrying this workspace's only XVPE dependency edge.
+const XVPE_MANIFEST: &str = "crates/platform/kwb-platform-xvpe/Cargo.toml";
+
+/// Every XVPE dependency the quarantine manifest pins, as `(dependency, rev)`.
+///
+/// Read from the manifest rather than from `Cargo.lock`, because the lock records what was
+/// resolved once and this guard is about what the manifest asks for every time.
+fn Xvpe_Pinned_Revisions() -> Vec<(String, String)>
+{
+    let manifest = std::fs::read_to_string(Repository_Root().join(XVPE_MANIFEST))
+        .expect("the XVPE quarantine manifest should be readable");
+
+    let mut pinned = Vec::new();
+    let mut dependency = String::new();
+    for line in manifest.lines()
+    {
+        let trimmed = line.trim();
+        if let Some(rest) = trimmed.strip_prefix("[dependencies.")
+        {
+            if let Some(name) = rest.strip_suffix(']')
+            {
+                name.clone_into(&mut dependency);
+            }
+            continue;
+        }
+        if !trimmed.starts_with("rev")
+        {
+            continue;
+        }
+        let Some((_, value)) = trimmed.split_once('=')
+        else
+        {
+            continue;
+        };
+        if !dependency.is_empty()
+        {
+            pinned.push((dependency.clone(), value.trim().trim_matches('"').to_owned()));
+        }
+    }
+
+    return pinned;
+}
+
+/// The XVPE edge names one commit, so a partial bump fails instead of adopting two.
+///
+/// # Why this exists
+///
+/// The manifest states the rule beside the pin: bumping the `rev` is a decision rather than
+/// maintenance. `KWB-72` bumped it inside an item about something else and nothing recorded what
+/// the move changed. A bump done that way is done by hand, once per dependency, and the failure
+/// it invites is the one nobody would notice: three move and one is left behind, so the
+/// workspace compiles two states of another repository at once and reports nothing wrong.
+///
+/// # What this deliberately does not check
+///
+/// *Which* commit is pinned. That is a decision, `D-007` is where it is recorded, and a test
+/// demanding a particular SHA would fail on every deliberate bump -- which is how a guard gets
+/// switched off.
+#[test]
+fn Test_Every_Xvpe_Dependency_Should_Pin_The_Same_Commit()
+{
+    let pinned = Xvpe_Pinned_Revisions();
+
+    assert!(
+        pinned.len() >= 4,
+        "only {} XVPE pins were read from {XVPE_MANIFEST}, so this guard is comparing almost \
+         nothing and the manifest's shape has moved under it: {pinned:#?}",
+        pinned.len()
+    );
+
+    let commits: BTreeSet<&str> = pinned.iter().map(|(_, rev)| return rev.as_str()).collect();
+    assert!(
+        commits.len() == 1,
+        "the XVPE edge pins {} different commits, so this workspace adopts more than one state \
+         of another repository at once -- which is what D-007 pins a commit to prevent: \
+         {pinned:#?}",
+        commits.len()
+    );
+}

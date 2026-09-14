@@ -3,7 +3,7 @@ id: D-007
 type: decision
 title: This repository takes no path dependency on XVPE, and the reason is coupling rather than breakage
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - ecosystem
@@ -172,6 +172,82 @@ and `D-003` is this repository's record that presence is not validity.
   machine could find, so it could not be reproduced here. It is cited as the clearest
   statement of a mechanism, and the mechanism does not depend on the exact count.
 - **Whether these three are the right crates is not addressed**, only what they would cost.
+
+## Amendment: The Pin Moved, and the Closure Is Measurable Here Now, 2026-09-13
+
+Two of the limits stated above under *What this measurement does not cover* have expired, and
+closing them answers a question the manifest has been asking since `KWB-24`.
+
+Neither needed a new measurement of XVPE. They needed this repository to have a consumer, and
+`KWB-24` built one: *no KWB crate has ever named an XVPE crate* stopped being true then, and
+with a consumer here `Cargo.lock` resolves the closure **in this workspace**, which is the other
+limit. The figures in version 1 were a lower bound taken in XVPE's own tree. These are not.
+
+### The manifest names four crates and this workspace compiles nine
+
+Named, each pinned by `rev`: `xvpe-collections-persistent`, `xvpe-clock`, `xvpe-corpus-text`,
+`xvpe-ai-inference`.
+
+Reached through them and named nowhere in this repository: `xvpe-primitives`,
+`xvpe-collections-map`, `xvpe-collections-sequence`, `xvpe-collections-handle` and
+`xvpe-json-text`. `Cargo.lock` carries all nine at one commit.
+
+**The five unnamed crates are not a lesser part of the adoption, and this repository has been
+surprised by them twice.** `KWB-90` found the build floor at 1.87.0 and traced it to
+`integer_sign_cast` in `xvpe-collections-map` — a crate reached through
+`xvpe-collections-persistent`, so the quarantine confined the dependency *edge* to one manifest
+while the toolchain floor it carried reached every crate above band 1p. `D-016` records that.
+The second is below. Both were found by going and looking, and nothing would have reported
+either.
+
+### What the bump changed, which is what a pinned dependency exists to make visible
+
+The manifest says beside the pin that bumping the `rev` is a decision rather than maintenance.
+The pin moved from `a7eee3c6e361371b269217201233a2e7d7e36122` to `8ff98a8fd` at `KWB-72`, whose
+subject was `D-014`'s last deferral, and no record says it moved. `8ff98a8fd` appears in no
+record at all; `OD-GATE-001` names it, to say the gate cannot fetch it.
+
+Measured between the two commits, 2026-09-13:
+
+- **None of the four named crates changed.**
+- **`xvpe-json-text` did**, which this workspace compiles and does not name. Two constants
+  widened from private to `pub(crate)`, and `JsonRecordReader` gained one method —
+  `Flag(document, name) -> Result<bool, FieldDefect>`, which those two constants serve — with
+  tests. Additive and visibility-only; nothing was removed or changed in behaviour.
+- Nine crates changed in XVPE between the two commits. One of them is in this closure.
+
+So the bump was behaviourally inert here. **That is the measurement's result and not its
+justification** — it was inert as a matter of fact, not by anything this repository did, and
+nothing here established it at the time or since. A bump that had changed behaviour would have
+looked identical from inside this repository.
+
+One thing deliberately not treated as a defect: the abbreviated `rev`. `Cargo.lock` resolves it
+to `8ff98a8fd478750ca4f8a96ffd7174db902ffd0f`, so the abbreviation is latent rather than live,
+and rewriting it would churn the lock for no measured gain.
+
+### The rule this forces
+
+**The surface a `rev` bump must be measured against is the closure `Cargo.lock` resolves, not
+the crates the manifest names.** A bump measured against the four named crates would have
+reported no change here and been wrong about the closure, which is the same error version 1
+guarded against in the other direction by calling its XVPE-side figures a lower bound.
+
+### What is guarded, and what is not
+
+`KWB-96` adds `Test_Every_Xvpe_Dependency_Should_Pin_The_Same_Commit` to `tests/contract`. The
+four pins must name one commit, so a partial bump — the shape a hand edit inside an item about
+something else invites — fails instead of adopting two states of another repository at once. It
+was proven by mutating this repository's real manifest, in both directions: one pin left behind
+fails it, and a manifest whose shape moves under the parser fails it too rather than passing on
+nothing.
+
+It does **not** check which commit is pinned. That is a decision and this record is where it
+belongs; a test demanding a particular SHA would fail on every deliberate bump, which is how a
+guard gets switched off.
+
+It also does not notice that a bump happened, or measure what one changed. Nothing here can:
+`D-007` adopts XVPE by git reference precisely so that no test in this repository reads its
+working tree. That measurement is a person's, and this section is what one is owed.
 
 ## Alternatives Considered
 

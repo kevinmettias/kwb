@@ -5237,6 +5237,63 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-96",
+      "title": "The manifest names four XVPE crates and this workspace compiles nine, and both surprises this repository has had came from the five it does not name",
+      "why": "`D-007` adopts XVPE by git reference and commit SHA into a crate that exists to quarantine it. The manifest names four: `xvpe-collections-persistent`, `xvpe-clock`, `xvpe-corpus-text`, `xvpe-ai-inference`. `Cargo.lock` resolves nine -- those four plus `xvpe-collections-handle`, `xvpe-collections-map`, `xvpe-collections-sequence`, `xvpe-json-text` and `xvpe-primitives`. The five are named nowhere in this repository.\n\nThe manifest states its own rule beside the pin: *Bumping the `rev` is a decision, not maintenance. What changed between two commits of another repository is exactly what a pinned dependency exists to make visible.* The pin moved from `a7eee3c6e361371b269217201233a2e7d7e36122` to `8ff98a8fd` at `KWB-72`, whose subject was D-014's last deferral, and nothing recorded what the move changed. No record mentions `8ff98a8fd` at all; `OD-GATE-001` does, to say the gate cannot fetch it.\n\nMeasured between the two commits: the four named crates did not change. `xvpe-json-text` did -- two consts widened to `pub(crate)`, and an additive method on `JsonRecordReader` with tests. That is behaviourally inert for this workspace, and it is luck rather than a finding, because nothing here established it then and nothing has since. It is also worth saying the first probe run for this was wrong: a per-crate `git diff --stat` pathspec reported `xvpe-json-text` unchanged while the full diff showed it changed, and the crate had moved directories. The instrument was wrong before the conclusion was.\n\nThis is the second time an unnamed crate has decided something here. `KWB-90` measured the build floor at 1.87 and traced it to `integer_sign_cast` in `xvpe-collections-map`, reached through `xvpe-collections-persistent`; `D-016` records that the quarantine confines the dependency *edge* but not the toolchain floor that edge carries. Different crate, different axis, same shape, and both were found only by going and looking.\n\nThe abbreviated `rev` is not the defect and is not treated as one. `Cargo.lock` resolves it to `8ff98a8fd478750ca4f8a96ffd7174db902ffd0f`, so the abbreviation is latent rather than live, and rewriting it would churn the lock for no measured gain.",
+      "done_when": "`D-007` records the bump as the measurement the manifest says a pin exists to produce: which commit to which, that the four named crates were unchanged, that `xvpe-json-text` changed and how, and that the change was behaviourally inert -- measured rather than assumed, and dated.\n\nIt states the rule that measurement forces: the surface a rev bump must be measured against is the closure `Cargo.lock` resolves, not the crates the manifest names, and it names the five so that the next session does not have to re-derive them. It records this as the second instance of the shape `D-016` named once, since one instance was judged not to need a guard and two is a different question.\n\nA contract guard holds the four `rev` values to a single commit, so a partial bump -- the shape a hand edit inside an item about something else produces -- fails instead of adopting two commits at once. Proven by mutating the real manifest rather than a reconstruction, with every assertion shown able to fail.\n\nIt does not change the pin, does not touch `Cargo.lock`, and does not bump anything. The item is the record and the guard.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract",
+          "crates/platform/kwb-platform-xvpe",
+          "docs/records/D-007-no-path-dependency-on-xvpe-and-the-reason-is-not-that-xvpe-is-broken.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-3bb30553545e158b.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-0044164605fd7d46.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-73274744ce9004c4.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-fc84c1a1773a4dec.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-861087b3b7b09975.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789349460,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "59a9e81c723add4220cafee31965a68fdcccfeab"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
