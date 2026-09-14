@@ -5462,6 +5462,70 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-100",
+      "title": "Nothing requires a record to name the commit this workspace actually adopts, so a rev bump can land with no record of what it changed",
+      "why": "`D-004` names this mechanism and deliberately does not build it: *A record that states the SHA it was measured against is making a claim that expires, and nothing here holds that claim against the pin* -- *named here and not built, because building it is its own item and this one is a re-sort.* This is that item.\n\nThe failure already happened and cost three corrections. `KWB-72` bumped `kwb-platform-xvpe` from `a7eee3c6e361371b269217201233a2e7d7e36122` to `8ff98a8fd` inside an item whose subject was `D-014`'s last deferral. No record named the new commit. `D-004` went on calling coverage-and-exhaustion **stranded** while the capability that unstranded it sat inside the adopted commit; `D-014`'s most careful paragraph went on naming `a7eee3c6e` as *what `kwb-platform-xvpe` pins*; and `KWB-96` found the manifest names four crates where the lock resolves nine. `KWB-95`, `KWB-96` and `KWB-97` cleaned that up by hand. Nothing stops it recurring on the next bump.\n\nThe manifest states the rule itself, beside the pin: *Bumping the `rev` is a decision, not maintenance. What changed between two commits of another repository is exactly what a pinned dependency exists to make visible.* It is stated and unenforced.\n\nMeasured 2026-09-13: `D-004`, `D-007` and `D-014` now name `8ff98a8fd`, so the guard specified below passes as the tree stands. Between `KWB-72` and `KWB-96` it would have failed, which is the window this exists to close.",
+      "done_when": "A guard in `tests/contract` asserts that **the rev `kwb-platform-xvpe` pins appears in at least one record under `docs/records/`**. The rev is read from the manifest, never written as a literal in the test, so the guard cannot drift from the pin the way the records did.\n\n**What it must NOT assert, and this is the substance of the specification.** Not that every SHA cited in `docs/` equals the pin. A record reporting a measurement taken at an older commit is stating history and is correct to keep it -- `D-004` version 2 measured at `a7eee3c6e` and that sentence is still true. Demanding equality would force rewriting the record of what was measured when, which is the opposite of what this repository does with amendments. The floor is that the **current** pin is written down somewhere, because that is what was missing.\n\n**A parser hazard to defeat rather than discover.** A scan keyed on \"a hex-looking token\" also matches the unix timestamps and GitHub run identifiers already present in `docs/` -- `1789254256` and `34766510019` both match `[0-9a-f]{9,}`. Key the search on the manifest's rev **value**, not on a shape.\n\nSanity assertions in the KWB-44 pattern, because a guard that reads nothing passes for the wrong reason: it fails if no rev was read from the manifest, and fails if fewer than ten records were read.\n\nProven by mutating the real files rather than a reconstruction, with every assertion shown able to fail: pointing the manifest at a rev no record names fails it, and each sanity assertion is fired in turn. Restore the manifest byte-identical afterwards and confirm with `git diff --stat`.\n\nOut of scope, and deliberately: amending `D-004` to record that the mechanism it named is now built. That is a record change, which is the design half, and it follows the audit rather than riding along with the implementation.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
+    },
+    {
+      "id": "KWB-101",
+      "title": "The README's transcript prints content addresses of files it does not ship, and nothing tells a reader which lines they can reproduce",
+      "why": "`KWB-99` ran the *Trying it* section end to end for the first time and deferred this by name: *it does not guard the hashes -- those are content addresses of files the README does not ship, so a reader cannot reproduce them and the guard must not pretend otherwise -- that is a separate question about whether the transcript should be made reproducible, and it is not this item.* This is that question.\n\nWhat `KWB-99` measured is what makes the gap precise. Three of the four blocks reproduce exactly: the field names and their order, and `kwb history --store ./corpus --through 3` printing `through    3 of 6` with the same four counts, **identical to the README count for count** from a corpus built out of two files of entirely different text. What does not reproduce is the `source` line of each `admit` block and the `cited` lines under `kwb-mcp`, because those are content addresses of `callen.txt` and `kittel.txt`, which are not in this repository.\n\nSo a reader who follows the section sees most of it match and two kinds of line differ, with nothing saying which outcome is expected. That is the same defect shape as the second `admit` block `KWB-99` corrected -- output a reader compares against that does not describe what they will see -- arriving through values rather than through fields.",
+      "done_when": "`README.md` says, adjacent to the transcript, which parts of it a reader reproduces and which depend on their own files: the field names, their order and the counts are reproducible; the `source` and `cited` values are content addresses of the reader's own bytes and will differ. Two sentences is the right size.\n\n**The decision, which is made here rather than left to the implementation: do not ship fixture files, and do not change the digests shown.** Shipping a `callen.txt` and a `kittel.txt` would make the digests reproducible and it is the wrong trade. It buys a property no reader needs -- the section exists to demonstrate that two sources become one claim with two citations, and that is carried by the counts, which already reproduce -- and it costs a maintenance surface, because every digest in the README would then be a projection of two files through the normalizer, regenerated whenever normalization changes, with nothing holding it in step. The README already tells the reader the address depends on the file: *A different book, a different source address.* What is missing is saying the same thing about its own transcript.\n\n`cargo test -p kwb-contract-tests` stays green, which means the `KWB-99` guard still passes: the eight report fields and their order are not to be disturbed by this edit.\n\nNo fixture files are added, no digest in the README changes, and nothing under `crates/` is touched.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
