@@ -3,7 +3,7 @@ id: D-004
 type: decision
 title: Observation proceeds, and a decision whose answer depends on an open reconciliation does not
 status: accepted
-version: 3
+version: 4
 authority: canonical-normative-record
 tags:
   - prototype
@@ -38,6 +38,11 @@ So this record names two lists, and neither is a restatement of the other.
 > had the condition version 2 named for them met, in the instrument rather than here. **Read
 > the second amendment too**, and read it for the mechanism as much as the sorting: the guard
 > `KWB-62` built to stop this list rotting cannot see the half of it that just rotted.
+
+> **Version 4, 2026-09-13.** Version 3 dated one of those two conditions a commit too late. The
+> coverage capability is inside the commit this repository **already pins**, not a commit ahead
+> of it, so nothing has to move to reach the evidence. The third amendment corrects that and
+> says what it cost.
 
 ### Safe to proceed on now
 
@@ -319,6 +324,38 @@ No measurement above bears on it; nothing in either repository produces an embed
 It does not promote either entry to *safe to proceed*. The distinction between *can be answered
 now* and *has been answered* is the substance of this amendment rather than caution about it,
 and collapsing the two is how a hold ends early.
+
+## Amendment: The Coverage Capability Was Already Inside The Pin, 2026-09-13
+
+The amendment above unstranded coverage and exhaustion against `xvpe-corpus-ledger` at
+`7ec036c52`. That is correct, and it is late by one commit. The difference is not bookkeeping:
+it decides whether this repository has to move in order to see the evidence. It does not.
+
+**Where the capability actually arrived.** `coverage_vocabulary.rs`, `journal_reader.rs` and
+`observed_coverage.rs` first appear in `xvpe-event-journal` at **`8ff98a8fd`** — the commit
+`kwb-platform-xvpe` has pinned since `KWB-72`. At `a7eee3c6e` no `CoverageVocabulary`,
+`ObservedCoverage` or `JournalReader` exists anywhere in XVPE's tools or in that crate. At
+`8ff98a8fd` both mining products import all three and both declare a `CLAIM_COVERAGE`
+vocabulary, and `xvpe-brainstorm-synthesizer` dispatches a `coverage` command over a
+`JournalReader` and an `ObservedCoverage`.
+
+**So version 2's finding was true when it was written, and the bump is what falsified it.**
+Version 2 measured at `a7eee3c6e` and reported that nothing read the journals back. That was
+accurate. `KWB-72` then moved the pin onto the very commit that answered it, while doing
+something else, and nothing connected the two. `KWB-96` records that no record in this
+repository mentions `8ff98a8fd` at all. This is what that cost: a record calling a subject
+stranded while the thing that unstrands it sat inside the dependency the workspace compiles.
+
+**`xvpe-corpus-ledger` is a second instrument and a later one.** It lands at `7ec036c52`, it is
+a claim ledger as well as a coverage one, and version 3's description of it stands as written.
+What version 3 got wrong is the date, and therefore the reach — a reader would conclude the
+evidence needs a bump to see. **That error is `KWB-95`'s, which is to say mine**, and it is
+recorded here rather than edited away because a list of held subjects that quietly corrects its
+own dates is worth less than one that shows them.
+
+The entry stays *pending*, for the reason version 3 gave and this correction does not touch: the
+instrument can answer the question and has not yet answered it at scale. What changes is that
+answering it needs a run, not a bump.
 
 ## Alternatives Considered
 

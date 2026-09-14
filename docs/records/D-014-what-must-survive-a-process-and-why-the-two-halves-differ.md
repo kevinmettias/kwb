@@ -3,7 +3,7 @@ id: D-014
 type: decision
 title: What must survive a process, and why the two halves are not the same question
 status: accepted
-version: 3
+version: 4
 authority: canonical-normative-record
 tags:
   - storage
@@ -281,6 +281,40 @@ here is the only thing standing between this repository and the adoption — the
 the clock is adopted, and the pin already resolves.
 
 *Settled by:* a fallible write in `xvpe-event-journal`.
+
+## Amendment: The Pin Moved Out From Under The Measurement, 2026-09-13
+
+The passage above headed *Measured at the pinned commit, after first measuring the wrong thing*
+is the most careful paragraph in this record, and it now reports the wrong commit. It says the
+reading was re-taken from `a7eee3c6e`, *which is what `kwb-platform-xvpe` pins*. That stopped
+being true at `KWB-72` — the item that wrote this record's previous amendment — which bumped the
+pin to `8ff98a8fd`.
+
+**What that changes, measured 2026-09-13.** The paragraph reports two things as untracked in
+XVPE, and therefore as another session's in-flight work rather than as the dependency:
+`journal_record.rs`, and a reader beside it. At `8ff98a8fd` both are tracked.
+`journal_record.rs` is in the crate, and `JournalReader` is exported from its root alongside
+`CoverageVocabulary`, `ObservedCoverage`, `ObservedState` and `ObservedUnit`. The reader API
+that "looked available" is the adopted commit's public surface.
+
+**The refusal is unaffected, and it was re-measured rather than assumed.**
+`EventJournal::Write(&mut self, record: &JsonObjectWriter)` returns unit at `a7eee3c6e`, at
+`8ff98a8fd` and at `7ec036c52`. The failure contract this record refuses adoption on is
+unchanged across all three, so *Settled by: a fallible write in `xvpe-event-journal`* still
+states the condition correctly, and nothing here reopens the question. A reader coming to this
+record for the decision should take it as it stands.
+
+**Why this is an amendment and not an edit to the sentence.** What that paragraph got right is
+worth more than the SHA it got wrong. It recorded walking into exactly the mistake `D-007`
+refuses `path` edges to prevent — reading a sibling's working tree and calling it the
+dependency — and predicted the next person measuring a sibling would be equally sure they had
+looked at the right thing. The prediction came true against the paragraph itself, by a route it
+did not anticipate: not a working tree read in place of a commit, but a correct reading of the
+right commit going stale underneath it when the pin moved. Deleting the sentence would delete
+the demonstration.
+
+`KWB-96` names the general form. Nothing in this repository notices that the pin has moved, and
+until that item no record mentioned `8ff98a8fd` at all.
 
 ## Referenced By
 

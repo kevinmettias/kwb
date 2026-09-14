@@ -5294,6 +5294,62 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-97",
+      "title": "The commit KWB-72 bumped to is the one that falsified D-004's coverage finding, and two records still describe the commit before it",
+      "why": "`KWB-96` established that no record in this repository mentions `8ff98a8fd`, the commit `kwb-platform-xvpe` has pinned since `KWB-72`. This is the consequence, and it is sharper than the general case.\n\nMeasured 2026-09-13:\n\n`coverage_vocabulary.rs`, `journal_reader.rs` and `observed_coverage.rs` first appear in `xvpe-event-journal` **at `8ff98a8fd`**. At `a7eee3c6e` there is no `CoverageVocabulary`, `ObservedCoverage` or `JournalReader` anywhere in XVPE's tools or in that crate. At `8ff98a8fd` both mining products import them, both declare a `CLAIM_COVERAGE` vocabulary, and `xvpe-brainstorm-synthesizer` dispatches a `coverage` command over `JournalReader` and `ObservedCoverage`.\n\nSo `D-004` v2's coverage finding -- *both mining products write an append-only journal that nothing reads back; no `coverage`, `resume` or `redundant` symbol exists in either* -- was **true when it was written** against `a7eee3c6e`, and was made false by the very bump `KWB-72` performed. The pin moved onto the commit that answered the record, and nothing connected the two.\n\n**`KWB-95`'s amendment is late by one commit, and that is mine to correct.** It unstranded the entry against `xvpe-corpus-ledger` at `7ec036c52`, which is correct and is a second instrument. It is not the first, and it is not the one this repository can reach: a reader of `D-004` v3 would conclude the evidence needs a bump to see, when the capability has been inside the adopted commit since `KWB-72`.\n\n`D-014` carries the same staleness in the paragraph least able to afford it. Its *Measured at the pinned commit, after first measuring the wrong thing* passage says *re-taken from `a7eee3c6e`, which is what `kwb-platform-xvpe` pins*, and reports `journal_record.rs` and a reader beside it as **untracked** -- another session's in-flight work rather than the dependency. The pin is `8ff98a8fd`; `journal_record.rs` is tracked there and `JournalReader` is exported from the crate root. A paragraph written to warn against reading a sibling's working tree and calling it the dependency is now itself reporting the wrong commit, and it was `KWB-72` -- the item that wrote this record's own latest amendment -- that moved the pin out from under it.\n\n**`D-014`'s refusal is not affected and this item does not touch it.** Measured at `a7eee3c6e`, `8ff98a8fd` and `7ec036c52`: `EventJournal::Write(&mut self, record: &JsonObjectWriter)` returns unit at all three. The failure contract that grounds the refusal is unchanged, and *Settled by: a fallible write in `xvpe-event-journal`* still states the condition correctly.",
+      "done_when": "`D-004` is at version 4. Its coverage entry names `8ff98a8fd` as where the capability arrived -- `xvpe-event-journal`'s `CoverageVocabulary`, `JournalReader` and `ObservedCoverage`, consumed by both mining products and dispatched as a `coverage` command -- and says plainly that this is the commit already pinned, so reaching it needs no bump. It says `xvpe-corpus-ledger` at `7ec036c52` is a second instrument and a later one, and it says that version 3 dated this wrongly and whose error that was.\n\n`D-014` is at version 4. The *Measured at the pinned commit* paragraph is corrected where it is wrong -- the pin is `8ff98a8fd`, and `journal_record.rs` and the reader are tracked there -- without disturbing the refusal, which is re-measured at all three commits and restated as still correct. The correction is written as an amendment rather than an edit in place, because what the paragraph got right about method is worth keeping visible beside what the pin did to it.\n\nNeither amendment moves a held subject, decides adoption, or changes the pin.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-004-observation-proceeds-and-a-decision-that-depends-on-an-open-inventory-does-not.md",
+          "docs/records/D-014-what-must-survive-a-process-and-why-the-two-halves-differ.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.47s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-3bb30553545e158b.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-0044164605fd7d46.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-73274744ce9004c4.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-fc84c1a1773a4dec.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-861087b3b7b09975.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789351414,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "e20a1bab6c0542807de50ee22c7fd5d31c55d02f"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }
