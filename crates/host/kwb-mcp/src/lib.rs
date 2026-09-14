@@ -36,6 +36,10 @@ use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::FileRecordLog;
 use kwb_retrieval::{CurrentQueries, HeldAssertion, HeldClaim, HistoricalQueries};
 
+mod world;
+
+pub use world::World;
+
 /// The corpus a host serves: what earlier runs published, replayed.
 ///
 /// The same replay `kwb admit` does, for the same reason `D-014` gives — a graph is a fold over
@@ -85,31 +89,6 @@ pub struct Tool
 
     /// What it does, in one line, for a tool listing.
     pub summary: &'static str,
-}
-
-/// Which set of versions a tool reads.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum World
-{
-    /// What is current. Merge losers and retired concepts are not here.
-    Current,
-
-    /// Every version, including what is closed.
-    Historical,
-}
-
-impl World
-{
-    /// The short name shown in a listing.
-    #[must_use]
-    pub const fn Name(self) -> &'static str
-    {
-        return match self
-        {
-            Self::Current => "current",
-            Self::Historical => "historical",
-        };
-    }
 }
 
 /// The read-only tool surface, in declaration order.

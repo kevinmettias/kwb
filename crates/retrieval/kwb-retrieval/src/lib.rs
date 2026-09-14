@@ -20,11 +20,17 @@
 
 #![forbid(unsafe_code)]
 
-mod queries;
+mod current_queries;
+mod held_assertion;
+mod held_claim;
+mod held_neighbourhood;
+mod historical_queries;
+mod matching;
+mod neighbourhood;
 
-pub use queries::CurrentQueries;
-pub use queries::HistoricalQueries;
-pub use queries::HeldAssertion;
-pub use queries::HeldClaim;
-pub use queries::HeldNeighbourhood;
-pub use queries::Neighbourhood;
+pub use current_queries::CurrentQueries;
+pub use held_assertion::HeldAssertion;
+pub use held_claim::HeldClaim;
+pub use held_neighbourhood::HeldNeighbourhood;
+pub use historical_queries::HistoricalQueries;
+pub use neighbourhood::Neighbourhood;

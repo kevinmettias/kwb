@@ -46,13 +46,14 @@
 
 #![forbid(unsafe_code)]
 
+mod admission;
 mod document;
 mod document_store;
 mod store_error;
 mod written;
 
+pub use admission::Admission;
 pub use document::Document;
 pub use document_store::DocumentStore;
 pub use store_error::StoreError;
-pub use written::Admission;
 pub use written::Written;

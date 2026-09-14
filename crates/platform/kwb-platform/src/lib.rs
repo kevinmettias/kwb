@@ -46,7 +46,8 @@
 
 mod content_store_port;
 mod record_log_port;
+mod storage_error;
 
 pub use content_store_port::ContentStoreStrategy;
-pub use content_store_port::StorageError;
 pub use record_log_port::RecordLogStrategy;
+pub use storage_error::StorageError;

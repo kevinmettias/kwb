@@ -38,6 +38,11 @@ mod concept_linking;
 mod concept_normalization;
 mod extraction;
 mod extraction_contract;
+mod extraction_lineage;
+mod extraction_refused;
+mod proposed_reading;
+mod reading_kind;
+mod source_location;
 mod stated;
 
 #[cfg(test)]
@@ -50,10 +55,10 @@ pub use concept_linking::Linked;
 pub use concept_normalization::Normalize_Concepts;
 pub use concept_normalization::Normalized;
 pub use extraction::Extraction;
-pub use extraction_contract::ExtractionLineage;
-pub use extraction_contract::ExtractionRefused;
 pub use extraction_contract::ExtractionStrategy;
-pub use extraction_contract::ProposedReading;
-pub use extraction_contract::ReadingKind;
-pub use extraction_contract::SourceLocation;
+pub use extraction_lineage::ExtractionLineage;
+pub use extraction_refused::ExtractionRefused;
+pub use proposed_reading::ProposedReading;
+pub use reading_kind::ReadingKind;
+pub use source_location::SourceLocation;
 pub use stated::Stated;

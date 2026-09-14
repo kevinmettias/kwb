@@ -1,46 +1,12 @@
 //! The filesystem surface a content-addressed store needs, and nothing wider.
+//!
+//! The refusal every method below returns is [`StorageError`], which is filed in its own
+//! module because it is the shape every port onto a medium refuses with rather than a fact
+//! about this one.
+//!
+//! [`StorageError`]: crate::StorageError
 
-use core::fmt;
-
-/// Why a durable write or read could not be done.
-///
-/// Deliberately not a wrapper around a standard-library error type. A port trait that named
-/// one would make every implementation of it an implementation over that library, which is the
-/// thing a port exists to avoid.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum StorageError
-{
-    /// Nothing is stored under that address.
-    Absent
-    {
-        /// The address asked for.
-        address: String,
-    },
-
-    /// The underlying medium refused, with whatever it said.
-    Refused
-    {
-        /// What was being attempted.
-        doing: &'static str,
-
-        /// What the medium reported.
-        cause: String,
-    },
-}
-
-impl fmt::Display for StorageError
-{
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result
-    {
-        return match self
-        {
-            Self::Absent { address } => write!(formatter, "nothing is stored at {address}"),
-            Self::Refused { doing, cause } => write!(formatter, "{doing}: {cause}"),
-        };
-    }
-}
-
-impl core::error::Error for StorageError {}
+use crate::StorageError;
 
 /// Somewhere bytes can be kept under an address and read back unchanged.
 ///

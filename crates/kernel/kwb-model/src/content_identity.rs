@@ -1,6 +1,14 @@
 //! The identity itself: 32 bytes, and the two ways to obtain one.
+//!
+//! The refusal [`Parse`] returns is [`IdentityError`], which is filed in its own module
+//! because a caller re-exporting the reason a string failed has no reason to reach the
+//! parsing tables below.
+//!
+//! [`Parse`]: ContentIdentity::Parse
 
 use core::fmt;
+
+use crate::IdentityError;
 
 /// The number of bytes in a content identity — the full SHA-256 digest, untruncated.
 pub const IDENTITY_BYTES: usize = 32;
@@ -198,42 +206,3 @@ impl fmt::Debug for ContentIdentity
         return write!(formatter, "ContentIdentity({})", self.Render());
     }
 }
-
-/// Why a rendered identity could not be recognized.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum IdentityError
-{
-    /// The text was not [`IDENTITY_CHARACTERS`] characters long.
-    WrongLength
-    {
-        /// How long it actually was.
-        found: usize,
-    },
-
-    /// The text contained something other than a lowercase hexadecimal digit.
-    NotHexadecimal
-    {
-        /// The first offending character.
-        found: char,
-    },
-}
-
-impl fmt::Display for IdentityError
-{
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result
-    {
-        return match *self
-        {
-            Self::WrongLength { found } => write!(
-                formatter,
-                "a content identity renders as {IDENTITY_CHARACTERS} characters, found {found}"
-            ),
-            Self::NotHexadecimal { found } => write!(
-                formatter,
-                "a content identity renders as lowercase hexadecimal, found {found:?}"
-            ),
-        };
-    }
-}
-
-impl core::error::Error for IdentityError {}

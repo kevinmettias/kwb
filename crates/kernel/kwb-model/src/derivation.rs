@@ -1,8 +1,16 @@
 //! Deriving an identity, and recording what was deliberately left out of it.
+//!
+//! The two ends of one act are filed under their own names: what this builder produces is
+//! [`Sealed`], and the exclusions it records are [`Exclusion`]s.
+//!
+//! [`Sealed`]: crate::Sealed
+//! [`Exclusion`]: crate::Exclusion
 
 use sha2::Digest as _;
 use sha2::Sha256;
 
+use crate::Exclusion;
+use crate::Sealed;
 use crate::ContentIdentity;
 use crate::IDENTITY_BYTES;
 
@@ -44,22 +52,6 @@ const IDENTITY_TAG: &[u8] = b"<identity>";
 /// does not, so the two are genuinely different claims about the same octets and must not
 /// derive one identity.
 const OPAQUE_TAG: &[u8] = b"<opaque>";
-
-/// A field that was considered and deliberately left out of an identity, with the reason.
-///
-/// Recording the exclusion is the point. `D-006` and the cross-source dedup mechanism both
-/// rest on one exclusion — a claim's source — and an exclusion that exists only as an
-/// omission is indistinguishable from an oversight. The prototype states its own source
-/// exclusion in a doc comment; a doc comment is not available to a test.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Exclusion
-{
-    /// The field that was left out.
-    pub field: &'static str,
-
-    /// Why leaving it out is correct, in one phrase.
-    pub because: &'static str,
-}
 
 /// Accumulates the content an identity is derived from.
 ///
@@ -185,11 +177,11 @@ impl Derivation
     pub fn Seal(mut self) -> Sealed
     {
         let digest: [u8; IDENTITY_BYTES] = self.digest.finalize_reset().into();
-        return Sealed {
-            identity: ContentIdentity::From_Digest(digest),
-            included: self.included,
-            excluded: self.excluded,
-        };
+        return Sealed::From(
+            ContentIdentity::From_Digest(digest),
+            self.included,
+            self.excluded,
+        );
     }
 
     /// One part, followed by the separator.
@@ -210,39 +202,6 @@ fn Digest_Of(value: &[u8]) -> [u8; IDENTITY_BYTES]
     let mut digest = Sha256::new();
     digest.update(value);
     return digest.finalize().into();
-}
-
-/// A finished derivation: the identity, and a record of how it was reached.
-#[derive(Clone, Debug)]
-pub struct Sealed
-{
-    identity: ContentIdentity,
-    included: Vec<&'static str>,
-    excluded: Vec<Exclusion>,
-}
-
-impl Sealed
-{
-    /// The identity.
-    #[must_use]
-    pub const fn Identity(&self) -> ContentIdentity
-    {
-        return self.identity;
-    }
-
-    /// The fields that participated, in the order they were written.
-    #[must_use]
-    pub fn Included(&self) -> &[&'static str]
-    {
-        return &self.included;
-    }
-
-    /// The fields deliberately left out, with their reasons.
-    #[must_use]
-    pub fn Excluded(&self) -> &[Exclusion]
-    {
-        return &self.excluded;
-    }
 }
 
 /// Whitespace-normalized, control-stripped text.

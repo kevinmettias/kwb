@@ -1,4 +1,11 @@
 //! What was published, written down so a graph can be rebuilt from it.
+//!
+//! [`Replay`] is the reader over these records and [`ReplayError`] is what it refuses with,
+//! which is filed in its own module because a caller reporting a log that would not replay
+//! has no reason to carry the record format to reach it.
+//!
+//! [`Replay`]: crate::Replay
+//! [`ReplayError`]: crate::ReplayError
 
 use kwb_model::ContentIdentity;
 
@@ -6,6 +13,7 @@ use crate::Assertion;
 use crate::Claim;
 use crate::Concept;
 use crate::KnowledgeGraph;
+use crate::ReplayError;
 use crate::Scope;
 use crate::Standing;
 use crate::Versioned;
@@ -86,48 +94,6 @@ pub enum Publication
         standing: Standing,
     },
 }
-
-/// Why a record could not be read back.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum ReplayError
-{
-    /// The record's shape is not one this reader knows.
-    Malformed
-    {
-        /// The record, as read.
-        record: String,
-    },
-
-    /// A claim or assertion named something the records had not published yet.
-    ///
-    /// Records are a sequence and their order is part of their meaning: a claim is about a
-    /// concept, so the concept's record comes first. Out of order is refused rather than
-    /// guessed at, because guessing would mean constructing a claim about a concept nobody
-    /// recorded.
-    OutOfOrder
-    {
-        /// What was named.
-        missing: String,
-    },
-}
-
-impl core::fmt::Display for ReplayError
-{
-    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-    {
-        return match self
-        {
-            Self::Malformed { record } => write!(formatter, "not a publication record: {record:?}"),
-            Self::OutOfOrder { missing } => write!(
-                formatter,
-                "a record names {missing}, which no earlier record published. Refusing rather \
-                 than guessing: a claim about a concept nobody recorded is not a claim"
-            ),
-        };
-    }
-}
-
-impl core::error::Error for ReplayError {}
 
 impl Publication
 {

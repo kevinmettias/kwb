@@ -57,6 +57,9 @@
 
 mod content_identity;
 mod derivation;
+mod exclusion;
+mod identity_error;
+mod sealed;
 
 #[cfg(test)]
 mod tests;
@@ -64,8 +67,8 @@ mod tests;
 pub use content_identity::ContentIdentity;
 pub use content_identity::IDENTITY_BYTES;
 pub use content_identity::IDENTITY_CHARACTERS;
-pub use content_identity::IdentityError;
 pub use derivation::Derivation;
-pub use derivation::Exclusion;
 pub use derivation::Normalize;
-pub use derivation::Sealed;
+pub use exclusion::Exclusion;
+pub use identity_error::IdentityError;
+pub use sealed::Sealed;
