@@ -5182,6 +5182,61 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-95",
+      "title": "Two subjects D-004 calls stranded have had their stated unstranding conditions shipped, and the guard built for exactly this rot deliberately cannot see them",
+      "why": "D-004 v2 sorts held subjects into four states and says a stranded entry is not progressing. Three entries are stranded. KWB-62 corrected one -- the canonical Knowledge IR -- and built Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board so the list would stop rotting. That guard reads only a line beginning `**Condition met:**`, and its own doc comment says why: the other condition-like passages are not conditions, and a guard that is wrong half the time is switched off. That reasoning is right, and it leaves the other two entries uncovered, because their conditions are not board items at all. Both are written `*Unstranded by:*` and both name a change to xvpe.\n\nBoth changes have landed. Measured against xvpe `dev` `7ec036c52`, committed and pushed:\n\nCross-source corroboration. D-004 says it is unstranded by the miner acquiring a second, source-excluding claim identity, and that this is a change to the instrument rather than a longer run of it. `xvpe-corpus-ledger` ships `ClaimAssertion::Of(assertion)`, which folds in the assertion and nothing else; its doc comment argues the case in this record's own terms and names `SourceClaimIdentity` as the contrast it is built against. `ClaimLedger` carries `Support_For`, `Corroborated`, `Novel` and `Restatements` -- the support count and the falling-rate measurement D-004 says are unmeasurable while every claim is unique by construction. `xvpe-brainstorm-synthesizer/src/main.rs:1122` reads `Corroborated()` in the live binary, not a test.\n\nCoverage and exhaustion. D-004 says it is unstranded by a coverage ledger that is read rather than another sweep, and that no `coverage`, `resume` or `redundant` symbol exists in either product. `CorpusLedger` ships `Has_Ever_Seen`, which is the nobody-looked versus looked-and-found-nothing distinction by name, with `Settlement_Of`, `UnitSettlement` and `SettlementCounts` partitioning units into answered, unanswerable and work-remaining. `xvpe-reference-miner/src/main.rs:1060` reads `Settlement_Of` in the live binary, and `xvpe-mining-memory` carries resume with tests over it. Both products depend on both crates.\n\nSo the stranded category is empty, and the amendment that predicted this rot by name is the thing that rotted. It measured at `a7eee3c6e`; `kwb-platform-xvpe` pins `8ff98a8fd`; the two crates landed at `7ec036c52`. The instrument moved twice and the pin moved once, and nothing here noticed either.\n\nThis is a re-sort, which D-004 authorises in its own words -- revised when the miner's relevant experiments close, by moving entries from the second list to the first -- and it is not a decision about any held subject. Semantic reconciliation is untouched by every measurement above, so this does not reach KWB-82.",
+      "done_when": "D-004 is at version 3 and nothing it calls stranded is stranded. Both entries move to Pending rather than to safe-to-proceed, because the instrument can now answer these questions and has not yet been run at scale to produce the answers, and the amendment states which of those two things it is claiming for each. Every claim names the xvpe SHA it was measured at, since the last amendment's did not survive the pin moving. The amendment also states what the KWB-62 guard does not cover and why, so that the next reader is not told this list is machine-checked when the half of it that just rotted cannot be. It does not move semantic reconciliation, which no measurement here touches, and it does not weaken the rule the record exists for.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-004-observation-proceeds-and-a-decision-that-depends-on-an-open-inventory-does-not.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.46s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-3bb30553545e158b.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-0044164605fd7d46.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-73274744ce9004c4.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-fc84c1a1773a4dec.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-861087b3b7b09975.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789348848,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "d95b98983b5818636c8a0b657ccf34027f4745f7"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

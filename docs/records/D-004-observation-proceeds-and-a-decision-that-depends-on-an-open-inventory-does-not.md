@@ -3,7 +3,7 @@ id: D-004
 type: decision
 title: Observation proceeds, and a decision whose answer depends on an open reconciliation does not
 status: accepted
-version: 2
+version: 3
 authority: canonical-normative-record
 tags:
   - prototype
@@ -33,6 +33,11 @@ So this record names two lists, and neither is a restatement of the other.
 > the rule above, which nothing measured contradicts. **Read the amendment before acting on
 > either list.** The lists are left as written rather than edited in place, because what
 > changed is worth being able to see.
+
+> **Version 3, 2026-09-13.** The stranded category is empty. Both entries it still held have
+> had the condition version 2 named for them met, in the instrument rather than here. **Read
+> the second amendment too**, and read it for the mechanism as much as the sorting: the guard
+> `KWB-62` built to stop this list rotting cannot see the half of it that just rotted.
 
 ### Safe to proceed on now
 
@@ -226,6 +231,94 @@ findable at all. It designs nothing for any held subject.
 And it does not claim the categories are now correct — only that they are now expressible. The
 next revision should be triggered by something re-reading this list against the board, because
 the failure this amendment corrects was not a wrong judgement. It was a list nobody checked.
+
+## Amendment: The Stranded List Is Empty, 2026-09-13
+
+Measured against xvpe `dev` `7ec036c52`, committed and pushed. The rule is unchanged and no
+held subject is decided here.
+
+The previous amendment asked for its own successor in as many words — *the next revision should
+be triggered by something re-reading this list against the board*. This is that re-read. It
+finds the stranded category empty, and it finds that out by hand, which is the more important
+half of what follows.
+
+### Cross-source corroboration — no longer stranded, and now *pending*
+
+*Unstranded by*, as version 2 wrote it: **the miner acquiring a second, source-excluding claim
+identity. That is a change to the instrument, not a longer run of it.**
+
+The instrument has one. `xvpe-corpus-ledger` ships `ClaimAssertion::Of(assertion)`, which folds
+in the assertion and nothing else — the identity `D-002` decided for this repository, arriving
+independently in the tool that feeds it. Its own documentation names `SourceClaimIdentity` as
+the contrast and gives this record's reason for the split: two books asserting one thing produce
+two identities there and never learn of each other. Beside it, `ClaimLedger` carries
+`Support_For`, `Corroborated`, `Novel` and `Restatements` — the support count version 2 called
+absent, and the falling rate of new claims it called unmeasurable while every claim is unique by
+construction. `xvpe-brainstorm-synthesizer`'s binary reads `Corroborated()`. This is wired, not
+merely written.
+
+**Why *pending* and not *safe to proceed*.** The instrument can now answer the question; it has
+not yet answered it. The entry directly above this one is the reason that difference is worth a
+category: the confidence model's numbers moved sharply between two corpora under one contract,
+and a corroboration count read off one small run is exactly the early answer this record exists
+to refuse. What ends a hold here is a measurement, never a capability.
+
+### Coverage and exhaustion — no longer stranded, and now *pending*
+
+*Unstranded by*, as version 2 wrote it: **a coverage ledger that is read, not another sweep.**
+
+There is one. `CorpusLedger::Has_Ever_Seen` is version 2's own *nobody looked* versus *looked
+and found nothing* distinction, as a method. `Settlement_Of`, `UnitSettlement` and
+`SettlementCounts` partition every unit into answered, unanswerable and work remaining — which
+is the `Barren` versus `Skipped` distinction `KWB-4` owes, settled in the instrument before it
+was settled here. `xvpe-reference-miner`'s binary reads `Settlement_Of`, and
+`xvpe-mining-memory` carries resume with tests over it. Version 2's finding that no `coverage`,
+`resume` or `redundant` symbol exists in either product was true when written and is now false
+of both.
+
+**Why *pending*.** The same reason, and one this entry adds: a coverage ledger reports
+exhaustion *against the corpus it was pointed at*. Whether the estate is exhausted is a claim
+about the estate, and this is the instrument for making that claim rather than the making of it.
+
+### The part worth keeping is the mechanism, not the sorting
+
+Both entries were correct when written and both went false, and **the guard built to stop
+precisely this could not see either of them.** `KWB-62` built
+`Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board`, which reads a line
+beginning `**Condition met:**` and holds it against the board. Its own doc comment explains why
+it reads nothing else, and that explanation is correct: the remaining condition-like passages
+are not conditions, and a guard that is wrong half the time is switched off.
+
+What it leaves uncovered is this entire category. A stranded entry's condition is
+`*Unstranded by:*` followed by a change to **another repository** — not a board item, and not
+something any test here can reach, because `D-007` adopts xvpe by git reference precisely so
+that nothing here reads its working tree. So the covered half of this list is the half that
+cannot rot this way, and the uncovered half is the half that just did. That is not a defect in
+the guard. It is the guard's scope, stated here so the next reader does not mistake a
+machine-checked list for a checked one.
+
+The drift is visible locally even though the instrument is not. This amendment measures at
+`7ec036c52`; version 2 measured at `a7eee3c6e`; `kwb-platform-xvpe` pins `8ff98a8fd`. Three
+commits, and no record in this repository says the pin ever moved. **A record that states the
+SHA it was measured against is making a claim that expires, and nothing here holds that claim
+against the pin.** Four records state such a SHA, and three of them — `D-007`, `D-012` and
+`D-014` — name `a7eee3c6e` and nothing newer, so every measurement they report was taken
+against a commit the workspace no longer builds against. That is a mechanism this repository
+lacks and could have; it is named here and not built, because building it is its own item and
+this one is a re-sort.
+
+### What this amendment does not do
+
+It does not touch the rule, which nothing measured contradicts, and it decides nothing for any
+held subject.
+
+It does not move **semantic reconciliation**, which stays held exactly where version 2 left it.
+No measurement above bears on it; nothing in either repository produces an embedding; and
+`KWB-82` waits on that instrument and on this hold, in that order, so nothing here reaches it.
+
+It does not promote either entry to *safe to proceed*. The distinction between *can be answered
+now* and *has been answered* is the substance of this amendment rather than caution about it,
+and collapsing the two is how a hold ends early.
 
 ## Alternatives Considered
 
