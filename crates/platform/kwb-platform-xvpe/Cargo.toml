@@ -29,6 +29,22 @@ publish.workspace = true
 [package.metadata.kwb]
 band = "1p"
 
+# The persistent map and vector `D-012` adopts, and the only edge in this file that changes a
+# default.
+#
+# `default-features = false` is deliberate and it is load-bearing. This crate and
+# `xvpe-collections-map` both carry `#![cfg_attr(not(feature = "std"), no_std)]`, so the setting
+# compiles them freestanding, and `xvpe-collections-map` gates `StandardHashMap` behind `std`, so
+# it also keeps a type off the surface this workspace sees. Measured at this commit by
+# `cargo tree -f "{p} [{f}]"`: all three collections crates resolve to no features at all.
+#
+# Unlike `xvpe-clock` below, nothing protects it. That setting is guarded by construction --
+# `pub use xvpe_clock::HostedWallClock as SystemClock` in `src/lib.rs` stops compiling the moment
+# the clock's defaults go off. Deleting this line compiles cleanly, turns `std` on and adds
+# `StandardHashMap`, and nothing here names that type, so nothing fails. The asymmetry is written
+# down because it is real, not because it is wanted: a test asserting this file contains a line it
+# is this file's job to contain would prove nothing a reader of the line does not already know.
+# `KWB-98`, and `D-007` carries the measurement.
 [dependencies.xvpe-collections-persistent]
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "8ff98a8fd"

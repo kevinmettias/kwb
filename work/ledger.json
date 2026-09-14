@@ -5350,6 +5350,62 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-98",
+      "title": "The one dependency edge that changes a default is the only one the manifest does not explain, and it is the only one no compile protects",
+      "why": "`kwb-platform-xvpe` is where `D-007`'s quarantine is implemented, and its manifest reasons out loud about everything except the one choice a reader would question.\n\nEvery dependency there carries a paragraph. `xvpe-clock`'s says the feature choice explicitly -- *`default-features` stays on, deliberately. `HostedWallClock` is behind `std`, and without it this crate would adopt a port with no implementation -- measured at this commit, proved by naming the types rather than by this manifest listing the crate.* `xvpe-collections-persistent` carries `default-features = false`, the only non-default feature setting in the file, and no comment at all.\n\nMeasured at `8ff98a8fd`, 2026-09-13:\n\n**The setting is load-bearing, not decoration.** `xvpe-collections-persistent` and `xvpe-collections-map` both carry `#![cfg_attr(not(feature = \"std\"), no_std)]`, so the setting compiles them freestanding, and `xvpe-collections-map` gates `pub use standard_hash_map::StandardHashMap` behind `std`, so the setting also removes a type from the surface this workspace sees. `cargo tree -f \"{p} [{f}]\"` confirms the resolution: `xvpe-collections-persistent []`, `xvpe-collections-map []`, `xvpe-collections-sequence []`.\n\n**The two settings are protected unequally, and neither fact is written down.** The clock's is guarded by construction: `pub use xvpe_clock::HostedWallClock as SystemClock` in `src/lib.rs` fails to compile the moment that crate's defaults go off, which is what the manifest means by *proved by naming the types*. The collections setting has no equivalent. Deleting `default-features = false` compiles cleanly, turns `std` on, and adds `StandardHashMap` to the surface -- and nothing fails, because nothing here names it. A future session removing that line to tidy the manifest gets no signal at all.\n\n**The other two edges' feature state is inert, which is worth saying so nobody copies the clock's reasoning onto them.** `xvpe-corpus-text` and `xvpe-ai-inference` each declare `std = [\"xvpe-primitives/std\"]` and nothing else, and their own documentation says the crate needs nothing from std. `xvpe-primitives` resolves to `[std]` regardless, because those two and the clock all enable it and Cargo unifies features across the graph. So for those two, defaults on or off changes nothing about their own code.\n\nThis completes what `KWB-96` started rather than repeating it. That item established the closure is nine crates and not four; this establishes that the closure is a set of *features* as well as a set of crates, and that one feature choice in it is unexplained and unprotected.",
+      "done_when": "`crates/platform/kwb-platform-xvpe/Cargo.toml` explains the `default-features = false` on `xvpe-collections-persistent` in the register the rest of the file already uses: what the setting buys -- two crates compiled freestanding and `StandardHashMap` kept off the surface -- and that deleting it is silent, unlike the clock's setting, which a `pub use` fails on. Stating the absence of a guard is part of the remedy rather than an omission in it, on `KWB-94`'s reasoning: a test asserting the manifest contains a line it is the manifest's job to contain proves nothing a reader of the line does not already know.\n\n`D-007` records the feature measurement beside the closure measurement it already carries, since which features resolve is part of what the pin adopts and the record now says the closure is the surface a bump must be measured against. It names the resolved feature sets, says the clock's choice is compile-protected and the collections choice is not, and says the other two edges are inert.\n\nThe pin does not move, `Cargo.lock` is not touched, and no feature setting changes -- the measurement says all four are currently right. This item makes them legible, not different.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "docs/records/D-007-no-path-dependency-on-xvpe-and-the-reason-is-not-that-xvpe-is-broken.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.68s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-3bb30553545e158b.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-0044164605fd7d46.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-73274744ce9004c4.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-fc84c1a1773a4dec.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-861087b3b7b09975.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789351800,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "642c6f422838eaf592e897d127ec165397b53a05"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

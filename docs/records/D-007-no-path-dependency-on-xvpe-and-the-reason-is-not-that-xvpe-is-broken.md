@@ -3,7 +3,7 @@ id: D-007
 type: decision
 title: This repository takes no path dependency on XVPE, and the reason is coupling rather than breakage
 status: accepted
-version: 2
+version: 3
 authority: canonical-normative-record
 tags:
   - ecosystem
@@ -248,6 +248,51 @@ guard gets switched off.
 It also does not notice that a bump happened, or measure what one changed. Nothing here can:
 `D-007` adopts XVPE by git reference precisely so that no test in this repository reads its
 working tree. That measurement is a person's, and this section is what one is owed.
+
+## Amendment: The Closure Is A Set Of Features As Well As A Set Of Crates, 2026-09-13
+
+The amendment above says the surface a `rev` bump must be measured against is the closure
+`Cargo.lock` resolves. That is half of it. *Which features* resolve is the other half, and this
+repository had never measured it — version 1's figures were taken under `--no-default-features`,
+and three of the four real edges do not set that.
+
+Measured at `8ff98a8fd` with `cargo tree -p kwb-platform-xvpe -f "{p} [{f}]" -e normal`:
+
+| crate | features resolved |
+|---|---|
+| `xvpe-ai-inference` | `default`, `std` |
+| `xvpe-clock` | `default`, `std` |
+| `xvpe-corpus-text` | `default`, `std` |
+| `xvpe-collections-persistent` | none |
+| `xvpe-collections-map`, `-sequence`, `-handle` | none |
+| `xvpe-primitives` | `std` |
+
+Three things follow, and they are not one thing said three ways.
+
+**`xvpe-primitives` carries `std` whatever any single edge asks for.** The clock,
+`xvpe-corpus-text` and `xvpe-ai-inference` each declare `std = ["xvpe-primitives/std"]`, and
+Cargo unifies features across the graph, so the one edge that disables defaults does not keep
+`std` off the shared foundation. It was never going to. `default-features = false` on one
+dependency is not a workspace-wide `no_std` posture, and reading it as one would be the mistake
+available here.
+
+**For two of the four edges the setting is inert.** `xvpe-corpus-text` and `xvpe-ai-inference`
+declare `std = ["xvpe-primitives/std"]` and nothing else, and each documents itself as needing
+nothing from std. Turning their defaults off would change nothing about their own code, so their
+manifest entries should not grow a feature justification by analogy with the clock's.
+
+**For the other two it is load-bearing, and unequally protected.** `xvpe-clock`'s defaults stay
+on because `HostedWallClock` is behind `std`, and
+`pub use xvpe_clock::HostedWallClock as SystemClock` in `kwb-platform-xvpe/src/lib.rs` stops
+compiling if they go off — a guard by construction, which is what that manifest comment means by
+*proved by naming the types*. `xvpe-collections-persistent`'s `default-features = false` compiles
+it and `xvpe-collections-map` freestanding and keeps `StandardHashMap` off the surface, and
+**nothing protects that one**: removing the line compiles, turns `std` on, and adds a type
+nothing here names. `KWB-98` wrote the reason into the manifest and stated the missing guard
+rather than papering over it with a tautological one.
+
+All four settings are correct as they stand. What was missing was any record that they are
+choices at all, which is the same gap the amendment above found for the crate list.
 
 ## Alternatives Considered
 
