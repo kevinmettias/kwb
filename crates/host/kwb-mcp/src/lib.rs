@@ -31,10 +31,10 @@
 //! Naming them is deliberate. A surface that quietly shipped four tools where a reader
 //! expected nine would leave them to discover the gap by its absence.
 
-use kwb_domain::{KnowledgeGraph, Replay};
+use kwb_domain::{Assertion, Claim, KnowledgeGraph, Replay};
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::FileRecordLog;
-use kwb_retrieval::{CurrentQueries, HistoricalQueries};
+use kwb_retrieval::{CurrentQueries, HeldAssertion, HeldClaim, HistoricalQueries};
 
 /// The corpus a host serves: what earlier runs published, replayed.
 ///
@@ -226,23 +226,41 @@ fn Neighbourhood_Lines(current: CurrentQueries<'_>, name: &str) -> Vec<String>
     };
 
     let mut lines = vec![format!("concept  {}", neighbourhood.concept.Canonical_Name())];
-    for claim in &neighbourhood.claims
-    {
-        lines.push(format!("claim    {}", claim.Text()));
-    }
-    for assertion in &neighbourhood.assertions
-    {
-        let scope = if assertion.Scope().Is_Unstated()
-        {
-            "scope unstated"
-        }
-        else
-        {
-            assertion.Scope().Name()
-        };
-        lines.push(format!("cited    {} [{scope}]", assertion.Source()));
-    }
+    lines.extend(Claim_Lines(&neighbourhood.claims));
+    lines.extend(Citation_Lines(&neighbourhood.assertions));
     return lines;
+}
+
+/// One line per claim of a current neighbourhood.
+fn Claim_Lines(claims: &[&Claim]) -> Vec<String>
+{
+    return claims
+        .iter()
+        .map(|claim| return format!("claim    {}", claim.Text()))
+        .collect();
+}
+
+/// One line per assertion, saying what it cites and the scope it was read under.
+///
+/// An unstated scope is rendered in words rather than omitted, which is `D-010` applied to a
+/// listing: a source that did not say how far it meant has not said the narrowest thing, so a
+/// citation whose scope quietly vanished would read as one scoped to everything.
+fn Citation_Lines(assertions: &[&Assertion]) -> Vec<String>
+{
+    return assertions
+        .iter()
+        .map(|assertion| {
+            let scope = if assertion.Scope().Is_Unstated()
+            {
+                "scope unstated"
+            }
+            else
+            {
+                assertion.Scope().Name()
+            };
+            return format!("cited    {} [{scope}]", assertion.Source());
+        })
+        .collect();
 }
 
 /// The tool listing, and what the corpus holds.
@@ -251,12 +269,28 @@ pub fn Print_Surface(graph: &KnowledgeGraph, without_a_store: bool)
     let current = CurrentQueries::Over(graph);
     let historical = HistoricalQueries::Over(graph);
 
+    Print_Tools();
+    Print_Corpus(current, historical, without_a_store);
+    Print_Absences();
+}
+
+/// The header and the tool table itself, in declaration order.
+fn Print_Tools()
+{
     println!("kwb-mcp: {} read-only tools", TOOLS.len());
     for tool in TOOLS
     {
         println!("  {:<14} [{}]  {}", tool.name, tool.world.Name(), tool.summary);
     }
+}
 
+/// The corpus line, how to ask a question of it, and what an empty listing means.
+fn Print_Corpus(
+    current: CurrentQueries<'_>,
+    historical: HistoricalQueries<'_>,
+    without_a_store: bool,
+)
+{
     println!();
     println!("corpus     {} current, {} held", current.Concept_Count(), historical.Concept_Count());
     println!();
@@ -268,7 +302,11 @@ pub fn Print_Surface(graph: &KnowledgeGraph, without_a_store: bool)
         println!("empty graph.");
         println!();
     }
+}
 
+/// What this surface does not have, said rather than left to be discovered by its absence.
+fn Print_Absences()
+{
     println!("No transport is wired. Every tool above reads a type with no write path, which");
     println!("kwb-retrieval's own tests check; mutation is excluded by the types rather than");
     println!("by this file remembering to exclude it.");
@@ -305,35 +343,51 @@ fn Held_Neighbourhood_Lines(historical: HistoricalQueries<'_>, name: &str) -> Ve
         concept.concept.Value().Canonical_Name(),
         Standing_Of(concept.concept.Standing())
     )];
-    for claim in &concept.claims
-    {
-        // The composed answer, and the reason when the two disagree.
-        //
-        // A claim under a superseded concept is not current however its own standing reads, and
-        // saying so needs both facts: the claim itself was never retired, and it is not live
-        // because what it was about is not. Rendering only its own standing says "current" and
-        // reproduces `D19-B` inside the tool built to end it -- which this line did twice, once
-        // by reading the standing directly and once by falling back to it.
-        let standing = match (claim.current, claim.held.Standing().Is_Current())
-        {
-            (true, _) => "current".to_owned(),
-            (false, true) => "not current: its concept is not".to_owned(),
-            (false, false) => Standing_Of(claim.held.Standing()),
-        };
-        lines.push(format!("claim    {} [{}]", claim.held.Value().Text(), standing));
-    }
-    for assertion in &concept.assertions
-    {
-        let standing = match (assertion.current, assertion.held.Standing().Is_Current())
-        {
-            (true, _) => "current".to_owned(),
-            (false, true) => "not current: what it cites is not".to_owned(),
-            (false, false) => Standing_Of(assertion.held.Standing()),
-        };
-        lines.push(format!("cited    {} [{}]", assertion.held.Value().Source(), standing));
-    }
+    lines.extend(Held_Claim_Lines(&concept.claims));
+    lines.extend(Held_Assertion_Lines(&concept.assertions));
 
     return lines;
+}
+
+/// One line per claim a held neighbourhood carried, each saying what became of it.
+fn Held_Claim_Lines(claims: &[HeldClaim<'_>]) -> Vec<String>
+{
+    return claims
+        .iter()
+        .map(|claim| {
+            // The composed answer, and the reason when the two disagree.
+            //
+            // A claim under a superseded concept is not current however its own standing reads, and
+            // saying so needs both facts: the claim itself was never retired, and it is not live
+            // because what it was about is not. Rendering only its own standing says "current" and
+            // reproduces `D19-B` inside the tool built to end it -- which this line did twice, once
+            // by reading the standing directly and once by falling back to it.
+            let standing = match (claim.current, claim.held.Standing().Is_Current())
+            {
+                (true, _) => "current".to_owned(),
+                (false, true) => "not current: its concept is not".to_owned(),
+                (false, false) => Standing_Of(claim.held.Standing()),
+            };
+            return format!("claim    {} [{}]", claim.held.Value().Text(), standing);
+        })
+        .collect();
+}
+
+/// One line per citation a held neighbourhood carried, in the same composed sense.
+fn Held_Assertion_Lines(assertions: &[HeldAssertion<'_>]) -> Vec<String>
+{
+    return assertions
+        .iter()
+        .map(|assertion| {
+            let standing = match (assertion.current, assertion.held.Standing().Is_Current())
+            {
+                (true, _) => "current".to_owned(),
+                (false, true) => "not current: what it cites is not".to_owned(),
+                (false, false) => Standing_Of(assertion.held.Standing()),
+            };
+            return format!("cited    {} [{}]", assertion.held.Value().Source(), standing);
+        })
+        .collect();
 }
 
 /// What became of something, with its reason when it has one.

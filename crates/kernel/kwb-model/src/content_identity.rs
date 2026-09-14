@@ -87,24 +87,7 @@ impl ContentIdentity
             return Err(IdentityError::WrongLength { found: text.len() });
         }
 
-        let mut digest = [0_u8; IDENTITY_BYTES];
-        let mut digits = text.bytes();
-
-        for slot in &mut digest
-        {
-            // The length check above guarantees both of these yield. The `else` arm exists
-            // because a total match costs nothing and an argument that a branch is
-            // unreachable costs a reader something every time they check it.
-            let (Some(high), Some(low)) = (digits.next(), digits.next())
-            else
-            {
-                return Err(IdentityError::WrongLength { found: text.len() });
-            };
-
-            *slot = High_Nibble(high)? | Low_Nibble(low)?;
-        }
-
-        return Ok(Self(digest));
+        return Decode(text).map(Self);
     }
 
     /// The raw bytes, for a caller writing the identity somewhere that is not text.
@@ -115,62 +98,86 @@ impl ContentIdentity
     }
 }
 
-/// One lowercase hexadecimal digit, as the high nibble of a byte.
+/// The digest a rendered identity names.
 ///
-/// Written as a table rather than computed. Deriving it would mean arithmetic on a
-/// parse path, which this workspace denies for the reason nomos states: a panic there
-/// is a determinism defect rather than a bug. A table has no arithmetic to check.
+/// The length is already known to be right, so the only way this fails is a digit that is not
+/// lowercase hexadecimal — and the `else` arm exists because a total match costs nothing and an
+/// argument that a branch is unreachable costs a reader something every time they check it.
+fn Decode(text: &str) -> Result<[u8; IDENTITY_BYTES], IdentityError>
+{
+    let mut digest = [0_u8; IDENTITY_BYTES];
+    let mut digits = text.bytes();
+
+    for slot in &mut digest
+    {
+        let (Some(high), Some(low)) = (digits.next(), digits.next())
+        else
+        {
+            return Err(IdentityError::WrongLength { found: text.len() });
+        };
+
+        *slot = High_Nibble(high)? | Low_Nibble(low)?;
+    }
+
+    return Ok(digest);
+}
+
+/// How many values a nibble holds, and so how many hexadecimal digits there are.
+///
+/// Named because it is the width of every table below and of the parameter [`Nibble_Of`] takes —
+/// four places that must agree, and a `16` written at each of them is four chances to disagree.
+const NIBBLE_VALUES: usize = 16;
+
+/// The sixteen lowercase hexadecimal digits, in ascending order of the value they name.
+///
+/// A table rather than arithmetic. Deriving a digit's value would mean arithmetic on a parse
+/// path, which this workspace denies for the reason nomos states: a panic there is a
+/// determinism defect rather than a bug. A table has no arithmetic to check.
+const HEXADECIMAL_DIGITS: [u8; NIBBLE_VALUES] = *b"0123456789abcdef";
+
+/// What each digit names in the **high** nibble of a byte.
+const HIGH_NIBBLE: [u8; NIBBLE_VALUES] = [
+    0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xA0, 0xB0, 0xC0, 0xD0, 0xE0, 0xF0,
+];
+
+/// What each digit names in the **low** nibble of a byte.
+const LOW_NIBBLE: [u8; NIBBLE_VALUES] = [
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+];
+
+/// One lowercase hexadecimal digit, as the high nibble of a byte.
 fn High_Nibble(byte: u8) -> Result<u8, IdentityError>
 {
-    return match byte
-    {
-        b'0' => Ok(0x00),
-        b'1' => Ok(0x10),
-        b'2' => Ok(0x20),
-        b'3' => Ok(0x30),
-        b'4' => Ok(0x40),
-        b'5' => Ok(0x50),
-        b'6' => Ok(0x60),
-        b'7' => Ok(0x70),
-        b'8' => Ok(0x80),
-        b'9' => Ok(0x90),
-        b'a' => Ok(0xA0),
-        b'b' => Ok(0xB0),
-        b'c' => Ok(0xC0),
-        b'd' => Ok(0xD0),
-        b'e' => Ok(0xE0),
-        b'f' => Ok(0xF0),
-        _ => Err(IdentityError::NotHexadecimal { found: char::from(byte) }),
-    };
+    return Nibble_Of(byte, HIGH_NIBBLE);
 }
 
 /// One lowercase hexadecimal digit, as the low nibble of a byte.
-///
-/// Written as a table rather than computed. Deriving it would mean arithmetic on a
-/// parse path, which this workspace denies for the reason nomos states: a panic there
-/// is a determinism defect rather than a bug. A table has no arithmetic to check.
 fn Low_Nibble(byte: u8) -> Result<u8, IdentityError>
 {
-    return match byte
+    return Nibble_Of(byte, LOW_NIBBLE);
+}
+
+/// What one digit names in `table`, or a refusal naming the byte that is not a digit.
+///
+/// The digit is FOUND rather than computed, which is what keeps an out-of-range byte a refusal
+/// the caller can see instead of a computation free to run past the end of `table`.
+fn Nibble_Of(byte: u8, table: [u8; NIBBLE_VALUES]) -> Result<u8, IdentityError>
+{
+    let Some(digit) = HEXADECIMAL_DIGITS
+        .iter()
+        .position(|candidate| return *candidate == byte)
+    else
     {
-        b'0' => Ok(0x00),
-        b'1' => Ok(0x01),
-        b'2' => Ok(0x02),
-        b'3' => Ok(0x03),
-        b'4' => Ok(0x04),
-        b'5' => Ok(0x05),
-        b'6' => Ok(0x06),
-        b'7' => Ok(0x07),
-        b'8' => Ok(0x08),
-        b'9' => Ok(0x09),
-        b'a' => Ok(0x0A),
-        b'b' => Ok(0x0B),
-        b'c' => Ok(0x0C),
-        b'd' => Ok(0x0D),
-        b'e' => Ok(0x0E),
-        b'f' => Ok(0x0F),
-        _ => Err(IdentityError::NotHexadecimal { found: char::from(byte) }),
+        return Err(IdentityError::NotHexadecimal { found: char::from(byte) });
     };
+
+    let Some(value) = table.get(digit).copied()
+    else
+    {
+        return Err(IdentityError::NotHexadecimal { found: char::from(byte) });
+    };
+
+    return Ok(value);
 }
 
 impl fmt::Display for ContentIdentity

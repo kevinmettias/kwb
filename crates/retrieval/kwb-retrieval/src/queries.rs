@@ -3,6 +3,8 @@
 use kwb_domain::Assertion;
 use kwb_domain::Claim;
 use kwb_domain::Concept;
+use kwb_domain::CurrentKnowledge;
+use kwb_domain::EveryVersion;
 use kwb_domain::KnowledgeGraph;
 use kwb_domain::Versioned;
 use kwb_model::ContentIdentity;
@@ -190,18 +192,8 @@ impl<'graph> CurrentQueries<'graph>
             .into_iter()
             .find(|held| return held.Identity() == concept)?;
 
-        let claims: Vec<&Claim> = current
-            .Claims()
-            .into_iter()
-            .filter(|claim| return claim.Concept() == concept)
-            .collect();
-        let addresses: Vec<ContentIdentity> =
-            claims.iter().map(|claim| return claim.Identity()).collect();
-        let assertions = current
-            .Assertions()
-            .into_iter()
-            .filter(|assertion| return addresses.contains(&assertion.Claim()))
-            .collect();
+        let claims = Claims_About(current, concept);
+        let assertions = Assertions_Citing(current, &claims);
 
         return Some(Neighbourhood {
             concept: found,
@@ -216,6 +208,39 @@ impl<'graph> CurrentQueries<'graph>
     {
         return self.graph.Current().Concepts().len();
     }
+}
+
+/// The current claims made about one concept.
+///
+/// A neighbourhood is reached in two hops, and this is the first of them. An assertion cites a
+/// claim rather than a concept, so the claims have to be found before anything can say which
+/// assertions are attached.
+fn Claims_About(current: CurrentKnowledge<'_>, concept: ContentIdentity) -> Vec<&Claim>
+{
+    return current
+        .Claims()
+        .into_iter()
+        .filter(|claim| return claim.Concept() == concept)
+        .collect();
+}
+
+/// The current assertions citing any of `claims`.
+///
+/// The second hop, and the one that has to go *through* the claims: an assertion names no
+/// concept of its own, so the citation is the whole of what attaches it to a neighbourhood.
+/// Filtering assertions by concept instead would find none of them.
+fn Assertions_Citing<'graph>(
+    current: CurrentKnowledge<'graph>,
+    claims: &[&'graph Claim],
+) -> Vec<&'graph Assertion>
+{
+    let addresses: Vec<ContentIdentity> =
+        claims.iter().map(|claim| return claim.Identity()).collect();
+    return current
+        .Assertions()
+        .into_iter()
+        .filter(|assertion| return addresses.contains(&assertion.Claim()))
+        .collect();
 }
 
 /// The same questions, asked of every version.
@@ -287,52 +312,11 @@ impl<'graph> HistoricalQueries<'graph>
             .into_iter()
             .find(|held| return held.Value().Identity() == concept)?;
 
-        // The claims the graph itself calls current, composed the way it composes them. Asked
-        // rather than re-derived: a second liveness rule here would be the half-enforced index
-        // `D-012` describes, and it would be wrong in exactly the case this query is for.
-        let live: Vec<ContentIdentity> = self
-            .graph
-            .Current()
-            .Claims()
-            .into_iter()
-            .map(Claim::Identity)
-            .collect();
+        let live = self.Live_Claim_Identities();
+        let cited = self.Live_Assertion_Identities();
 
-        let claims: Vec<HeldClaim<'graph>> = every
-            .Claims()
-            .into_iter()
-            .filter(|held| return held.Value().Concept() == concept)
-            .map(|held| {
-                return HeldClaim {
-                    held,
-                    current: live.contains(&held.Value().Identity()),
-                };
-            })
-            .collect();
-        let addresses: Vec<ContentIdentity> = claims
-            .iter()
-            .map(|claim| return claim.held.Value().Identity())
-            .collect();
-        // Asked of the graph, like the claims above, and for the same reason.
-        let cited: Vec<ContentIdentity> = self
-            .graph
-            .Current()
-            .Assertions()
-            .into_iter()
-            .map(Assertion::Identity)
-            .collect();
-
-        let assertions = every
-            .Assertions()
-            .into_iter()
-            .filter(|held| return addresses.contains(&held.Value().Claim()))
-            .map(|held| {
-                return HeldAssertion {
-                    held,
-                    current: cited.contains(&held.Value().Identity()),
-                };
-            })
-            .collect();
+        let claims = Held_Claims_About(every, concept, &live);
+        let assertions = Held_Assertions_Citing(every, &claims, &cited);
 
         return Some(HeldNeighbourhood {
             concept: found,
@@ -341,12 +325,97 @@ impl<'graph> HistoricalQueries<'graph>
         });
     }
 
+    /// The claims the graph itself calls current, composed the way it composes them.
+    ///
+    /// Asked rather than re-derived: a second liveness rule here would be the half-enforced
+    /// index `D-012` describes, and it would be wrong in exactly the case this query is for.
+    ///
+    /// Taken by value because this type is one reference and is `Copy`: asking a question of a
+    /// graph should not need the asker to still be there afterwards.
+    #[must_use]
+    fn Live_Claim_Identities(self) -> Vec<ContentIdentity>
+    {
+        return self
+            .graph
+            .Current()
+            .Claims()
+            .into_iter()
+            .map(Claim::Identity)
+            .collect();
+    }
+
+    /// The assertions the graph itself calls current.
+    ///
+    /// Asked of the graph, like the claims, and for the same reason.
+    #[must_use]
+    fn Live_Assertion_Identities(self) -> Vec<ContentIdentity>
+    {
+        return self
+            .graph
+            .Current()
+            .Assertions()
+            .into_iter()
+            .map(Assertion::Identity)
+            .collect();
+    }
+
     /// How many concepts are held, current or not.
     #[must_use]
     pub fn Concept_Count(&self) -> usize
     {
         return self.graph.Every_Version().Concepts().len();
     }
+}
+
+/// Every claim ever made about one concept, each told whether the graph calls it current.
+///
+/// `live` is passed in rather than derived here because the graph is the only thing that
+/// decides what is current. A liveness rule restated in this function would be the second one
+/// `D-012` is about, and the two would part company at the first merge.
+fn Held_Claims_About<'graph>(
+    every: EveryVersion<'graph>,
+    concept: ContentIdentity,
+    live: &[ContentIdentity],
+) -> Vec<HeldClaim<'graph>>
+{
+    return every
+        .Claims()
+        .into_iter()
+        .filter(|held| return held.Value().Concept() == concept)
+        .map(|held| {
+            return HeldClaim {
+                held,
+                current: live.contains(&held.Value().Identity()),
+            };
+        })
+        .collect();
+}
+
+/// Every assertion ever made of these claims, each told whether the graph calls it current.
+///
+/// Reached through `claims` rather than through the concept, because an assertion cites a
+/// claim and names no concept of its own. `cited` is passed in for the reason `live` is.
+fn Held_Assertions_Citing<'graph>(
+    every: EveryVersion<'graph>,
+    claims: &[HeldClaim<'graph>],
+    cited: &[ContentIdentity],
+) -> Vec<HeldAssertion<'graph>>
+{
+    let addresses: Vec<ContentIdentity> = claims
+        .iter()
+        .map(|claim| return claim.held.Value().Identity())
+        .collect();
+    return every
+        .Assertions()
+        .into_iter()
+        .filter(|held| return addresses.contains(&held.Value().Claim()))
+        .map(|held| {
+            return HeldAssertion {
+                held,
+                current: cited.contains(&held.Value().Identity()),
+            };
+        })
+        .collect();
 }
 
 /// The query's words, normalized the way a claim's own text was.

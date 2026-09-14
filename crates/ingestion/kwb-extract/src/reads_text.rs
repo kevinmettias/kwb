@@ -57,6 +57,40 @@ const PASSAGE_CHARACTERS: u32 = 4_000;
 /// One text file is one page, so a passage never spans more than it.
 const PASSAGE_PAGES: u32 = 1;
 
+/// The characters per page below which XVPE grades that page `ImageOnly`.
+///
+/// The lower of the two floors given to `FidelityThresholds::New`, and one rather than zero
+/// because a page with nothing extracted at all is exactly what that verdict names: zero would
+/// make the verdict unreachable. A text file is all text, so this is the lowest floor that can be
+/// expressed and still say something, and it is why a page graded here arrives at the refusal in
+/// [`Readings_Of`](ReadsText::Readings_Of) rather than as a surprise.
+const IMAGE_ONLY_BELOW: u32 = 1;
+
+/// The characters per page below which XVPE grades that page `Sparse`.
+///
+/// One character above [`IMAGE_ONLY_BELOW`], which is the narrowest pair `FidelityThresholds::New`
+/// will accept: a page too thin to be sparse is thereby too thin to be born-digital, so an
+/// inverted pair could not classify anything consistently. Thresholds decide the fidelity recorded
+/// on each passage, and a text file is all text — nothing a real source holds falls between these
+/// two floors, so nothing a real source holds is graded as needing a look.
+const SPARSE_BELOW: u32 = 2;
+
+/// The ceiling on tokens the model may generate for one passage's answer.
+///
+/// A working default rather than a measurement, for the reason [`PASSAGE_CHARACTERS`] gives:
+/// nothing here has a corpus to measure against. It is generous enough that a passage of ordinary
+/// prose never meets it, and it is named so that a corpus which says otherwise changes one number
+/// in one place.
+const ANSWER_TOKEN_BUDGET: u32 = 2_048;
+
+/// The most propositions one passage's answer may carry.
+///
+/// A ceiling rather than a target, and part of the request's schema rather than a count taken
+/// afterwards, so an answer offering more comes back non-conforming and is refused — which is
+/// stronger than trimming it here, because an answer that overflowed says the model read a
+/// different passage than the one it was sent.
+const MAXIMUM_PROPOSITIONS: u32 = 32;
+
 /// A model-backed reader of born-digital text.
 ///
 /// # What it refuses, and why each refusal is a different fact
@@ -119,12 +153,52 @@ impl<Reader: InferenceStrategy> ExtractionStrategy for ReadsText<Reader>
             return Err(ExtractionRefused::CannotRead { needed });
         }
 
-        let text = core::str::from_utf8(content).map_err(|cause| {
-            return ExtractionRefused::ReaderFailed {
-                cause: format!("the source is not text: {cause}"),
-            };
-        })?;
+        let text = Text_Of(content)?;
 
+        return self.Readings_Of(source, text);
+    }
+
+    fn Scope(&self) -> Scope
+    {
+        return self.scope.clone();
+    }
+}
+
+/// The source's bytes as text, or the refusal that they were not text at all.
+///
+/// Separate from the reading itself because it is the one step where a file stops being bytes and
+/// starts being passages. A source that is not text is not a source with nothing in it, which is
+/// why this refuses rather than yielding an empty reading.
+///
+/// # Errors
+///
+/// [`ExtractionRefused::ReaderFailed`] when the bytes are not UTF-8.
+fn Text_Of(content: &[u8]) -> Result<&str, ExtractionRefused>
+{
+    return core::str::from_utf8(content).map_err(|cause| {
+        return ExtractionRefused::ReaderFailed {
+            cause: format!("the source is not text: {cause}"),
+        };
+    });
+}
+
+impl<Reader: InferenceStrategy> ReadsText<Reader>
+{
+    /// Read every passage of `text`, or refuse on the first that cannot be read.
+    ///
+    /// All-or-nothing for the reason [`Read`](ExtractionStrategy::Read) gives, so the refusal is
+    /// raised here rather than recorded per passage.
+    ///
+    /// # Errors
+    ///
+    /// [`ExtractionRefused::CannotRead`] when a passage is graded as needing a look rather than a
+    /// read, and [`ExtractionRefused::ReaderFailed`] when the reader did not answer usably.
+    fn Readings_Of(
+        &self,
+        source: ContentIdentity,
+        text: &str,
+    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
+    {
         let mut readings = Vec::new();
         for passage in Passages_Of(text)
         {
@@ -139,20 +213,13 @@ impl<Reader: InferenceStrategy> ExtractionStrategy for ReadsText<Reader>
                 });
             }
 
-            readings.push(self.Reading_Of(source, &passage)?);
+            let reading = self.Reading_Of(source, &passage)?;
+            readings.push(reading);
         }
 
         return Ok(readings);
     }
 
-    fn Scope(&self) -> Scope
-    {
-        return self.scope.clone();
-    }
-}
-
-impl<Reader: InferenceStrategy> ReadsText<Reader>
-{
     /// Ask about one passage.
     fn Reading_Of(
         &self,
@@ -160,7 +227,8 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         passage: &Passage,
     ) -> Result<ProposedReading, ExtractionRefused>
     {
-        let request = Request_For(&self.model, passage.Text());
+        let passage_text = passage.Text();
+        let request = Request_For(&self.model, passage_text);
 
         let answered = self.reader.Infer(&request).map_err(|cause| {
             return ExtractionRefused::ReaderFailed {
@@ -168,12 +236,15 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
             };
         })?;
 
-        return Ok(ProposedReading::Of(
-            source,
-            SourceLocation::Named(&Where_In(passage)),
-            Proposed_From(answered.Answer())?,
-            ExtractionLineage::Of(PROTOCOL, self.model.As_Str()),
-        ));
+        let where_in = Where_In(passage);
+        let location = SourceLocation::Named(&where_in);
+        let answer = answered.Answer();
+        let proposed = Proposed_From(answer)?;
+        let model_name = self.model.As_Str();
+        let lineage = ExtractionLineage::Of(PROTOCOL, model_name);
+        let reading = ProposedReading::Of(source, location, proposed, lineage);
+
+        return Ok(reading);
     }
 }
 
@@ -190,15 +261,23 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
 #[must_use]
 pub fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRequest
 {
-    return InferenceRequest::New(
+    let role = ModelRole::Named(0, "extractor");
+    let instructions = INSTRUCTIONS.to_owned();
+    let passage_text = passage.to_owned();
+    let content = ContentBlock::Of_Text(passage_text);
+    let blocks = vec![content];
+    let schema = Propositions_Schema();
+    let request = InferenceRequest::New(
         model.clone(),
-        ModelRole::Named(0, "extractor"),
-        INSTRUCTIONS.to_owned(),
-        vec![ContentBlock::Of_Text(passage.to_owned())],
-        Some(Propositions_Schema()),
+        role,
+        instructions,
+        blocks,
+        Some(schema),
         None,
-        2_048,
+        ANSWER_TOKEN_BUDGET,
     );
+
+    return request;
 }
 
 /// The shape an answer must have, or the strategy refuses it.
@@ -240,7 +319,7 @@ pub fn Propositions_Schema() -> ResponseSchema
             description: "every proposition the passage asserts, and nothing it does not"
                 .to_owned(),
             items: Box::new(proposition),
-            maximum_length: Some(32),
+            maximum_length: Some(MAXIMUM_PROPOSITIONS),
         },
     );
 }
@@ -253,27 +332,26 @@ pub fn Propositions_Schema() -> ResponseSchema
 fn Passages_Of(text: &str) -> Vec<Passage>
 {
     let characters = u32::try_from(text.chars().count()).unwrap_or(u32::MAX);
-    let page = PageText::New(
-        PageNumber::From_Zero_Based(0),
-        PageProfile::New(characters, 0, 0),
-        text.to_owned(),
-    );
+    let number = PageNumber::From_Zero_Based(0);
+    let profile = PageProfile::New(characters, 0, 0);
+    let content = text.to_owned();
+    let page = PageText::New(number, profile, content);
 
     let Some(budget) = PassageBudget::New(PASSAGE_CHARACTERS, PASSAGE_PAGES)
     else
     {
         return Vec::new();
     };
-    // Thresholds decide the fidelity recorded on each passage. A text file is all text, so the
-    // floors are the lowest that can be expressed: nothing here should ever be graded as needing
-    // a look, and if it is, the refusal above is the right answer rather than a surprise.
-    let Some(thresholds) = FidelityThresholds::New(1, 2)
+
+    let Some(thresholds) = FidelityThresholds::New(IMAGE_ONLY_BELOW, SPARSE_BELOW)
     else
     {
         return Vec::new();
     };
 
-    return SectionBoundary.Chunk_Pages(&[page], budget, thresholds);
+    let passages = SectionBoundary.Chunk_Pages(&[page], budget, thresholds);
+
+    return passages;
 }
 
 /// Where a passage was, in the reader's own words.
@@ -286,6 +364,19 @@ fn Where_In(passage: &Passage) -> String
         span.First().Zero_Based(),
         span.Last().Zero_Based()
     );
+}
+
+/// The one refusal a reader that did not answer usably gets.
+///
+/// Written once because the cause is the whole of what differs between the sites that make it,
+/// and spelling the mapping out at each of them made a short check read as a five-line one. Every
+/// reason `Proposed_From` can reject an answer is this same fact about the reader, so the
+/// argument names which part of the answer was wrong and nothing else varies.
+fn Malformed(what: &str) -> ExtractionRefused
+{
+    return ExtractionRefused::ReaderFailed {
+        cause: format!("the answer is not what was asked for: {what}"),
+    };
 }
 
 /// What the answer proposes, or a refusal if it is not an answer of that shape.
@@ -319,32 +410,41 @@ fn Where_In(passage: &Passage) -> String
 /// carrying a textual `concept` and `claim`.
 fn Proposed_From(answer: &AnswerValue) -> Result<Vec<Extraction>, ExtractionRefused>
 {
-    let malformed = |what: &str| {
-        return ExtractionRefused::ReaderFailed {
-            cause: format!("the answer is not what was asked for: {what}"),
-        };
-    };
-
     let Some(propositions) = answer.As_Sequence()
     else
     {
-        return Err(malformed("a list of propositions was expected"));
+        return Err(Malformed("a list of propositions was expected"));
     };
 
     let mut proposed = Vec::new();
     for proposition in propositions
     {
-        let concept = proposition
-            .Field("concept")
-            .and_then(AnswerValue::As_Text)
-            .ok_or_else(|| return malformed("a proposition carries no textual concept"))?;
-        let claim = proposition
-            .Field("claim")
-            .and_then(AnswerValue::As_Text)
-            .ok_or_else(|| return malformed("a proposition carries no textual claim"))?;
-
-        proposed.push(Extraction::New(concept.to_owned(), claim.to_owned()));
+        let extraction = Proposed_Of(proposition)?;
+        proposed.push(extraction);
     }
 
     return Ok(proposed);
+}
+
+/// The one proposition a record holds, or the refusal naming the field it is missing.
+///
+/// # Errors
+///
+/// [`ExtractionRefused::ReaderFailed`] when the record carries no textual `concept` or `claim`.
+fn Proposed_Of(proposition: &AnswerValue) -> Result<Extraction, ExtractionRefused>
+{
+    let Some(concept) = proposition.Field("concept").and_then(AnswerValue::As_Text)
+    else
+    {
+        return Err(Malformed("a proposition carries no textual concept"));
+    };
+    let Some(claim) = proposition.Field("claim").and_then(AnswerValue::As_Text)
+    else
+    {
+        return Err(Malformed("a proposition carries no textual claim"));
+    };
+
+    let extraction = Extraction::New(concept.to_owned(), claim.to_owned());
+
+    return Ok(extraction);
 }

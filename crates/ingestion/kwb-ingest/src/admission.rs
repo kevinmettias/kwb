@@ -130,33 +130,58 @@ impl AdmissionReport
     #[must_use]
     pub fn Publications(&self) -> Vec<Publication>
     {
-        let mut publications = Vec::new();
+        let mut publications = self.Concept_Publications();
 
-        for concept in self.normalized.Concepts()
-        {
-            publications.push(Publication::Concept {
-                concept: concept.clone(),
-                standing: Standing::Asserted,
-            });
-        }
-        for claim in self.normalized.Linked().Claims()
-        {
-            publications.push(Publication::Claim {
-                claim: claim.clone(),
-                standing: Standing::Asserted,
-            });
-        }
-        // After the claims, because replay refuses an assertion naming a claim no earlier
-        // record published -- the same ordering rule, one level further along.
-        for assertion in &self.assertions
-        {
-            publications.push(Publication::Assertion {
-                assertion: assertion.clone(),
-                standing: Standing::Asserted,
-            });
-        }
+        publications.extend(self.Claim_Publications());
+        publications.extend(self.Assertion_Publications());
 
         return publications;
+    }
+
+    /// The concepts, as publications. They come first among their three, because a claim is
+    /// about a concept and replay refuses a claim naming one no earlier record published.
+    fn Concept_Publications(&self) -> Vec<Publication>
+    {
+        return self
+            .normalized
+            .Concepts()
+            .iter()
+            .map(|concept| return Publication::Concept {
+                concept: concept.clone(),
+                standing: Standing::Asserted,
+            })
+            .collect();
+    }
+
+    /// The claims, as publications. After the concepts for the same reason, one level in.
+    fn Claim_Publications(&self) -> Vec<Publication>
+    {
+        return self
+            .normalized
+            .Linked()
+            .Claims()
+            .iter()
+            .map(|claim| return Publication::Claim {
+                claim: claim.clone(),
+                standing: Standing::Asserted,
+            })
+            .collect();
+    }
+
+    /// The assertions, as publications.
+    ///
+    /// After the claims, because replay refuses an assertion naming a claim no earlier record
+    /// published -- the same ordering rule, one level further along.
+    fn Assertion_Publications(&self) -> Vec<Publication>
+    {
+        return self
+            .assertions
+            .iter()
+            .map(|assertion| return Publication::Assertion {
+                assertion: assertion.clone(),
+                standing: Standing::Asserted,
+            })
+            .collect();
     }
 
     /// Publish what was admitted into a graph, returning the new graph.
@@ -239,58 +264,18 @@ pub fn Admit(
 ) -> Result<AdmissionReport, StoreError>
 {
     let document = Document::Of(source);
-    // Read before writing, because the address is derived from the content and does not depend
-    // on the store having accepted it. Nothing is recorded either way until the write door
-    // below runs -- the reading produces proposals, and proposals are not records.
-    let reading = match reader
-    {
-        Some(reader) => reader
-            .Read(document.Identity(), document.Content(), needed)
-            .and_then(|readings| return Read_The_Right_Document(readings, document.Identity())),
-        None => Err(ExtractionRefused::NotRead),
-    };
+    let reading = Ask_The_Reader(reader, needed, &document);
     let source = store.Write(document)?;
 
     let reading = match reading
     {
         Ok(reading) => reading,
-        Err(refusal) =>
-        {
-            return Ok(AdmissionReport {
-                coverage: Coverage::Unmet {
-                    prerequisite: refusal.Prerequisite(),
-                },
-                normalized: Normalize_Concepts(Link_Concepts(&[])),
-                source: Some(source),
-                refusal: Some(refusal),
-                assertions: Vec::new(),
-            });
-        }
+        Err(refusal) => return Ok(Report_Of_Refusal(source, refusal)),
     };
 
-    // A reader that was never asked has no scope to offer, and `Scope::Unstated` is what that
-    // is. This spelled it `Scope::Named("")` until `KWB-50`, which is how a blank `--scope`
-    // came to record the same thing as no `--scope` at all.
-    let scope = reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
-    // Every passage's proposals, together. They are linked and normalized as one body because
-    // that is what makes a concept mentioned in two passages one concept -- the same mechanism
-    // that makes it one concept across two documents, one level in.
-    let extractions: Vec<Extraction> = reading
-        .iter()
-        .flat_map(|reading| return reading.Proposed().to_vec())
-        .collect();
-    let normalized = Normalize_Concepts(Link_Concepts(&extractions));
+    let normalized = Normalize_Concepts(Link_Concepts(&Proposals_Of(&reading)));
 
-    // The citation. The source is the document's own address rather than a filename or a
-    // title, so following it returns the bytes the claim was read out of -- and two documents
-    // with the same content are one source, which is the same mechanism one crate down.
-    let cited = source.Identity().Render();
-    let assertions = normalized
-        .Linked()
-        .Claims()
-        .iter()
-        .map(|claim| return Assertion::By(&cited, claim, scope.clone()))
-        .collect();
+    let assertions = Assertions_Citing(&normalized, &source, &Scope_Of(reader));
 
     return Ok(AdmissionReport {
         coverage: Coverage_Of_Reading(normalized.Linked().Claims().len()),
@@ -299,6 +284,94 @@ pub fn Admit(
         refusal: None,
         assertions,
     });
+}
+
+/// What a reader says about the document it was handed.
+///
+/// # Why the reading is taken before the write
+///
+/// Read before writing, because the address is derived from the content and does not depend on
+/// the store having accepted it. Nothing is recorded either way until the write door runs -- the
+/// reading produces proposals, and proposals are not records.
+///
+/// # Errors
+///
+/// [`ExtractionRefused::NotRead`] when no reader was offered at all, and
+/// [`ExtractionRefused::ReaderFailed`] when the reading turns out to be about another document.
+fn Ask_The_Reader(
+    reader: Option<&dyn ExtractionStrategy>,
+    needed: ReadingKind,
+    document: &Document,
+) -> Result<Vec<ProposedReading>, ExtractionRefused>
+{
+    return match reader
+    {
+        Some(reader) => reader
+            .Read(document.Identity(), document.Content(), needed)
+            .and_then(|readings| return Read_The_Right_Document(readings, document.Identity())),
+        None => Err(ExtractionRefused::NotRead),
+    };
+}
+
+/// What an admission reports when its reading did not happen.
+///
+/// The source was admitted and only the reading did not, which is why the coverage is
+/// [`Coverage::Unmet`] and the refusal is carried beside it rather than folded into it.
+fn Report_Of_Refusal(source: Written, refusal: ExtractionRefused) -> AdmissionReport
+{
+    return AdmissionReport {
+        coverage: Coverage::Unmet {
+            prerequisite: refusal.Prerequisite(),
+        },
+        normalized: Normalize_Concepts(Link_Concepts(&[])),
+        source: Some(source),
+        refusal: Some(refusal),
+        assertions: Vec::new(),
+    };
+}
+
+/// The scope a reading's assertions are made at.
+///
+/// A reader that was never asked has no scope to offer, and [`Scope::Unstated`] is what that
+/// is. This spelled it `Scope::Named("")` until `KWB-50`, which is how a blank `--scope`
+/// came to record the same thing as no `--scope` at all.
+fn Scope_Of(reader: Option<&dyn ExtractionStrategy>) -> Scope
+{
+    return reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
+}
+
+/// Every passage's proposals, together.
+///
+/// They are linked and normalized as one body because that is what makes a concept mentioned in
+/// two passages one concept -- the same mechanism that makes it one concept across two
+/// documents, one level in.
+fn Proposals_Of(reading: &[ProposedReading]) -> Vec<Extraction>
+{
+    return reading
+        .iter()
+        .flat_map(|reading| return reading.Proposed().to_vec())
+        .collect();
+}
+
+/// One assertion per claim, each cited to the document its claim was read out of.
+///
+/// The citation. The source is the document's own address rather than a filename or a
+/// title, so following it returns the bytes the claim was read out of -- and two documents
+/// with the same content are one source, which is the same mechanism one crate down.
+///
+/// The scope is borrowed because every assertion gets its own copy of it: the reading has one
+/// scope and the claims are many, so consuming it here would tie the number of citations to the
+/// number of scopes, which is not a relationship either of them has.
+fn Assertions_Citing(normalized: &Normalized, source: &Written, scope: &Scope) -> Vec<Assertion>
+{
+    let cited = source.Identity().Render();
+
+    return normalized
+        .Linked()
+        .Claims()
+        .iter()
+        .map(|claim| return Assertion::By(&cited, claim, scope.clone()))
+        .collect();
 }
 
 /// The reading, if it is about the document it was handed.

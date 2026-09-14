@@ -267,25 +267,35 @@ pub fn Normalize(text: &str) -> String
 
     for character in text.chars()
     {
-        if character.is_control()
-        {
-            continue;
-        }
-
-        if character.is_whitespace()
-        {
-            pending_space = !normalized.is_empty();
-            continue;
-        }
-
-        if pending_space
-        {
-            normalized.push(' ');
-            pending_space = false;
-        }
-
-        normalized.push(character);
+        Fold_Character(&mut normalized, &mut pending_space, character);
     }
 
     return normalized;
+}
+
+/// Fold one character into the text so far.
+///
+/// `pending_space` carries the run of whitespace seen and not yet emitted. A run collapses to
+/// one space when something follows it, and is never emitted at all when nothing does — which is
+/// what trims both ends without a second pass over the result.
+fn Fold_Character(normalized: &mut String, pending_space: &mut bool, character: char)
+{
+    if character.is_control()
+    {
+        return;
+    }
+
+    if character.is_whitespace()
+    {
+        *pending_space = !normalized.is_empty();
+        return;
+    }
+
+    if *pending_space
+    {
+        normalized.push(' ');
+        *pending_space = false;
+    }
+
+    normalized.push(character);
 }

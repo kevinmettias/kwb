@@ -17,6 +17,24 @@ pub struct FileRecordLog
     path: PathBuf,
 }
 
+/// What the medium reported, as the refusal this crate's callers see.
+///
+/// Every operation in this file fails the one way — a `std::io::Error` becomes
+/// [`StorageError::Refused`] carrying what was being attempted — and writing that mapping out at
+/// each site made four short operations read as five-line ones. `doing` is the whole of what
+/// differs between them.
+///
+/// The cause is borrowed rather than taken, because it is only read: the refusal this crate
+/// reports is a `String`, so the error the medium produced is left where the caller's own
+/// `map_err` closure found it rather than consumed to be described.
+fn Refused(doing: &'static str, cause: &std::io::Error) -> StorageError
+{
+    return StorageError::Refused {
+        doing,
+        cause: cause.to_string(),
+    };
+}
+
 impl FileRecordLog
 {
     /// A log at this path, creating the file and its directory if they are not there.
@@ -29,24 +47,15 @@ impl FileRecordLog
         let path = path.into();
         if let Some(parent) = path.parent()
         {
-            std::fs::create_dir_all(parent).map_err(|cause| {
-                return StorageError::Refused {
-                    doing: "creating the log directory",
-                    cause: cause.to_string(),
-                };
-            })?;
+            std::fs::create_dir_all(parent)
+                .map_err(|cause| return Refused("creating the log directory", &cause))?;
         }
 
         OpenOptions::new()
             .create(true)
             .append(true)
             .open(&path)
-            .map_err(|cause| {
-                return StorageError::Refused {
-                    doing: "opening the record log",
-                    cause: cause.to_string(),
-                };
-            })?;
+            .map_err(|cause| return Refused("opening the record log", &cause))?;
 
         return Ok(Self { path });
     }
@@ -65,46 +74,25 @@ impl RecordLogStrategy for FileRecordLog
             .create(true)
             .append(true)
             .open(&self.path)
-            .map_err(|cause| {
-                return StorageError::Refused {
-                    doing: "opening the record log to append",
-                    cause: cause.to_string(),
-                };
-            })?;
+            .map_err(|cause| return Refused("opening the record log to append", &cause))?;
 
-        writeln!(file, "{record}").map_err(|cause| {
-            return StorageError::Refused {
-                doing: "appending a record",
-                cause: cause.to_string(),
-            };
-        })?;
+        writeln!(file, "{record}")
+            .map_err(|cause| return Refused("appending a record", &cause))?;
 
-        return file.flush().map_err(|cause| {
-            return StorageError::Refused {
-                doing: "flushing an appended record",
-                cause: cause.to_string(),
-            };
-        });
+        return file
+            .flush()
+            .map_err(|cause| return Refused("flushing an appended record", &cause));
     }
 
     fn Records(&self) -> Result<Vec<String>, StorageError>
     {
-        let file = File::open(&self.path).map_err(|cause| {
-            return StorageError::Refused {
-                doing: "opening the record log to read",
-                cause: cause.to_string(),
-            };
-        })?;
+        let file = File::open(&self.path)
+            .map_err(|cause| return Refused("opening the record log to read", &cause))?;
 
         let mut records = Vec::new();
         for line in BufReader::new(file).lines()
         {
-            let line = line.map_err(|cause| {
-                return StorageError::Refused {
-                    doing: "reading a record",
-                    cause: cause.to_string(),
-                };
-            })?;
+            let line = line.map_err(|cause| return Refused("reading a record", &cause))?;
             if !line.is_empty()
             {
                 records.push(line);

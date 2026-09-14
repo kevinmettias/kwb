@@ -33,6 +33,17 @@ const CLAIM: &str = "claim";
 /// An assertion was published.
 const ASSERTION: &str = "assertion";
 
+/// How many fields a concept record carried before `KWB-64` added a time.
+///
+/// Named rather than written at the reader, because the count is a property of the record
+/// format and not of the one function that happens to check it. A concept is named, a claim adds
+/// the claim's text, and an assertion adds that claim's source and scope.
+const CONCEPT_FIELDS: usize = 5;
+/// How many fields a claim record carried before `KWB-64` added a time.
+const CLAIM_FIELDS: usize = 6;
+/// How many fields an assertion record carried before `KWB-64` added a time.
+const ASSERTION_FIELDS: usize = 7;
+
 /// The standing a record carries.
 const ASSERTED: &str = "asserted";
 /// Closed with no successor.
@@ -224,9 +235,9 @@ fn Untimed_Arity(kind: &str) -> Option<usize>
     // kind this reader does not know, and replay would refuse a log it wrote itself.
     return match kind
     {
-        _ if kind == CONCEPT => Some(5),
-        _ if kind == CLAIM => Some(6),
-        _ if kind == ASSERTION => Some(7),
+        _ if kind == CONCEPT => Some(CONCEPT_FIELDS),
+        _ if kind == CLAIM => Some(CLAIM_FIELDS),
+        _ if kind == ASSERTION => Some(ASSERTION_FIELDS),
         _ => None,
     };
 }
@@ -234,36 +245,37 @@ fn Untimed_Arity(kind: &str) -> Option<usize>
 /// The record's fields without its time, and the time if it carried one.
 fn Without_Time<'fields>(fields: &'fields [&'fields str]) -> (&'fields [&'fields str], Option<i64>)
 {
-    let Some(kind) = fields.first()
+    let Some((without, time)) = Timestamped(fields)
     else
     {
         return (fields, None);
     };
-    let Some(expected) = Untimed_Arity(kind)
-    else
-    {
-        return (fields, None);
-    };
+
+    return (without, Some(time));
+}
+
+/// The record split at its time, when it carries one.
+///
+/// `None` covers every shape that is not a timestamped record of a known kind — an untimed
+/// record, a record this reader does not know, and a record at the timestamped arity whose last
+/// field is not a number. The last of those is deliberately the same answer as the other two: it
+/// is not a timestamped record with a broken time, it is a record this reader does not know, and
+/// `Applied` refuses it as malformed rather than silently dropping a field.
+fn Timestamped<'fields>(
+    fields: &'fields [&'fields str],
+) -> Option<(&'fields [&'fields str], i64)>
+{
+    let kind = fields.first()?;
+    let expected = Untimed_Arity(kind)?;
     if fields.len() != expected.saturating_add(1)
     {
-        return (fields, None);
+        return None;
     }
 
-    let time = fields.last().and_then(|last| return last.parse::<i64>().ok());
-    let Some(without) = fields.get(..expected)
-    else
-    {
-        return (fields, None);
-    };
+    let time = fields.last().and_then(|last| return last.parse::<i64>().ok())?;
+    let without = fields.get(..expected)?;
 
-    return match time
-    {
-        // A record of the timestamped arity whose last field is not a number is not a
-        // timestamped record with a broken time -- it is a record this reader does not know,
-        // and `Applied` refuses it as malformed rather than silently dropping a field.
-        Some(time) => (without, Some(time)),
-        None => (fields, None),
-    };
+    return Some((without, time));
 }
 
 /// When a record was published, if it says.
@@ -281,59 +293,120 @@ pub fn Published_At(record: &str) -> Option<i64>
 }
 
 /// One record, applied to the graph so far.
+///
+/// This decides which of the three shapes a record claims to be, and produces the refusal that
+/// answers a record claiming none. Reading each shape is its own function because the three
+/// differ in what they must already find published: a concept is named, where a claim and an
+/// assertion are named by the address of something an earlier record put in the graph.
 fn Applied(
     graph: &KnowledgeGraph,
     record: &str,
     fields: &[&str],
 ) -> Result<KnowledgeGraph, ReplayError>
 {
-    let malformed = || {
-        return ReplayError::Malformed {
-            record: record.to_owned(),
-        };
-    };
-
     return match fields
     {
-        [kind, standing, successor, because, name] if *kind == CONCEPT =>
-        {
-            let concept = Concept::Named(name);
-            let standing = Standing_Of(standing, successor, because).ok_or_else(malformed)?;
-            Ok(graph.With_Concept(Versioned::Asserted(concept).Closed(standing)))
-        }
-        [kind, standing, successor, because, concept, text] if *kind == CLAIM =>
-        {
-            let address = ContentIdentity::Parse(concept).map_err(|_| return malformed())?;
-            let held = Concept_At(graph, address).ok_or_else(|| {
-                return ReplayError::OutOfOrder {
-                    missing: (*concept).to_owned(),
-                };
-            })?;
-            let claim = Claim::About(&held, text);
-            let standing = Standing_Of(standing, successor, because).ok_or_else(malformed)?;
-            Ok(graph.With_Claim(Versioned::Asserted(claim).Closed(standing)))
-        }
-        [kind, standing, successor, because, claim, source, scope] if *kind == ASSERTION =>
-        {
-            let address = ContentIdentity::Parse(claim).map_err(|_| return malformed())?;
-            let held = Claim_At(graph, address).ok_or_else(|| {
-                return ReplayError::OutOfOrder {
-                    missing: (*claim).to_owned(),
-                };
-            })?;
-            // An empty trailing field is an unstated scope, and reading it that way is
-            // deliberate rather than the swallow `Scope::Named` now refuses. A record is what
-            // was already written: logs on disk carry the empty field for every assertion whose
-            // source did not say how far it reached, and the record format is not what was
-            // wrong. What was wrong was a *person's blank input* becoming that field, and that
-            // is refused where the input arrives, not here where it is read back.
-            let scope = Scope::Named(scope).unwrap_or_else(Scope::Unstated);
-            let assertion = Assertion::By(source, &held, scope);
-            let standing = Standing_Of(standing, successor, because).ok_or_else(malformed)?;
-            Ok(graph.With_Assertion(Versioned::Asserted(assertion).Closed(standing)))
-        }
-        _ => Err(malformed()),
+        [kind, rest @ ..] if *kind == CONCEPT => Applied_Concept(graph, record, rest),
+        [kind, rest @ ..] if *kind == CLAIM => Applied_Claim(graph, record, rest),
+        [kind, rest @ ..] if *kind == ASSERTION => Applied_Assertion(graph, record, rest),
+        _ => Err(Malformed(record)),
     };
+}
+
+/// The refusal for a record this reader cannot read.
+///
+/// The record itself is carried rather than a reconstruction of it, so that a report of a log
+/// that would not replay names the line a reader has to look at.
+fn Malformed(record: &str) -> ReplayError
+{
+    return ReplayError::Malformed {
+        record: record.to_owned(),
+    };
+}
+
+/// The refusal for a record naming something no earlier record published.
+fn Unpublished(missing: &str) -> ReplayError
+{
+    return ReplayError::OutOfOrder {
+        missing: missing.to_owned(),
+    };
+}
+
+/// A concept record, applied. `rest` is its fields after the kind.
+fn Applied_Concept(
+    graph: &KnowledgeGraph,
+    record: &str,
+    rest: &[&str],
+) -> Result<KnowledgeGraph, ReplayError>
+{
+    let [standing, successor, because, name] = rest
+    else
+    {
+        return Err(Malformed(record));
+    };
+
+    let concept = Concept::Named(name);
+    let standing = Standing_Of(standing, successor, because)
+        .ok_or_else(|| return Malformed(record))?;
+
+    return Ok(graph.With_Concept(Versioned::Asserted(concept).Closed(standing)));
+}
+
+/// A claim record, applied. `rest` is its fields after the kind.
+///
+/// The concept it is about must have been published already: a claim record names its concept by
+/// address, and an address that resolves to nothing means the log is out of order rather than
+/// that the claim is unreadable.
+fn Applied_Claim(
+    graph: &KnowledgeGraph,
+    record: &str,
+    rest: &[&str],
+) -> Result<KnowledgeGraph, ReplayError>
+{
+    let [standing, successor, because, concept, text] = rest
+    else
+    {
+        return Err(Malformed(record));
+    };
+
+    let address = ContentIdentity::Parse(concept).map_err(|_| return Malformed(record))?;
+    let held = Concept_At(graph, address).ok_or_else(|| return Unpublished(concept))?;
+    let claim = Claim::About(&held, text);
+    let standing = Standing_Of(standing, successor, because)
+        .ok_or_else(|| return Malformed(record))?;
+
+    return Ok(graph.With_Claim(Versioned::Asserted(claim).Closed(standing)));
+}
+
+/// An assertion record, applied. `rest` is its fields after the kind.
+///
+/// As with a claim, the claim it is about must have been published already.
+fn Applied_Assertion(
+    graph: &KnowledgeGraph,
+    record: &str,
+    rest: &[&str],
+) -> Result<KnowledgeGraph, ReplayError>
+{
+    let [standing, successor, because, claim, source, scope] = rest
+    else
+    {
+        return Err(Malformed(record));
+    };
+
+    let address = ContentIdentity::Parse(claim).map_err(|_| return Malformed(record))?;
+    let held = Claim_At(graph, address).ok_or_else(|| return Unpublished(claim))?;
+    // An empty trailing field is an unstated scope, and reading it that way is
+    // deliberate rather than the swallow `Scope::Named` now refuses. A record is what
+    // was already written: logs on disk carry the empty field for every assertion whose
+    // source did not say how far it reached, and the record format is not what was
+    // wrong. What was wrong was a *person's blank input* becoming that field, and that
+    // is refused where the input arrives, not here where it is read back.
+    let scope = Scope::Named(scope).unwrap_or_else(Scope::Unstated);
+    let assertion = Assertion::By(source, &held, scope);
+    let standing = Standing_Of(standing, successor, because)
+        .ok_or_else(|| return Malformed(record))?;
+
+    return Ok(graph.With_Assertion(Versioned::Asserted(assertion).Closed(standing)));
 }
 
 /// The concept at an address, whatever its standing.

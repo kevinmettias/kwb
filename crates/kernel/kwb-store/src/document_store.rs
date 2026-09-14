@@ -106,34 +106,12 @@ impl DocumentStore
         }
 
         let identity = document.Identity();
-
-        // The comparison, not the lookup, is what decides the outcome: a store that
-        // assumed its addressing was sound could not tell anybody when it was not. The
-        // second arm is unreachable without a SHA-256 preimage break, and it is written
-        // anyway for the reason kwb-model writes its own unreachable arm. A total match
-        // costs nothing, and an argument that a branch cannot be taken costs a reader
-        // something every time they check it.
-        let admission = match self.documents.get(&identity)
-        {
-            Some(held) if held.Content() == document.Content() => Admission::AlreadyPresent,
-            Some(_) => return Err(StoreError::Collision { document: identity }),
-            None => self.Admission_Of_Unheld(identity)?,
-        };
-
+        let admission = self.Admission_Of(&document, identity)?;
         let written = Written::For(&document, admission);
 
         if written.Was_Stored()
         {
-            // The medium first. A document recorded in memory and not on the medium is a
-            // document that exists until the process ends, and `D19`'s lesson is that the
-            // report must not outrun the work -- so a failed durable write refuses the whole
-            // call rather than succeeding into memory alone.
-            if let Some(durable) = self.durable.as_ref()
-            {
-                durable
-                    .Put(&identity.Render(), document.Content())
-                    .map_err(|cause| return StoreError::NotStored { cause })?;
-            }
+            self.Persist(identity, &document)?;
         }
 
         // Held either way, because memory is a cache of what the *store* holds and not a
@@ -143,6 +121,46 @@ impl DocumentStore
         self.documents.insert(identity, document);
 
         return Ok(written);
+    }
+
+    /// What a document is to this store, given what it already holds under that address.
+    ///
+    /// The comparison, not the lookup, is what decides the outcome: a store that assumed its
+    /// addressing was sound could not tell anybody when it was not. The collision arm is
+    /// unreachable without a SHA-256 preimage break, and it is written anyway for the reason
+    /// kwb-model writes its own unreachable arm. A total match costs nothing, and an argument
+    /// that a branch cannot be taken costs a reader something every time they check it.
+    fn Admission_Of(
+        &self,
+        document: &Document,
+        identity: ContentIdentity,
+    ) -> Result<Admission, StoreError>
+    {
+        return match self.documents.get(&identity)
+        {
+            Some(held) if held.Content() == document.Content() => Ok(Admission::AlreadyPresent),
+            Some(_) => Err(StoreError::Collision { document: identity }),
+            None => self.Admission_Of_Unheld(identity),
+        };
+    }
+
+    /// Write the document through to the medium, when the store was given one.
+    ///
+    /// The medium first. A document recorded in memory and not on the medium is a document that
+    /// exists until the process ends, and `D19`'s lesson is that the report must not outrun the
+    /// work -- so a failed durable write refuses the whole call rather than succeeding into
+    /// memory alone.
+    fn Persist(&self, identity: ContentIdentity, document: &Document) -> Result<(), StoreError>
+    {
+        let Some(durable) = self.durable.as_ref()
+        else
+        {
+            return Ok(());
+        };
+
+        return durable
+            .Put(&identity.Render(), document.Content())
+            .map_err(|cause| return StoreError::NotStored { cause });
     }
 
     /// What a document this store does not hold in memory is, which is not always new.
