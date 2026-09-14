@@ -47,9 +47,13 @@ knowledge  kept
 
 $ kwb admit kittel.txt --store ./corpus --scope "physical theory" --says entropy "It is non-decreasing in an isolated system."
 source     cfcb53adb1aec951a6ecefc8a9087dc78f35bb19201d902fab7f4448602ff2aa
+coverage   yielded
 concepts   1
 claims     1
 citations  2
+refused    0
+documents  kept
+knowledge  kept
 ```
 
 A different book, a different source address, and still **one** claim — because a claim's

@@ -5406,6 +5406,62 @@
       "abandoned": [],
       "displaced": [],
       "declined": null
+    },
+    {
+      "id": "KWB-99",
+      "title": "The README's transcript had never been run, and the one block a reader compares against shows half the lines the binary prints",
+      "why": "`KWB-45` gave this repository a *Trying it* section and nothing has ever checked it against the binary. Run end to end for the first time, 2026-09-13, from a clean store with two files of my own text:\n\n**Three of the four blocks match exactly.** The first `kwb admit` printed `source`, `coverage`, `concepts`, `claims`, `citations`, `refused`, `documents`, `knowledge` in that order, the field names and values the README shows. `kwb-mcp ./corpus neighbours entropy` printed `concept`, `claim` and two `cited` lines with the scope in brackets. `kwb history --store ./corpus --through 3` printed `through    3 of 6`, `concepts 1`, `claims 1`, `citations 1`, `held 1` -- **identical to the README, count for count**, which also means that block was produced from a real run rather than composed.\n\n**The product does what the section claims.** Two different files, two different content addresses, one claim carrying two citations. That is `D-002`'s source exclusion working end to end through the CLI, and it had been asserted here and never demonstrated.\n\n**The second `admit` block is wrong.** The README shows four lines -- `source`, `concepts`, `claims`, `citations` -- and the binary prints eight. `coverage`, `refused`, `documents` and `knowledge` are missing with no ellipsis or any other mark, so a reader who runs the command sees four lines the document does not account for and has no way to tell an abridgement from a change in behaviour. `crates/host/kwb-cli/src/main.rs` prints all eight unconditionally, one `println!` each, in a single run beginning at `source`.\n\nThis is the same family as `KWB-61` and `KWB-67` -- the README and the binary disagreeing about the binary's own surface -- and the same remedy applies. It differs in the direction of the drift: those were about which verbs exist, and this is about what one of them says.",
+      "done_when": "The second `admit` block in `README.md` shows what the binary prints: all eight fields, in the order they are printed. The transcript stays a transcript rather than becoming a summary.\n\nA guard in `tests/contract` holds every `kwb admit` block in `README.md` to the label sequence `kwb-cli` actually prints, with the sequence **read from the source** rather than listed in the test, so the guard cannot drift from the binary the way the README did. It fails if the binary gains or loses a report field and the README does not follow, and it fails if a README block abridges one. Proven by mutating the real README and the real source, with every assertion shown able to fail, including the one that proves the guard read anything at all.\n\nIt does not guard the hashes. Those are content addresses of files the README does not ship, so a reader cannot reproduce them and the guard must not pretend otherwise -- that is a separate question about whether the transcript should be made reproducible, and it is not this item.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md",
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests"
+        ],
+        "exit_code": 0,
+        "output_tail": "ured; 0 filtered out; finished in 0.01s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Blocking waiting for file lock on package cache\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-3bb30553545e158b.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-0044164605fd7d46.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-73274744ce9004c4.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-fc84c1a1773a4dec.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-861087b3b7b09975.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1789352070,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "d0341968d27b5576e765488fb8b66da6b0e18196"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null
     }
   ]
 }

@@ -1879,3 +1879,160 @@ fn Test_Every_Xvpe_Dependency_Should_Pin_The_Same_Commit()
         commits.len()
     );
 }
+
+// ---- KWB-99: the README's admit transcript shows what the binary prints ----
+
+/// The file the admit report is printed from.
+const ADMIT_PRINTER: &str = "crates/host/kwb-cli/src/main.rs";
+
+/// The label a `println!("name   {}", ..)` line writes, if it writes one.
+///
+/// Requires at least one space between the label and the placeholder, which is what separates a
+/// report field from an ordinary formatted line.
+fn Printed_Label(line: &str) -> Option<String>
+{
+    let rest = line.trim().strip_prefix("println!(\"")?;
+    let (head, _) = rest.split_once("{}")?;
+    let label = head.trim_end();
+    if label.is_empty() || label == head
+    {
+        return None;
+    }
+    if !label.chars().all(|character| return character.is_ascii_lowercase())
+    {
+        return None;
+    }
+
+    return Some(label.to_owned());
+}
+
+/// The admit report's fields, in the order `kwb-cli` prints them.
+///
+/// Read from the source rather than listed here, so this guard cannot drift from the binary the
+/// way the README did. The run is anchored on `source` and walks forward while the lines keep
+/// printing a label: that is how the report is written, one `println!` per field, consecutive and
+/// all unconditional.
+fn Admit_Report_Labels() -> Vec<String>
+{
+    let printer = std::fs::read_to_string(Repository_Root().join(ADMIT_PRINTER))
+        .expect("the admit report's printer should be readable");
+
+    let lines: Vec<&str> = printer.lines().collect();
+    let Some(start) = lines
+        .iter()
+        .position(|line| return Printed_Label(line).as_deref() == Some("source"))
+    else
+    {
+        return Vec::new();
+    };
+
+    let mut labels = Vec::new();
+    for line in lines.iter().skip(start)
+    {
+        let Some(label) = Printed_Label(line)
+        else
+        {
+            break;
+        };
+        labels.push(label);
+    }
+
+    return labels;
+}
+
+/// The field labels each `kwb admit` transcript in `README.md` shows, one entry per block.
+fn Readme_Admit_Block_Labels() -> Vec<Vec<String>>
+{
+    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+        .expect("README.md should be readable");
+
+    let mut blocks = Vec::new();
+    let mut collecting: Option<Vec<String>> = None;
+    for line in readme.lines()
+    {
+        if line.starts_with("$ kwb admit")
+        {
+            if let Some(block) = collecting.take()
+            {
+                blocks.push(block);
+            }
+            collecting = Some(Vec::new());
+            continue;
+        }
+        let Some(block) = collecting.as_mut()
+        else
+        {
+            continue;
+        };
+        if line.trim().is_empty() || line.starts_with("$ ") || line.starts_with("```")
+        {
+            blocks.push(collecting.take().unwrap_or_default());
+            continue;
+        }
+        if let Some(label) = line.split_whitespace().next()
+        {
+            block.push(label.to_owned());
+        }
+    }
+    if let Some(block) = collecting.take()
+    {
+        blocks.push(block);
+    }
+
+    return blocks;
+}
+
+/// Every `kwb admit` transcript in the README shows every field the binary prints, in order.
+///
+/// # Why this exists
+///
+/// The section exists so a reader can run the thing, and until `KWB-99` nobody had. Running it
+/// found three of four blocks exact — `kwb history` matched count for count — and the second
+/// `admit` block showing four of the eight lines the binary prints, with no ellipsis. A reader
+/// who runs that command sees four lines the document does not account for, and cannot tell an
+/// abridgement from a change in behaviour.
+///
+/// # Why the labels come from the source
+///
+/// A test listing the eight fields itself would be a third place the report is written down, and
+/// the failure here was already two places disagreeing. Reading the printer means a field added
+/// to the binary fails this until the README follows.
+///
+/// # What it does not check
+///
+/// The values, and in particular the content addresses. Those are hashes of files the README does
+/// not ship, so a reader cannot reproduce them and this guard must not imply otherwise.
+#[test]
+fn Test_Every_Readme_Admit_Transcript_Should_Show_Every_Field_The_Binary_Prints()
+{
+    let labels = Admit_Report_Labels();
+    assert!(
+        labels.len() >= 8,
+        "only {} report fields were read from {ADMIT_PRINTER}, so this guard is comparing against \
+         almost nothing and the printer has moved under it: {labels:?}",
+        labels.len()
+    );
+
+    let blocks = Readme_Admit_Block_Labels();
+    assert!(
+        blocks.len() >= 2,
+        "only {} `kwb admit` transcripts were found in README.md, so this guard read almost \
+         nothing of the section it exists to hold",
+        blocks.len()
+    );
+
+    let wrong: Vec<String> = blocks
+        .iter()
+        .enumerate()
+        .filter(|(_, block)| return *block != &labels)
+        .map(|(index, block)| {
+            return format!("block {} shows {block:?}, the binary prints {labels:?}", index + 1);
+        })
+        .collect();
+
+    assert!(
+        wrong.is_empty(),
+        "a README transcript is what a reader compares their own output against, and these do not \
+         show what the binary prints: {wrong:#?}"
+    );
+}
