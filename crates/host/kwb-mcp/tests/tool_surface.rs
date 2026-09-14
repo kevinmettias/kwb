@@ -157,6 +157,16 @@ fn Test_A_Merge_Loser_Should_Say_What_It_Carried()
     );
 }
 
+/// Assert that `line` -- the one a tool rendered for `what` -- is reported as not current.
+///
+/// The claim under a superseded concept and the citation of it are two lines of one answer and
+/// one check, so it is written once: a test that spelled it out twice could have the two drift,
+/// and it is the pair together that says nothing under a merged concept is live.
+fn Assert_Reported_Not_Current(line: &str, what: &str)
+{
+    assert!(line.contains("not current"), "{what} is reported as live: {line}");
+}
+
 #[test]
 fn Test_Nothing_Under_A_Merged_Concept_Should_Be_Reported_As_Current()
 {
@@ -166,26 +176,19 @@ fn Test_Nothing_Under_A_Merged_Concept_Should_Be_Reported_As_Current()
     // -- and both times it rendered a claim under a superseded concept as live, which is
     // `D19-B`'s confusion inside the tool built to end it.
     let graph = After_A_Merge();
-
     let answered = Answer(&graph, "held_neighbours", "phlogiston").expect("a declared tool");
+
     let lost = answered
         .iter()
         .find(|line| return line.contains("It is released in combustion."))
         .expect("the claim is listed");
-
-    assert!(
-        lost.contains("not current"),
-        "a claim under a superseded concept is reported as live: {lost}"
-    );
-
     let cited = answered
         .iter()
         .find(|line| return line.starts_with("cited"))
         .expect("the citation is listed");
-    assert!(
-        cited.contains("not current"),
-        "a citation of a claim that is not current is reported as live: {cited}"
-    );
+
+    Assert_Reported_Not_Current(lost, "a claim under a superseded concept");
+    Assert_Reported_Not_Current(cited, "a citation of a claim that is not current");
 }
 
 #[test]

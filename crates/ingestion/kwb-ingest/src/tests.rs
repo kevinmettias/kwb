@@ -15,6 +15,22 @@ use kwb_store::StoreError;
 
 use super::*;
 
+/// A reading taken under a named protocol by a named reader.
+///
+/// Two arguments rather than one, so a caller that needs both names binds one of these to a
+/// local and passes the local on: a two-argument call handed straight to another call is the
+/// nesting the readability rule asks to be named.
+fn A_Reading_Under(protocol: &str, reader: &str) -> ExtractionLineage
+{
+    return ExtractionLineage::Of(protocol, reader);
+}
+
+/// A reading taken by a person, which is the one protocol a `Stated` places its statements under.
+fn A_Reading(reader: &str) -> ExtractionLineage
+{
+    return A_Reading_Under("stated-by-a-person", reader);
+}
+
 fn Offered(concept: &str, claim: &str) -> Extraction
 {
     return Extraction::New(concept.to_owned(), claim.to_owned());
@@ -29,10 +45,52 @@ fn Said(statements: &[Extraction], scope: &Scope) -> Stated
     return Stated::Of(
         statements.to_vec(),
         SourceLocation::Named("throughout"),
-        ExtractionLineage::Of("stated-by-a-person", "a test"),
+        A_Reading("a test"),
         scope.clone(),
     )
     .expect("a test that states nothing is testing the wrong thing -- use `Silent`");
+}
+
+/// One source admitted, read by whatever reader was offered at the kind of reading asked for.
+///
+/// The source is written either way: a reader that refuses, or that answers about a document it
+/// was not given, leaves an admission that reports the outcome rather than an error.
+fn Admitted_By(
+    bytes: &[u8],
+    reader: &dyn ExtractionStrategy,
+    needed: ReadingKind,
+    store: &mut DocumentStore,
+) -> AdmissionReport
+{
+    return Admit(bytes.to_vec(), Some(reader), needed, store)
+        .expect("a source is admitted even when its reading does not happen");
+}
+
+/// One source admitted, read by a person who stated these extractions.
+fn Admitted_From(
+    bytes: &[u8],
+    statements: &[Extraction],
+    store: &mut DocumentStore,
+) -> AdmissionReport
+{
+    let reader = Said(statements, &Unstated());
+
+    return Admitted_By(bytes, &reader, ReadingKind::Text, store);
+}
+
+/// Assert that a report records a prerequisite that was never met, and records it as **not**
+/// evidence that the source is empty.
+///
+/// The two are asserted together because either half alone passes for the wrong reason. A report
+/// that said `unmet` for everything would satisfy the first; a report that said `barren` for
+/// everything is the 1,367-row incident, where a partial reading was recorded as a complete one.
+fn Assert_Unmet_And_Not_Evidence_Of_Absence(report: &AdmissionReport, what_happened: &str)
+{
+    assert_eq!(report.Coverage().Name(), "unmet");
+    assert!(
+        !report.Coverage().Is_Evidence_Of_Absence(),
+        "{what_happened} was recorded as evidence the source is empty"
+    );
 }
 
 // ---- Stage one: linking infers nothing ----
@@ -40,13 +98,14 @@ fn Said(statements: &[Extraction], scope: &Scope) -> Stated
 #[test]
 fn Test_A_Claim_Should_Be_Linked_Only_To_The_Concept_Its_Own_Extraction_Named()
 {
-    let linked = Link_Concepts(&[
+    let offered = [
         Offered("entropy", "It is non-decreasing in an isolated system."),
         Offered("enthalpy", "It is a thermodynamic potential."),
-    ]);
+    ];
+    let linked = Link_Concepts(&offered);
 
-    assert_eq!(linked.Concepts().len(), 2);
-    assert_eq!(linked.Claims().len(), 2);
+    assert_eq!(linked.Concepts().len(), offered.len(), "each extraction named its own concept");
+    assert_eq!(linked.Claims().len(), offered.len(), "and each extraction became one claim");
     for (claim, concept) in linked.Claims().iter().zip(linked.Concepts())
     {
         assert_eq!(
@@ -81,16 +140,17 @@ fn Test_Every_Claims_Concept_Should_Be_Among_The_Concepts()
 #[test]
 fn Test_An_Incomplete_Extraction_Should_Be_Refused_And_Counted()
 {
-    let linked = Link_Concepts(&[
+    let offered = [
         Offered("entropy", "It is non-decreasing."),
         Offered("enthalpy", "   "),
         Offered("", "orphaned text"),
-    ]);
+    ];
+    let linked = Link_Concepts(&offered);
 
     assert_eq!(linked.Claims().len(), 1);
     assert_eq!(
-        linked.Refused(),
-        2,
+        linked.Claims().len() + linked.Refused(),
+        offered.len(),
         "a stage that discards input without saying how much is why D19's reporting rule \
          exists"
     );
@@ -111,15 +171,16 @@ fn Test_An_Incomplete_Extraction_Should_Be_Refused_And_Counted()
 #[test]
 fn Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct()
 {
-    let normalized = Normalize_Concepts(Link_Concepts(&[
+    let offered = [
         Offered("z m", "an abbreviation in the text"),
         Offered("zero mass", "a particle with no rest mass"),
         Offered("zero matrix", "the additive identity of a matrix ring"),
-    ]));
+    ];
+    let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
     assert_eq!(
         normalized.Concepts().len(),
-        3,
+        offered.len(),
         "a bridge term fused concepts the relation would itself reject"
     );
     assert_eq!(normalized.Merged(), 0);
@@ -132,18 +193,23 @@ fn Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct()
 #[test]
 fn Test_Repeated_Mentions_Of_One_Concept_Should_Become_One_Concept()
 {
-    let normalized = Normalize_Concepts(Link_Concepts(&[
+    let offered = [
         Offered("entropy", "It is non-decreasing."),
         Offered("entropy", "It has units of joules per kelvin."),
         Offered("entropy", "It is extensive."),
-    ]));
+    ];
+    let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
     assert_eq!(
         normalized.Concepts().len(),
         1,
         "the stage merged nothing, so the bridge test above proves nothing"
     );
-    assert_eq!(normalized.Claims_Held(), 3);
+    assert_eq!(
+        normalized.Claims_Held(),
+        offered.len(),
+        "folding three mentions into one concept must not drop the claims"
+    );
 }
 
 #[test]
@@ -152,14 +218,19 @@ fn Test_The_Grouping_Relation_Should_Be_Transitive_Over_A_Chain()
     // Closure is what the stage computes, so the relation it computes over has to be
     // transitive. Equality is, and a three-link chain is the smallest case that would
     // expose a relation that is not.
-    let normalized = Normalize_Concepts(Link_Concepts(&[
+    let offered = [
         Offered("BVH", "one"),
         Offered("BVH", "two"),
         Offered("BVH", "three"),
-    ]));
+    ];
+    let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
     assert_eq!(normalized.Concepts().len(), 1);
-    assert_eq!(normalized.Merged(), 2);
+    assert_eq!(
+        normalized.Merged(),
+        offered.len() - normalized.Concepts().len(),
+        "a three-link chain must fold to one concept and say how many it absorbed"
+    );
 }
 
 #[test]
@@ -167,10 +238,14 @@ fn Test_Case_Differences_Should_Not_Be_Grouped()
 {
     // The recorded divergence from the prototype's LOWER() index, exercised at the stage
     // where folding it would do the damage.
-    let normalized =
-        Normalize_Concepts(Link_Concepts(&[Offered("BVH", "one"), Offered("bvh", "two")]));
+    let offered = [Offered("BVH", "one"), Offered("bvh", "two")];
+    let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
-    assert_eq!(normalized.Concepts().len(), 2);
+    assert_eq!(
+        normalized.Concepts().len(),
+        offered.len(),
+        "folding case would have made these one concept"
+    );
 }
 
 #[test]
@@ -207,15 +282,11 @@ fn Test_Admitting_Nothing_Should_Be_Unmet_Rather_Than_Barren()
     let report = Admit(b"a source".to_vec(), Some(&Silent), ReadingKind::Text, &mut store)
         .expect("the source is admitted even though the reading of it did not happen");
 
-    assert!(
-        !report.Coverage().Is_Evidence_Of_Absence(),
-        "a reading that never happened was recorded as evidence the source is empty"
-    );
+    Assert_Unmet_And_Not_Evidence_Of_Absence(&report, "a reading that never happened");
     assert!(
         !report.Coverage().Was_Run(),
         "a reading that never happened was recorded as having run"
     );
-    assert_eq!(report.Coverage().Name(), "unmet");
     assert!(
         report.Source().is_some(),
         "the source went through the write door regardless -- only the reading failed"
@@ -310,15 +381,11 @@ fn Test_Admission_Should_Queue_Nothing_For_A_Consumer_That_Does_Not_Exist()
     // the same call, and the store holds the source alone. If a later change queues claims
     // for a worker that has not been written, this count moves.
     let mut store = DocumentStore::Empty();
+    let says = [Offered("entropy", "one"), Offered("enthalpy", "two")];
 
-    let report = Admit(
-        b"a source".to_vec(),
-        Some(&Said(&[Offered("entropy", "one"), Offered("enthalpy", "two")], &Unstated())),
-        ReadingKind::Text,
-        &mut store,)
-    .expect("admits");
+    let report = Admitted_From(b"a source", &says, &mut store);
 
-    assert_eq!(report.Normalized().Claims_Held(), 2, "the claims were handed back");
+    assert_eq!(report.Normalized().Claims_Held(), says.len(), "the claims were handed back");
     assert_eq!(store.Length(), 1, "the store holds the source and nothing else");
     assert!(store.Read(Document::Of(b"a source".to_vec()).Identity()).is_ok());
 }
@@ -332,17 +399,13 @@ fn Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds()
     // is the defect this item exists to close, and the only way to see it is to compare the
     // report against the thing it was supposed to fill.
     let mut store = DocumentStore::Empty();
-    let report = Admit(
-        b"a source".to_vec(),
-        Some(&Said(&[Offered("entropy", "one"), Offered("enthalpy", "two")], &Unstated())),
-        ReadingKind::Text,
-        &mut store,)
-    .expect("admits");
+    let says = [Offered("entropy", "one"), Offered("enthalpy", "two")];
+    let report = Admitted_From(b"a source", &says, &mut store);
 
     let graph = report.Published_Into(&KnowledgeGraph::Empty());
 
     assert_eq!(graph.Current().Claims().len(), report.Coverage().Findings());
-    assert_eq!(graph.Current().Concepts().len(), 2);
+    assert_eq!(graph.Current().Concepts().len(), says.len());
 }
 
 #[test]
@@ -379,7 +442,7 @@ fn Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts()
         1,
         "content addressing means a re-read book is the same concept, not a second one"
     );
-    assert_eq!(graph.Current().Claims().len(), 2);
+    assert_eq!(graph.Current().Claims().len(), extractions.len());
 }
 
 #[test]
@@ -433,6 +496,38 @@ fn Unstated() -> Scope
 
 // ---- KWB-36: the citation, which is what all of this was for ----
 
+/// How many documents the corroboration setup admits.
+///
+/// Two is the smallest number that can show the thing being tested: one document cannot
+/// corroborate anything, and a claim that holds two citations is the whole mechanism `D-002`
+/// excluding the source from a claim's derivation exists to produce.
+const SOURCES_IN_CORROBORATION: usize = 2;
+
+/// Every document a graph's current assertions name, as the addresses they carry.
+fn Cited_Documents(graph: &KnowledgeGraph) -> Vec<&str>
+{
+    return graph
+        .Current()
+        .Assertions()
+        .iter()
+        .map(|assertion| return assertion.Source())
+        .collect();
+}
+
+/// Assert that one claim is current and carries a citation per source.
+///
+/// The two together, because a graph that held one claim with no citations satisfies the first
+/// half alone — and a claim nobody can cite is the thing a citation exists to prevent.
+fn Assert_Corroborated_By(graph: &KnowledgeGraph, sources: usize)
+{
+    assert_eq!(graph.Current().Claims().len(), 1, "the source is excluded, so this is one claim");
+    assert_eq!(
+        graph.Current().Assertions().len(),
+        sources,
+        "a claim must carry a citation per source, or corroboration cannot be counted"
+    );
+}
+
 #[test]
 fn Test_Two_Sources_Asserting_One_Claim_Should_Be_One_Claim_With_Two_Citations()
 {
@@ -441,37 +536,13 @@ fn Test_Two_Sources_Asserting_One_Claim_Should_Be_One_Claim_With_Two_Citations()
     // assertions, each naming the address of the document it was read out of.
     let mut store = DocumentStore::Empty();
     let says = [Offered("entropy", "It is non-decreasing.")];
-
-    let callen = Admit(
-        b"Callen, Thermodynamics".to_vec(),
-        Some(&Said(&says, &Unstated())),
-        ReadingKind::Text,
-        &mut store,
-    )
-    .expect("admits");
-    let kittel = Admit(
-        b"Kittel, Thermal Physics".to_vec(),
-        Some(&Said(&says, &Unstated())),
-        ReadingKind::Text,
-        &mut store,
-    )
-    .expect("admits");
+    let callen = Admitted_From(b"Callen, Thermodynamics", &says, &mut store);
+    let kittel = Admitted_From(b"Kittel, Thermal Physics", &says, &mut store);
 
     let graph = kittel.Published_Into(&callen.Published_Into(&KnowledgeGraph::Empty()));
 
-    assert_eq!(graph.Current().Claims().len(), 1, "the source is excluded, so this is one claim");
-    assert_eq!(
-        graph.Current().Assertions().len(),
-        2,
-        "and it carries two citations, which is the whole mechanism"
-    );
-
-    let cited: Vec<&str> = graph
-        .Current()
-        .Assertions()
-        .iter()
-        .map(|assertion| return assertion.Source())
-        .collect();
+    Assert_Corroborated_By(&graph, SOURCES_IN_CORROBORATION);
+    let cited = Cited_Documents(&graph);
     assert!(
         cited.contains(&callen.Source().expect("written").Identity().Render().as_str())
             && cited.contains(&kittel.Source().expect("written").Identity().Render().as_str()),
@@ -536,12 +607,8 @@ fn Test_Publications_Should_Order_Assertions_After_The_Claims_They_Name()
     // Replay refuses an assertion naming a claim no earlier record published, so this ordering
     // is a property of the method rather than an accident of iteration.
     let mut store = DocumentStore::Empty();
-    let report = Admit(
-        b"a source".to_vec(),
-        Some(&Said(&[Offered("entropy", "one"), Offered("enthalpy", "two")], &Unstated())),
-        ReadingKind::Text,
-        &mut store,)
-    .expect("admits");
+    let says = [Offered("entropy", "one"), Offered("enthalpy", "two")];
+    let report = Admitted_From(b"a source", &says, &mut store);
 
     let records: Vec<String> = report
         .Publications()
@@ -550,15 +617,44 @@ fn Test_Publications_Should_Order_Assertions_After_The_Claims_They_Name()
         .collect();
 
     let replayed = kwb_domain::Replay(&records).expect("a run's own publications must replay");
-    assert_eq!(replayed.Current().Assertions().len(), 2);
-    assert_eq!(replayed.Current().Claims().len(), 2);
+    assert_eq!(replayed.Current().Assertions().len(), says.len());
+    assert_eq!(replayed.Current().Claims().len(), says.len());
 }
 
 // ---- Stage zero: the extraction seam, and the four things it may not do ----
 
-fn A_Reading(reader: &str) -> ExtractionLineage
+/// One reading a person states about the passage these tests share, under `lineage`, at `scope`.
+///
+/// One function rather than a copy per test, so that what differs between two readings is only
+/// what the caller names. A second call site that also differed in the bytes read or in where the
+/// passage was found could pass while the identity rule was broken for a reason nothing asserted.
+fn Reading_Stated_By(
+    lineage: ExtractionLineage,
+    scope: Scope,
+    statement: &str,
+) -> ProposedReading
 {
-    return ExtractionLineage::Of("stated-by-a-person", reader);
+    let source = Document::Of(b"a source".to_vec()).Identity();
+    let statements = vec![Offered("entropy", statement)];
+
+    return Stated::Of(
+        statements,
+        SourceLocation::Named("chapter two"),
+        lineage,
+        scope,
+    )
+    .expect("a reader")
+    .Read(source, b"the passage", ReadingKind::Text)
+    .expect("a stated reading cannot fail")
+    .remove(0);
+}
+
+/// The identity of the one claim a reading proposes, which is what a re-read must not change.
+fn Claim_Of(reading: &ProposedReading) -> kwb_model::ContentIdentity
+{
+    let linked = Link_Concepts(reading.Proposed());
+
+    return linked.Claims().first().expect("one claim").Identity();
 }
 
 #[test]
@@ -604,43 +700,16 @@ fn Test_Changing_The_Protocol_Should_Not_Redefine_What_A_Claim_Is()
     // The reference miner is the worked example of the other answer: its own claim identity
     // absorbs the source path and the page window, so the same sentence read twice is two
     // claims. A test that only checked the types would not see the difference.
-    let statements = vec![Offered("entropy", "It is non-decreasing in an isolated system.")];
-    let source = Document::Of(b"a source".to_vec()).Identity();
+    let statement = "It is non-decreasing in an isolated system.";
+    let once = A_Reading_Under("read-once-v1", "a person");
+    let again = A_Reading_Under("read-again-v2", "a model");
+    let first = Reading_Stated_By(once, Unstated(), statement);
+    let second = Reading_Stated_By(again, Unstated(), statement);
 
-    let first = Stated::Of(
-        statements.clone(),
-        SourceLocation::Named("chapter two"),
-        ExtractionLineage::Of("read-once-v1", "a person"),
-        Unstated(),
-    )
-    .expect("a reader")
-    .Read(source, b"the passage", ReadingKind::Text)
-    .expect("a stated reading cannot fail")
-    .remove(0);
-
-    let second = Stated::Of(
-        statements,
-        SourceLocation::Named("chapter two, on re-reading"),
-        ExtractionLineage::Of("read-again-v2", "a model"),
-        Unstated(),
-    )
-    .expect("a reader")
-    .Read(source, b"the passage", ReadingKind::Text)
-    .expect("a stated reading cannot fail")
-    .remove(0);
-
-    assert_ne!(
-        first.Lineage(),
-        second.Lineage(),
-        "the two readings must differ, or this test proves nothing"
-    );
-
-    let of_first = Link_Concepts(first.Proposed());
-    let of_second = Link_Concepts(second.Proposed());
-
+    assert_ne!(first.Lineage(), second.Lineage(), "the readings must differ, or this proves nothing");
     assert_eq!(
-        of_first.Claims().first().expect("one").Identity(),
-        of_second.Claims().first().expect("one").Identity(),
+        Claim_Of(&first),
+        Claim_Of(&second),
         "a re-read under a new protocol produced a different claim, so changing the prompt \
          silently redefined what this repository thinks a proposition is"
     );
@@ -770,19 +839,10 @@ fn Test_A_Text_Reader_Should_Refuse_A_Source_That_Needs_Looking_At()
     // the reader to say it cannot do this kind of reading.
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(
-        b"a scan".to_vec(),
-        Some(&TextOnly),
-        ReadingKind::Visual,
-        &mut store,
-    )
-    .expect("the source is admitted even though it could not be read");
+    let report = Admit(b"a scan".to_vec(), Some(&TextOnly), ReadingKind::Visual, &mut store)
+        .expect("the source is admitted even though it could not be read");
 
-    assert_eq!(report.Coverage().Name(), "unmet");
-    assert!(
-        !report.Coverage().Is_Evidence_Of_Absence(),
-        "a page nobody could read was recorded as a page with nothing on it"
-    );
+    Assert_Unmet_And_Not_Evidence_Of_Absence(&report, "a page nobody could read");
     assert_eq!(
         report.Refusal(),
         Some(&ExtractionRefused::CannotRead {
@@ -852,20 +912,15 @@ fn Test_A_Reading_About_Another_Document_Should_Not_Be_Cited_As_This_One()
     // field is not provenance; it is a field.
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(
-        b"a source".to_vec(),
-        Some(&Confused),
-        ReadingKind::Text,
-        &mut store,
-    )
-    .expect("the source is admitted; only the reading is refused");
+    let report = Admit(b"a source".to_vec(), Some(&Confused), ReadingKind::Text, &mut store)
+        .expect("the source is admitted; only the reading is refused");
 
+    Assert_Unmet_And_Not_Evidence_Of_Absence(&report, "a reader with the wrong book open");
     assert!(
         report.Assertions().is_empty(),
         "a reading about another document was cited as this one, so the citation resolves to \
          bytes the claim was not read out of"
     );
-    assert_eq!(report.Coverage().Name(), "unmet");
     assert!(
         report
             .Refusal()

@@ -14,6 +14,11 @@ use std::process::Output;
 /// The binary this test was built alongside.
 const KWB: &str = env!("CARGO_BIN_EXE_kwb");
 
+/// How far apart the two admissions are placed where a test needs a boundary between them: a
+/// second apart, so the boundary is unambiguous rather than resting on two events landing in the
+/// same second.
+const APART: std::time::Duration = std::time::Duration::from_millis(1100);
+
 /// A store nobody else is using, named for the test that made it.
 fn Store_For(test: &str) -> PathBuf
 {
@@ -23,6 +28,23 @@ fn Store_For(test: &str) -> PathBuf
         std::fs::remove_dir_all(&root).expect("a removable temporary store");
     }
     return root;
+}
+
+/// A store holding exactly the log text given, named for the test that made it.
+fn Store_With_Log(test: &str, log: &str) -> PathBuf
+{
+    let store = Store_For(test);
+    std::fs::create_dir_all(&store).expect("a writable temporary store");
+    std::fs::write(store.join("publications.log"), log).expect("a writable log");
+    return store;
+}
+
+/// The directory inside a store that sources are written to, created if it is not already there.
+fn Sources(store: &Path) -> PathBuf
+{
+    let directory = store.join("sources");
+    std::fs::create_dir_all(&directory).expect("a writable temporary directory");
+    return directory;
 }
 
 fn Run(arguments: &[&str]) -> Output
@@ -49,20 +71,87 @@ fn Reported(output: &str, label: &str) -> String
         .to_owned();
 }
 
-/// Admit a source saying one thing about one concept.
-fn Admit(store: &Path, file: &Path, contents: &str, concept: &str, claim: &str)
+/// How many publications a store's log holds, as `history` counts them.
+fn Published_Count(store: &Path) -> usize
 {
-    std::fs::write(file, contents).expect("a writable temporary source");
+    let output = Stdout(&Run(&["history", "--store", &store.display().to_string()]));
+
+    return Reported(&output, "through")
+        .split_whitespace()
+        .next()
+        .and_then(|count| return count.parse().ok())
+        .expect("history reports how many publications it replayed");
+}
+
+/// A source, and the one thing it is made to say about one concept.
+///
+/// The four travel together -- where the source lands, what it holds, and what it says about what
+/// -- so that `Admit` is handed one value rather than a run of positional strings a caller could
+/// transpose without the compiler noticing.
+struct Admission<'a>
+{
+    name: &'a str,
+    contents: &'a str,
+    concept: &'a str,
+    claim: &'a str,
+}
+
+/// The source a history test starts from: one claim about entropy.
+fn First_Source(contents: &str) -> Admission<'_>
+{
+    return Admission {
+        name: "one.txt",
+        contents,
+        concept: "entropy",
+        claim: "It does not fall.",
+    };
+}
+
+/// The source the prefix and as-of tests add second: one claim about enthalpy.
+fn Second_Source() -> Admission<'static>
+{
+    return Admission {
+        name: "two.txt",
+        contents: "the second source",
+        concept: "enthalpy",
+        claim: "It is a potential.",
+    };
+}
+
+/// Admit a source saying one thing about one concept.
+fn Admit(store: &Path, sources: &Path, admission: &Admission<'_>)
+{
+    let source = sources.join(admission.name);
+    std::fs::write(&source, admission.contents).expect("a writable temporary source");
     let output = Run(&[
         "admit",
-        &file.display().to_string(),
+        &source.display().to_string(),
         "--store",
         &store.display().to_string(),
         "--says",
-        concept,
-        claim,
+        admission.concept,
+        admission.claim,
     ]);
     assert!(output.status.success(), "admit failed: {}", Stdout(&output));
+}
+
+/// Ask `history` for the graph as it stood at one earlier point, after a second source lands.
+///
+/// The prefix and the as-of tests differ in which point they name -- a publication count, or a
+/// time -- and in what they conclude from the answer. The asking is the same, and it is what this
+/// holds: the second source is admitted, the graph now is required to report both concepts, and
+/// the graph at `boundary` is handed back for the caller to assert against.
+fn Earlier_Graph(store: &Path, sources: &Path, boundary: &[&str]) -> String
+{
+    Admit(store, sources, &Second_Source());
+
+    let now = Stdout(&Run(&["history", "--store", &store.display().to_string()]));
+    assert_eq!(Reported(&now, "concepts"), "2", "the second admission did not land: {now}");
+
+    let path = store.display().to_string();
+    let mut arguments = vec!["history", "--store", path.as_str()];
+    arguments.extend_from_slice(boundary);
+    return Stdout(&Run(&arguments));
 }
 
 #[test]
@@ -74,28 +163,11 @@ fn Test_A_Prefix_Should_Give_The_Graph_Before_A_Later_Publication()
     // were ignored and the whole log replayed, both would report two concepts and this test
     // would fail rather than pass for the wrong reason.
     let store = Store_For("prefix");
-    let directory = store.join("sources");
-    std::fs::create_dir_all(&directory).expect("a writable temporary directory");
+    let sources = Sources(&store);
+    Admit(&store, &sources, &First_Source("the first source"));
 
-    Admit(&store, &directory.join("one.txt"), "the first source", "entropy", "It does not fall.");
-    let after_first = Stdout(&Run(&["history", "--store", &store.display().to_string()]));
-    let first_length: usize = Reported(&after_first, "through")
-        .split_whitespace()
-        .next()
-        .and_then(|count| return count.parse().ok())
-        .expect("history reports how many publications it replayed");
-
-    Admit(&store, &directory.join("two.txt"), "the second source", "enthalpy", "It is a potential.");
-    let now = Stdout(&Run(&["history", "--store", &store.display().to_string()]));
-    assert_eq!(Reported(&now, "concepts"), "2", "the second admission did not land: {now}");
-
-    let earlier = Stdout(&Run(&[
-        "history",
-        "--store",
-        &store.display().to_string(),
-        "--through",
-        &first_length.to_string(),
-    ]));
+    let published = Published_Count(&store);
+    let earlier = Earlier_Graph(&store, &sources, &["--through", &published.to_string()]);
 
     assert_eq!(
         Reported(&earlier, "concepts"),
@@ -112,9 +184,8 @@ fn Test_Asking_For_More_History_Than_Exists_Should_Be_Refused()
     // the corpus is older than it is, and could not tell that from a corpus that really is that
     // old -- the shape `Coverage` exists to keep apart, one layer up.
     let store = Store_For("overrun");
-    let directory = store.join("sources");
-    std::fs::create_dir_all(&directory).expect("a writable temporary directory");
-    Admit(&store, &directory.join("one.txt"), "the only source", "entropy", "It does not fall.");
+    let sources = Sources(&store);
+    Admit(&store, &sources, &First_Source("the only source"));
 
     let output = Run(&[
         "history",
@@ -157,15 +228,13 @@ fn Test_A_Log_Written_Before_Timestamps_Should_Still_Replay()
     // a change that orphaned existing logs would lose the thing it was built for. The fixture is
     // a real record of the shape this repository wrote before `KWB-64` -- copied from a log, not
     // constructed to pass -- and `kwb history` reads it by replaying it.
-    let store = Store_For("untimed");
-    std::fs::create_dir_all(&store).expect("a writable temporary store");
     let untimed = concat!(
         "concept\u{1F}asserted\u{1F}\u{1F}\u{1F}entropy\n",
         "claim\u{1F}asserted\u{1F}\u{1F}\u{1F}",
         "a05035869b31af055b5b16060404ea98130701b0b0e5a25be8a78c01427a652c",
         "\u{1F}It is non-decreasing.\n"
     );
-    std::fs::write(store.join("publications.log"), untimed).expect("a writable log");
+    let store = Store_With_Log("untimed", untimed);
 
     let output = Run(&["history", "--store", &store.display().to_string()]);
 
@@ -183,27 +252,13 @@ fn Test_As_Of_Should_Answer_A_Time_And_Not_A_Position()
     // between them must give the earlier graph -- and would give the whole log if the time were
     // ignored, which is what the assertion catches.
     let store = Store_For("as-of");
-    let directory = store.join("sources");
-    std::fs::create_dir_all(&directory).expect("a writable temporary directory");
+    let sources = Sources(&store);
 
-    Admit(&store, &directory.join("one.txt"), "the first source", "entropy", "It does not fall.");
+    Admit(&store, &sources, &First_Source("the first source"));
     let between = Latest_Time(&store).expect("the first admission carries a time");
 
-    // A second apart, so the boundary is unambiguous rather than resting on two events landing
-    // in the same second.
-    std::thread::sleep(std::time::Duration::from_millis(1100));
-    Admit(&store, &directory.join("two.txt"), "the second source", "enthalpy", "It is a potential.");
-
-    let now = Stdout(&Run(&["history", "--store", &store.display().to_string()]));
-    assert_eq!(Reported(&now, "concepts"), "2", "the second admission did not land: {now}");
-
-    let earlier = Stdout(&Run(&[
-        "history",
-        "--store",
-        &store.display().to_string(),
-        "--as-of",
-        &between.to_string(),
-    ]));
+    std::thread::sleep(APART);
+    let earlier = Earlier_Graph(&store, &sources, &["--as-of", &between.to_string()]);
 
     assert_eq!(
         Reported(&earlier, "concepts"),
@@ -218,13 +273,8 @@ fn Test_As_Of_Should_Be_Refused_On_A_Log_That_Carries_No_Time()
 {
     // Refused rather than answered. Every answer would be the same answer whatever was asked,
     // which is a tool agreeing with the question instead of answering it.
-    let store = Store_For("as-of-untimed");
-    std::fs::create_dir_all(&store).expect("a writable temporary store");
-    std::fs::write(
-        store.join("publications.log"),
-        "concept\u{1F}asserted\u{1F}\u{1F}\u{1F}entropy\n",
-    )
-    .expect("a writable log");
+    let untimed = "concept\u{1F}asserted\u{1F}\u{1F}\u{1F}entropy\n";
+    let store = Store_With_Log("as-of-untimed", untimed);
 
     let output = Run(&[
         "history",

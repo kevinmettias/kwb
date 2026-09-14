@@ -7,6 +7,7 @@ use kwb_store::Admission;
 use kwb_store::Document;
 use kwb_store::DocumentStore;
 use kwb_store::StoreError;
+use kwb_store::Written;
 
 fn Passage(text: &str) -> Document
 {
@@ -100,7 +101,8 @@ fn Mutating_Public_Methods(source: &str) -> Vec<String>
 #[test]
 fn Test_A_Write_Should_Return_The_Address_Its_Content_Has()
 {
-    let document = Passage("Entropy is non-decreasing in an isolated system.");
+    let text = "Entropy is non-decreasing in an isolated system.";
+    let document = Passage(text);
     let identity = document.Identity();
     let mut store = DocumentStore::Empty();
 
@@ -109,7 +111,7 @@ fn Test_A_Write_Should_Return_The_Address_Its_Content_Has()
     assert_eq!(written.Identity(), identity);
     assert_eq!(written.Admission(), Admission::Stored);
     assert!(written.Was_Stored());
-    assert_eq!(written.Length(), 48);
+    assert_eq!(written.Length(), text.len());
 }
 
 #[test]
@@ -178,7 +180,7 @@ fn Test_Two_Documents_Differing_Only_By_Whitespace_Should_Both_Be_Held()
         "a document is its octets; deriving one address for both is how the second one's \
          bytes would be lost to a write that reported success"
     );
-    assert_eq!(store.Length(), 2);
+    assert_eq!(store.Length(), [spaced, tight].len());
 }
 
 #[test]
@@ -204,24 +206,26 @@ fn Test_A_Held_Document_Should_Not_Change_When_Another_Is_Written()
     let held = store.Write(Passage("the first passage")).expect("writes");
     let before = store.Read(held.Identity()).expect("reads").clone();
 
-    assert!(store.Write(Passage("an unrelated passage")).expect("writes").Was_Stored());
+    let unrelated = store.Write(Passage("an unrelated passage")).expect("writes");
+    assert!(unrelated.Was_Stored());
 
     assert_eq!(&before, store.Read(held.Identity()).expect("reads"));
-    assert_eq!(store.Length(), 2);
+    assert_eq!(store.Length(), [held, unrelated].len());
 }
 
 #[test]
 fn Test_Every_Address_The_Store_Reports_Should_Read_Back()
 {
     let mut store = DocumentStore::Empty();
-    for passage in ["one", "two", "three"]
+    let passages = ["one", "two", "three"];
+    for passage in passages
     {
         assert!(store.Write(Passage(passage)).expect("writes").Was_Stored());
     }
 
     let identities: Vec<_> = store.Identities().collect();
 
-    assert_eq!(identities.len(), 3);
+    assert_eq!(identities.len(), passages.len());
     for identity in identities
     {
         assert!(store.Holds(identity));
@@ -348,6 +352,17 @@ fn Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call()
 
 // ---- KWB-35: an admission is decided from what the store holds, not from this process ----
 
+/// One durable write through a store that is dropped on the way out.
+///
+/// The drop is the point: a second call over the same root shares no memory with the first,
+/// which is what makes it a new process as far as the store can tell.
+fn Write_And_Drop_The_Store(root: &std::path::Path, content: &[u8]) -> Written
+{
+    let backing = kwb_platform_std::DirectoryContentStore::Under(root).expect("opens the root");
+    let mut store = DocumentStore::Backed_By(Box::new(backing));
+    return store.Write(Document::Of(content.to_vec())).expect("writes");
+}
+
 #[test]
 fn Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present()
 {
@@ -359,17 +374,11 @@ fn Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present
     let _ = std::fs::remove_dir_all(&root);
     let content = b"a passage".to_vec();
 
-    let first = {
-        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
-        let mut store = DocumentStore::Backed_By(Box::new(backing));
-        store.Write(Document::Of(content.clone())).expect("writes")
-    };
+    let first = Write_And_Drop_The_Store(&root, &content);
     assert!(first.Was_Stored(), "the first write is what put the bytes there");
 
     // A second store over the same directory: a new process, as far as memory is concerned.
-    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("reopens");
-    let mut store = DocumentStore::Backed_By(Box::new(backing));
-    let second = store.Write(Document::Of(content.clone())).expect("writes");
+    let second = Write_And_Drop_The_Store(&root, &content);
 
     assert!(
         !second.Was_Stored(),
@@ -445,18 +454,20 @@ fn Test_The_Mutating_Method_Detector_Should_Detect()
     );
 }
 
+/// Sources that must produce no mutating method: a shared reader, a private writer, a doc
+/// comment that reads like a signature, a const constructor, and no declaration at all.
+const NON_MUTATING_SOURCES: &[&str] = &[
+    "pub fn Read(&self) -> bool { }",
+    "fn Private(&mut self) { }",
+    "/// A doc comment mentioning &mut self, which is not a signature.",
+    "pub const fn Empty() -> Self { }",
+    "",
+];
+
 #[test]
 fn Test_The_Mutating_Method_Detector_Should_Not_Report_What_Is_Not_One()
 {
-    let quiet: [&str; 5] = [
-        "pub fn Read(&self) -> bool { }",
-        "fn Private(&mut self) { }",
-        "/// A doc comment mentioning &mut self, which is not a signature.",
-        "pub const fn Empty() -> Self { }",
-        "",
-    ];
-
-    for source in quiet
+    for source in NON_MUTATING_SOURCES
     {
         assert!(
             Mutating_Public_Methods(source).is_empty(),

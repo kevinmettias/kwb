@@ -20,6 +20,14 @@ fn Corpus() -> (KnowledgeGraph, Concept, Claim)
     return (graph, entropy, claim);
 }
 
+/// How many concepts the graphs below hold: the one `Corpus` supplies, and the one more that
+/// each of the two tests that reach for this writes.
+///
+/// `With_Concept` re-versions a concept the graph already holds rather than appending a second
+/// copy of it, which is why the merge test — which writes `entropy` a second time in order to
+/// close it — also holds two.
+const CONCEPTS_IN_GRAPH: usize = 2;
+
 // ---- D10: mutation is excluded architecturally, not by convention ----
 
 /// The claim is structural, so the test is structural: it reads this crate's own source and
@@ -190,7 +198,7 @@ fn Test_A_Neighbourhood_Should_Not_Reach_Another_Concepts_Claims()
         .expect("the concept is current");
 
     assert_eq!(neighbourhood.claims.len(), 1, "a neighbourhood reached a claim about something else");
-    assert_eq!(CurrentQueries::Over(&graph).Concept_Count(), 2);
+    assert_eq!(CurrentQueries::Over(&graph).Concept_Count(), CONCEPTS_IN_GRAPH);
 }
 
 // ---- D19-B: the two worlds answer differently, and the caller names which ----
@@ -219,7 +227,7 @@ fn Test_A_Merge_Loser_Should_Be_Invisible_To_Current_And_Visible_To_Historical()
         "this is the question merge-audit asked of the wrong world, resolved none of, and \
          exited 0 on"
     );
-    assert_eq!(HistoricalQueries::Over(&graph).Concept_Count(), 2);
+    assert_eq!(HistoricalQueries::Over(&graph).Concept_Count(), CONCEPTS_IN_GRAPH);
 }
 
 #[test]
@@ -278,7 +286,7 @@ fn Test_The_Mutating_Method_Detector_Should_Detect()
 #[test]
 fn Test_The_Mutating_Method_Detector_Should_Not_Report_What_Is_Not_One()
 {
-    let quiet: [&str; 5] = [
+    let quiet = [
         "pub fn Read(&self) -> bool { }",
         "fn Private(&mut self) { }",
         "/// A doc comment mentioning &mut self, which is not a signature.",

@@ -9,6 +9,26 @@ fn Asserted(name: &str) -> Versioned<Concept>
     return Versioned::Asserted(Concept::Named(name));
 }
 
+/// Assert that one concept is gone from the current read and still present in the every-version
+/// one -- the pair `D-012` is built on.
+///
+/// The two are asserted together because either alone passes for the wrong reason: a concept that
+/// was simply deleted satisfies the first, and a read that never filtered satisfies the second.
+/// `D17` is the second, and it is the one that says nothing is destroyed without evidence.
+fn Assert_Gone_From_Current_But_Kept(graph: &KnowledgeGraph, concept: &Versioned<Concept>)
+{
+    let identity = concept.Value().Identity();
+
+    assert!(
+        !graph.Current().Concepts().iter().any(|held| return held.Identity() == identity),
+        "a merge loser is still counted as a current concept"
+    );
+    assert!(
+        graph.Every_Version().Concepts().iter().any(|held| return held.Value().Identity() == identity),
+        "and it is kept, because D17 says destruction requires evidence and a merge is not it"
+    );
+}
+
 // ---- D-008's first requirement: liveness is one expression ----
 
 /// The claim is structural, so the test is structural: it reads this crate's own source and
@@ -108,9 +128,9 @@ fn Liveness_Definitions(source: &str) -> Vec<String>
 #[test]
 fn Test_A_Superseded_Concept_Should_Be_Absent_From_Current_And_Present_In_Every_Version()
 {
-    let entropy = Asserted("entropy");
-    let successor = Asserted("thermodynamic entropy");
-    let identity = entropy.Value().Identity();
+    let names = ["entropy", "thermodynamic entropy"];
+    let entropy = Asserted(names[0]);
+    let successor = Asserted(names[1]);
 
     let graph = KnowledgeGraph::Empty()
         .With_Concept(entropy.clone())
@@ -120,16 +140,9 @@ fn Test_A_Superseded_Concept_Should_Be_Absent_From_Current_And_Present_In_Every_
             because: "the two names denote one concept".to_owned(),
         }));
 
-    assert!(
-        !graph.Current().Concepts().iter().any(|concept| return concept.Identity() == identity),
-        "a merge loser is not a current concept"
-    );
-    assert!(
-        graph.Every_Version().Concepts().iter().any(|held| return held.Value().Identity() == identity),
-        "and it is kept, because D17 says destruction requires evidence and a merge is not it"
-    );
+    Assert_Gone_From_Current_But_Kept(&graph, &entropy);
     assert_eq!(graph.Current().Concepts().len(), 1);
-    assert_eq!(graph.Every_Version().Concepts().len(), 2);
+    assert_eq!(graph.Every_Version().Concepts().len(), names.len());
 }
 
 #[test]
@@ -205,41 +218,43 @@ fn Test_The_Two_Reads_Should_Not_Be_One_Type_With_A_Flag()
 
 // ---- determinism is enforced at the boundary, not obtained from a hasher ----
 
+/// The addresses every concept a graph holds, in the order the every-version read returns them.
+///
+/// The graph is built from `names` in the order given, which is the variable under test: two
+/// calls that differed in anything else could pass while the listing stayed order-dependent.
+fn Listing_Of(names: &[&str]) -> Vec<String>
+{
+    let mut graph = KnowledgeGraph::Empty();
+    for name in names
+    {
+        graph = graph.With_Concept(Asserted(name));
+    }
+
+    let listing: Vec<String> = graph
+        .Every_Version()
+        .Concepts()
+        .iter()
+        .map(|held| return held.Value().Identity().Render())
+        .collect();
+
+    return listing;
+}
+
 #[test]
 fn Test_The_Listing_Should_Not_Depend_On_The_Order_Concepts_Arrived_In()
 {
     let names = ["entropy", "enthalpy", "free energy", "temperature"];
-
-    let mut forwards = KnowledgeGraph::Empty();
-    for name in names
-    {
-        forwards = forwards.With_Concept(Asserted(name));
-    }
-    let mut backwards = KnowledgeGraph::Empty();
-    for name in names.iter().rev()
-    {
-        backwards = backwards.With_Concept(Asserted(name));
-    }
-
-    let one: Vec<_> = forwards
-        .Every_Version()
-        .Concepts()
-        .iter()
-        .map(|held| return held.Value().Identity())
-        .collect();
-    let other: Vec<_> = backwards
-        .Every_Version()
-        .Concepts()
-        .iter()
-        .map(|held| return held.Value().Identity())
-        .collect();
+    let mut reversed = names;
+    reversed.reverse();
+    let forwards = Listing_Of(&names);
+    let backwards = Listing_Of(&reversed);
 
     assert_eq!(
-        one, other,
+        forwards, backwards,
         "the map is a hash trie and two graphs carry two hashers, so an unsorted listing \
          would differ here; determinism is enforced by the sort rather than by the hasher"
     );
-    assert_eq!(one.len(), 4);
+    assert_eq!(forwards.len(), names.len());
 }
 
 // ---- KWB-44: the detector is shown to detect ----
@@ -272,7 +287,7 @@ fn Test_The_Liveness_Detector_Should_Not_Report_A_Use_As_A_Definition()
 {
     // The distinction that makes this count copies of the rule rather than places that respect
     // it: calling Is_Current is not defining it.
-    let quiet: [&str; 4] = [
+    let quiet = [
         "if standing.Is_Current() { }",
         "return held.Standing().Is_Current();",
         "/// See Is_Current for the rule.",

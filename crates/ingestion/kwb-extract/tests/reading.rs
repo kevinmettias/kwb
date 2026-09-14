@@ -16,13 +16,16 @@
 //! recording is keyed by `Request_For`, the same function the reader asks through, so a fixture
 //! cannot answer a question the reader does not ask.
 
+use kwb_domain::KnowledgeGraph;
 use kwb_domain::Scope;
 use kwb_extract::ReadsText;
 use kwb_extract::Request_For;
 use kwb_ingest::Admit;
 use kwb_ingest::ExtractionRefused;
 use kwb_ingest::ExtractionStrategy;
+use kwb_ingest::ProposedReading;
 use kwb_ingest::ReadingKind;
+use kwb_model::ContentIdentity;
 use kwb_platform_xvpe::inference::AnswerValue;
 use kwb_platform_xvpe::inference::InferenceResponse;
 use kwb_platform_xvpe::inference::ModelIdentifier;
@@ -46,16 +49,19 @@ fn Proposition(concept: &str, claim: &str) -> AnswerValue
     ]);
 }
 
+/// The passage most of these tests read: one sentence, so reading it yields one proposition.
+const PASSAGE: &str = "Entropy does not decrease in an isolated system.";
+
+/// What a claim two documents assert must carry: one citation per source, so a claim two
+/// documents corroborate holds two assertions and not one.
+const CITATIONS_FOR_TWO_SOURCES: usize = 2;
+
 /// A recording answering the question this reader asks about `passage`.
 fn Recorded(passage: &str, answer: AnswerValue) -> ReplayRecording
 {
     let request = Request_For(&Model(), passage);
-    let response = InferenceResponse::New(
-        answer,
-        String::new(),
-        kwb_platform_xvpe::inference::TokenUsage::New(0, 0, 0, 0),
-        Model(),
-    );
+    let usage = kwb_platform_xvpe::inference::TokenUsage::New(0, 0, 0, 0);
+    let response = InferenceResponse::New(answer, String::new(), usage, Model());
 
     return ReplayRecording::New(
         kwb_platform_xvpe::inference::RequestFingerprint::Of_Request(&request),
@@ -73,42 +79,80 @@ fn Reader(recordings: Vec<ReplayRecording>) -> ReadsText<ReplayInference>
     );
 }
 
-#[test]
-fn Test_A_Source_Should_Be_Read_Without_Anybody_Typing_What_It_Says()
+/// A reader answering `passage` with the propositions given, in the order given.
+fn Reader_Answering(passage: &str, propositions: &[(&str, &str)]) -> ReadsText<ReplayInference>
 {
-    // The defining first operation. Until `KWB-66` the only reader was a person typing `--says`,
-    // and the README's Trying it section said so in as many words.
-    let passage = "Entropy does not decrease in an isolated system.";
-    let source = Document::Of(passage.as_bytes().to_vec()).Identity();
-    let reader = Reader(vec![Recorded(
-        passage,
-        AnswerValue::Sequence(vec![Proposition(
-            "entropy",
-            "It does not decrease in an isolated system.",
-        )]),
-    )]);
+    let answers = propositions
+        .iter()
+        .map(|(concept, claim)| return Proposition(concept, claim))
+        .collect();
 
-    let readings = reader
-        .Read(source, passage.as_bytes(), ReadingKind::Text)
-        .expect("a recorded passage is read");
+    return Reader(vec![Recorded(passage, AnswerValue::Sequence(answers))]);
+}
 
+/// A reader answering `passage` with one proposition NOT wrapped in the sequence the schema
+/// requires, which is the malformed answer two tests below need to refuse.
+fn Reader_Answering_Malformed(passage: &str, concept: &str, claim: &str) -> ReadsText<ReplayInference>
+{
+    return Reader(vec![Recorded(passage, Proposition(concept, claim))]);
+}
+
+/// The reading a text reader must produce from one recorded passage: exactly one, about the
+/// document it was handed, under the protocol this crate declares.
+///
+/// Every test that reads a passage ends here, so the four things that make a reading usable are
+/// asserted once rather than re-derived at each call site.
+fn Assert_One_Reading_About(readings: &[ProposedReading], source: ContentIdentity, concept: &str)
+{
     assert_eq!(readings.len(), 1, "one passage, one reading");
     let reading = readings.first().expect("one");
     assert_eq!(reading.Proposed().len(), 1);
-    assert_eq!(
-        reading.Proposed().first().expect("one").concept_name,
-        "entropy"
-    );
-    assert_eq!(
-        reading.Source(),
-        source,
-        "a reading must be about the document it was handed"
-    );
+    assert_eq!(reading.Proposed().first().expect("one").concept_name, concept);
+    assert_eq!(reading.Source(), source, "a reading must be about the document it was handed");
     assert_eq!(
         reading.Lineage().Protocol(),
         kwb_extract::PROTOCOL,
         "the protocol travels with the reading, so a re-read under a new one is distinguishable"
     );
+}
+
+/// One graph holding what two documents say, each read by a reader that answers it with the same
+/// proposition.
+///
+/// This is the corroboration setup: the same proposition reached from two sources is the whole
+/// reason identity ignores the source, so testing it needs both documents read and both published.
+fn Corroborated(callen: &str, kittel: &str) -> KnowledgeGraph
+{
+    let proposition = Proposition("entropy", "It does not decrease in an isolated system.");
+    let reader = Reader(vec![
+        Recorded(callen, AnswerValue::Sequence(vec![proposition.clone()])),
+        Recorded(kittel, AnswerValue::Sequence(vec![proposition])),
+    ]);
+    let mut store = DocumentStore::Empty();
+    let graph = KnowledgeGraph::Empty();
+
+    let first = Admit(callen.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
+        .expect("admits");
+    let after_first = first.Published_Into(&graph);
+    let second = Admit(kittel.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
+        .expect("admits");
+
+    return second.Published_Into(&after_first);
+}
+
+#[test]
+fn Test_A_Source_Should_Be_Read_Without_Anybody_Typing_What_It_Says()
+{
+    // The defining first operation. Until `KWB-66` the only reader was a person typing `--says`,
+    // and the README's Trying it section said so in as many words.
+    let source = Document::Of(PASSAGE.as_bytes().to_vec()).Identity();
+    let reader = Reader_Answering(PASSAGE, &[("entropy", "It does not decrease in an isolated system.")]);
+
+    let readings = reader
+        .Read(source, PASSAGE.as_bytes(), ReadingKind::Text)
+        .expect("a recorded passage is read");
+
+    Assert_One_Reading_About(&readings, source, "entropy");
 }
 
 #[test]
@@ -118,18 +162,14 @@ fn Test_An_Answer_That_Does_Not_Conform_Should_Refuse_And_Propose_Nothing()
     // enforced a layer below KWB -- `InferenceStrategy`'s contract is that a schema is a
     // constraint and not a suggestion -- and this fixes that KWB maps it to a refusal rather
     // than to an empty reading, which would be evidence the passage asserts nothing.
-    let passage = "Entropy does not decrease in an isolated system.";
-    let source = Document::Of(passage.as_bytes().to_vec()).Identity();
+    let source = Document::Of(PASSAGE.as_bytes().to_vec()).Identity();
 
     // A record where the schema requires a sequence. Recorded, so the refusal comes from the
     // real mechanism rather than from a check written here.
-    let reader = Reader(vec![Recorded(
-        passage,
-        Proposition("entropy", "It does not decrease."),
-    )]);
+    let reader = Reader_Answering_Malformed(PASSAGE, "entropy", "It does not decrease.");
 
     let refusal = reader
-        .Read(source, passage.as_bytes(), ReadingKind::Text)
+        .Read(source, PASSAGE.as_bytes(), ReadingKind::Text)
         .expect_err("an answer that does not conform is refused");
 
     assert!(
@@ -208,27 +248,10 @@ fn Test_Two_Sources_Read_By_A_Model_Should_Meet_At_One_Claim()
     // The property every identity decision in this workspace was made to support, reached for
     // the first time **without a person typing the claim**. Two different documents, read
     // separately, proposing the same proposition: one claim, two citations.
-    let first = "Callen says entropy does not decrease in an isolated system.";
-    let second = "Kittel says entropy does not decrease in an isolated system.";
-    let proposition = AnswerValue::Sequence(vec![Proposition(
-        "entropy",
-        "It does not decrease in an isolated system.",
-    )]);
-
-    let reader = Reader(vec![
-        Recorded(first, proposition.clone()),
-        Recorded(second, proposition),
-    ]);
-
-    let mut store = DocumentStore::Empty();
-    let graph = kwb_domain::KnowledgeGraph::Empty();
-
-    let callen = Admit(first.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
-        .expect("admits");
-    let after_first = callen.Published_Into(&graph);
-    let kittel = Admit(second.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
-        .expect("admits");
-    let corpus = kittel.Published_Into(&after_first);
+    let corpus = Corroborated(
+        "Callen says entropy does not decrease in an isolated system.",
+        "Kittel says entropy does not decrease in an isolated system.",
+    );
 
     assert_eq!(
         corpus.Current().Claims().len(),
@@ -238,7 +261,7 @@ fn Test_Two_Sources_Read_By_A_Model_Should_Meet_At_One_Claim()
     );
     assert_eq!(
         corpus.Current().Assertions().len(),
-        2,
+        CITATIONS_FOR_TWO_SOURCES,
         "one claim must carry a citation per source, or corroboration cannot be counted"
     );
     assert_eq!(corpus.Current().Concepts().len(), 1);
@@ -252,20 +275,11 @@ fn Test_A_Malformed_Answer_Should_Reach_Admission_As_Unmet_And_Never_As_Barren()
     // reading is a success, and a successful reading that found nothing is `Barren` -- evidence
     // of absence. A model answering nonsense would have been recorded as a source asserting
     // nothing, which is the 1,367-row incident with a model in place of a prerequisite.
-    let passage = "Entropy does not decrease in an isolated system.";
     let mut store = DocumentStore::Empty();
-    let reader = Reader(vec![Recorded(
-        passage,
-        Proposition("entropy", "It does not decrease."),
-    )]);
+    let reader = Reader_Answering_Malformed(PASSAGE, "entropy", "It does not decrease.");
 
-    let report = Admit(
-        passage.as_bytes().to_vec(),
-        Some(&reader),
-        ReadingKind::Text,
-        &mut store,
-    )
-    .expect("the source is admitted even though the answer was not usable");
+    let report = Admit(PASSAGE.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
+        .expect("the source is admitted even though the answer was not usable");
 
     assert_eq!(report.Coverage().Name(), "unmet");
     assert!(

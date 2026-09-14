@@ -31,6 +31,13 @@ use std::process::Command;
 /// The binary this test was built alongside.
 const KWB: &str = env!("CARGO_BIN_EXE_kwb");
 
+/// The fewest verbs the dispatch must declare for the comparison below to be worth making.
+///
+/// This is a floor on how much the comparison covers, not a claim about what the binary happens
+/// to declare, which is why it is not derived from the fixture. A dispatch the parse reduced to
+/// almost nothing would satisfy the comparison and mean nothing by it.
+const FEWEST_DISPATCHED_VERBS: usize = 4;
+
 /// What `kwb help` prints, from the binary.
 fn Help() -> String
 {
@@ -69,19 +76,38 @@ fn Help() -> String
 /// `kwb_mcp::TOOLS`.
 fn Dispatched() -> Vec<String>
 {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let dispatch = std::fs::read_to_string(Path::new(&root).join("src/main.rs"))
-        .expect("the composition root should be readable");
+    let dispatch = Dispatch_Source();
+    let table = Verb_Table(&dispatch);
+    return Verbs_Declared_In(table);
+}
 
+/// The composition root, as text, read from the crate this test was built alongside.
+fn Dispatch_Source() -> String
+{
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    return std::fs::read_to_string(Path::new(&root).join("src/main.rs"))
+        .expect("the composition root should be readable");
+}
+
+/// The entries of the `const VERBS` table, from the composition root's text.
+///
+/// Text the table is not in yields an empty table rather than a parse failure. The caller reads
+/// no verbs from it, and what turns that into a failure is the assertion that the dispatch
+/// declares enough of them.
+fn Verb_Table(dispatch: &str) -> &str
+{
     let Some(table) = dispatch.split_once("const VERBS:").map(|(_, rest)| return rest)
     else
     {
-        return Vec::new();
+        return "";
     };
-    let table = table
-        .split_once("\n];")
-        .map_or(table, |(inside, _)| return inside);
 
+    return table.split_once("\n];").map_or(table, |(inside, _)| return inside);
+}
+
+/// The names the table declares, in the order it declares them, each of them once.
+fn Verbs_Declared_In(table: &str) -> Vec<String>
+{
     let mut verbs: Vec<String> = Vec::new();
     for fragment in table.split("name: \"").skip(1)
     {
@@ -137,18 +163,36 @@ fn Test_Every_Verb_The_Binary_Dispatches_Should_Appear_In_Its_Own_Help()
 {
     let help = Help();
     let dispatched = Dispatched();
+    let offered = Offered(&help);
 
+    Assert_The_Dispatch_Declares_Enough_Verbs(&dispatched);
+    Assert_The_Help_Offers_A_Usage_Line(&offered);
+    Assert_Every_Dispatched_Verb_Is_Offered(&dispatched, &offered);
+}
+
+/// The dispatch declares at least `FEWEST_DISPATCHED_VERBS` verbs, so the comparison below is
+/// made against a real surface rather than an empty one.
+fn Assert_The_Dispatch_Declares_Enough_Verbs(dispatched: &[String])
+{
     assert!(
-        dispatched.len() >= 4,
+        dispatched.len() >= FEWEST_DISPATCHED_VERBS,
         "only {dispatched:?} were found in the dispatch, so this guard covers almost nothing"
     );
+}
 
-    let offered = Offered(&help);
+/// The help offers at least one usage line, so the comparison below is reading the right thing.
+fn Assert_The_Help_Offers_A_Usage_Line(offered: &[String])
+{
     assert!(
         !offered.is_empty(),
         "no usage line was found in the help, so this guard is reading the wrong thing"
     );
+}
 
+/// Every verb the dispatch answers has a usage line in the help, so a person running the tool
+/// can find it.
+fn Assert_Every_Dispatched_Verb_Is_Offered(dispatched: &[String], offered: &[String])
+{
     let unmentioned: Vec<&String> = dispatched
         .iter()
         .filter(|verb| return !offered.iter().any(|shown| return shown == *verb))

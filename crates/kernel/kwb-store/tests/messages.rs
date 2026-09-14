@@ -21,6 +21,11 @@ use kwb_store::Document;
 use kwb_store::DocumentStore;
 use kwb_store::StoreError;
 
+/// The fewest words a refusal a person has to act on can say. It is a floor rather than an
+/// exact count: the point is that the rendering is not empty and does not stop at a word or
+/// two, which is the shape of a variant that was added without any text of its own.
+const MINIMUM_REFUSAL_WORDS: usize = 5;
+
 /// Every variant, so a variant added later is added here or the match stops compiling.
 fn Every_Refusal() -> Vec<StoreError>
 {
@@ -63,7 +68,7 @@ fn Test_Every_Refusal_Should_Say_Something()
     {
         let rendered = refusal.to_string();
         assert!(
-            rendered.split_whitespace().count() >= 5,
+            rendered.split_whitespace().count() >= MINIMUM_REFUSAL_WORDS,
             "a refusal a person has to act on said almost nothing: {rendered:?}"
         );
     }

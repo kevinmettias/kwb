@@ -10,15 +10,26 @@ use kwb_domain::{
 /// the constant from the code under test could not notice the code changing it.
 const SEPARATOR: char = '\u{1F}';
 
-/// A small corpus, and the publications that would have built it.
-fn Corpus() -> (KnowledgeGraph, Vec<String>)
+/// How many concepts the corpus holds in every version: the entropy it asserts, and the enthalpy
+/// it retires. Named rather than written where it is asserted, because the number is a fact about
+/// the fixture and a reader should not have to count the fixture to read the assertion.
+const CONCEPTS_IN_CORPUS: usize = 2;
+
+/// The subject the corpus is about: two concepts, the claim stated about the first, and the
+/// assertion a source made of it.
+fn Corpus_Subject() -> (Concept, Concept, Claim, Assertion)
 {
     let entropy = Concept::Named("entropy");
     let enthalpy = Concept::Named("enthalpy");
     let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.");
     let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
+    return (entropy, enthalpy, claim, assertion);
+}
 
-    let publications = [
+/// The publications that would have built the corpus, in the order they were made.
+fn Corpus_Publications(entropy: &Concept, enthalpy: &Concept, claim: &Claim, assertion: &Assertion) -> Vec<Publication>
+{
+    return vec![
         Publication::Concept {
             concept: entropy.clone(),
             standing: Standing::Asserted,
@@ -38,27 +49,35 @@ fn Corpus() -> (KnowledgeGraph, Vec<String>)
             standing: Standing::Asserted,
         },
     ];
+}
 
-    let graph = KnowledgeGraph::Empty()
+/// The graph the corpus holds directly, which its own publications are expected to rebuild.
+fn Corpus_Graph(entropy: Concept, enthalpy: Concept, claim: Claim, assertion: Assertion) -> KnowledgeGraph
+{
+    return KnowledgeGraph::Empty()
         .With_Concept(Versioned::Asserted(entropy))
         .With_Concept(Versioned::Asserted(enthalpy).Closed(Standing::Retired {
             because: "the concept was withdrawn by its source".to_owned(),
         }))
         .With_Claim(Versioned::Asserted(claim))
         .With_Assertion(Versioned::Asserted(assertion));
+}
+
+/// A small corpus, and the publications that would have built it.
+fn Corpus() -> (KnowledgeGraph, Vec<String>)
+{
+    let (entropy, enthalpy, claim, assertion) = Corpus_Subject();
+    let publications = Corpus_Publications(&entropy, &enthalpy, &claim, &assertion);
+
+    let graph = Corpus_Graph(entropy, enthalpy, claim, assertion);
 
     let records = publications.iter().map(|publication| return publication.Record(None)).collect();
     return (graph, records);
 }
 
-#[test]
-fn Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Held()
+/// Both graphs hold the same concepts, current and across every version.
+fn Assert_Same_Concept_Counts(replayed: &KnowledgeGraph, original: &KnowledgeGraph)
 {
-    let (original, records) = Corpus();
-
-    let replayed = Replay(&records).expect("replays");
-
-    // Compared by what both hold, not by trusting the encoder round-tripped.
     assert_eq!(
         replayed.Current().Concepts().len(),
         original.Current().Concepts().len()
@@ -67,11 +86,21 @@ fn Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Hel
         replayed.Every_Version().Concepts().len(),
         original.Every_Version().Concepts().len()
     );
+}
+
+/// A replayed claim is addressed the same way as the one that was recorded.
+fn Assert_Same_Claim_Identities(replayed: &KnowledgeGraph, original: &KnowledgeGraph)
+{
     assert_eq!(
         replayed.Current().Claims().iter().map(|claim| return claim.Identity()).collect::<Vec<_>>(),
         original.Current().Claims().iter().map(|claim| return claim.Identity()).collect::<Vec<_>>(),
         "a replayed claim is addressed differently from the one that was recorded"
     );
+}
+
+/// A replayed assertion is addressed the same way as the one that was recorded.
+fn Assert_Same_Assertion_Identities(replayed: &KnowledgeGraph, original: &KnowledgeGraph)
+{
     assert_eq!(
         replayed
             .Current()
@@ -89,17 +118,62 @@ fn Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Hel
 }
 
 #[test]
+fn Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Held()
+{
+    let (original, records) = Corpus();
+
+    let replayed = Replay(&records).expect("replays");
+
+    // Compared by what both hold, not by trusting the encoder round-tripped.
+    Assert_Same_Concept_Counts(&replayed, &original);
+    Assert_Same_Claim_Identities(&replayed, &original);
+    Assert_Same_Assertion_Identities(&replayed, &original);
+}
+
+#[test]
 fn Test_A_Retired_Concept_Should_Replay_Retired()
 {
     let (_, records) = Corpus();
 
     let replayed = Replay(&records).expect("replays");
 
-    assert_eq!(replayed.Every_Version().Concepts().len(), 2);
+    assert_eq!(replayed.Every_Version().Concepts().len(), CONCEPTS_IN_CORPUS);
     assert_eq!(
         replayed.Current().Concepts().len(),
         1,
         "a standing that did not survive replay would make every closed thing current again"
+    );
+}
+
+/// The two records a supersession writes, in order: the successor, then the concept it replaces.
+fn Supersession_Records(loser: &Concept, keeper: &Concept) -> Vec<String>
+{
+    return vec![
+        Publication::Concept {
+            concept: keeper.clone(),
+            standing: Standing::Asserted,
+        }
+        .Record(None),
+        Publication::Concept {
+            concept: loser.clone(),
+            standing: Standing::Superseded {
+                by: keeper.Identity(),
+                because: "the two names denote one concept".to_owned(),
+            },
+        }
+        .Record(None),
+    ];
+}
+
+/// The merge log resolves to the successor the record carried.
+fn Assert_Merge_Loser_Names_The_Successor(replayed: &KnowledgeGraph, keeper: &Concept)
+{
+    let losers = replayed.Every_Version().Merge_Losers();
+    assert_eq!(losers.len(), 1);
+    assert_eq!(
+        losers.first().and_then(|held| return held.Standing().Superseded_By()),
+        Some(keeper.Identity()),
+        "the successor did not survive the record, so the merge log would resolve to nothing"
     );
 }
 
@@ -108,31 +182,11 @@ fn Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record()
 {
     let loser = Concept::Named("C");
     let keeper = Concept::Named("C++");
-    let records = vec![
-        Publication::Concept {
-            concept: keeper.clone(),
-            standing: Standing::Asserted,
-        }
-        .Record(None),
-        Publication::Concept {
-            concept: loser,
-            standing: Standing::Superseded {
-            by: keeper.Identity(),
-            because: "the two names denote one concept".to_owned(),
-        },
-        }
-        .Record(None),
-    ];
+    let records = Supersession_Records(&loser, &keeper);
 
     let replayed = Replay(&records).expect("replays");
 
-    let losers = replayed.Every_Version().Merge_Losers();
-    assert_eq!(losers.len(), 1);
-    assert_eq!(
-        losers.first().and_then(|held| return held.Standing().Superseded_By()),
-        Some(keeper.Identity()),
-        "the successor did not survive the record, so the merge log would resolve to nothing"
-    );
+    Assert_Merge_Loser_Names_The_Successor(&replayed, &keeper);
 }
 
 // ---- the framing rests on the domain normalizing, and that is asserted ----
@@ -254,6 +308,32 @@ fn Test_Text_That_Names_Nothing_Should_Not_Name_A_Scope()
     );
 }
 
+/// The record an assertion by `Callen 1985` writes, at a given scope.
+fn Assertion_Record(claim: &Claim, scope: Scope) -> String
+{
+    return Publication::Assertion {
+        assertion: Assertion::By("Callen 1985", claim, scope),
+        standing: Standing::Asserted,
+    }
+    .Record(None);
+}
+
+/// The two records differ, but in the scope field rather than in field count.
+fn Assert_Records_Differ_Only_In_The_Scope_Field(stated: &str, unstated: &str)
+{
+    assert_ne!(
+        stated, unstated,
+        "a source that said how far it reached and one that did not wrote the same record, \
+         so D-010's distinction is gone from the only place it survives a process"
+    );
+    assert_eq!(
+        Fields(stated),
+        Fields(unstated),
+        "the two differ in field count rather than in the scope field, which would mean \
+         replay reads one of them as a different kind of record"
+    );
+}
+
 #[test]
 fn Test_A_Stated_Scope_And_An_Unstated_One_Should_Not_Write_The_Same_Record()
 {
@@ -264,28 +344,32 @@ fn Test_A_Stated_Scope_And_An_Unstated_One_Should_Not_Write_The_Same_Record()
     let concept = Concept::Named("entropy");
     let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
 
-    let recorded_with = |scope| {
-        return Publication::Assertion {
-            assertion: Assertion::By("Callen 1985", &claim, scope),
+    let stated = Assertion_Record(&claim, Scope::Named("physical theory").expect("a named scope"));
+    let unstated = Assertion_Record(&claim, Scope::Unstated());
+
+    Assert_Records_Differ_Only_In_The_Scope_Field(&stated, &unstated);
+}
+
+/// The records a run writes when its source named no scope.
+fn Unstated_Scope_Records(concept: &Concept, claim: &Claim) -> Vec<String>
+{
+    return [
+        Publication::Concept {
+            concept: concept.clone(),
             standing: Standing::Asserted,
-        }
-        .Record(None);
-    };
-
-    let stated = recorded_with(Scope::Named("physical theory").expect("a named scope"));
-    let unstated = recorded_with(Scope::Unstated());
-
-    assert_ne!(
-        stated, unstated,
-        "a source that said how far it reached and one that did not wrote the same record, \
-         so D-010's distinction is gone from the only place it survives a process"
-    );
-    assert_eq!(
-        Fields(&stated),
-        Fields(&unstated),
-        "the two differ in field count rather than in the scope field, which would mean \
-         replay reads one of them as a different kind of record"
-    );
+        },
+        Publication::Claim {
+            claim: claim.clone(),
+            standing: Standing::Asserted,
+        },
+        Publication::Assertion {
+            assertion: Assertion::By("Callen 1985", claim, Scope::Unstated()),
+            standing: Standing::Asserted,
+        },
+    ]
+    .iter()
+    .map(|publication| return publication.Record(None))
+    .collect();
 }
 
 #[test]
@@ -296,23 +380,8 @@ fn Test_An_Unstated_Scope_Should_Survive_A_Replay_As_Unstated()
     // did not say how far it reached, and replay still has to read them.
     let concept = Concept::Named("entropy");
     let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
-    let records: Vec<String> = [
-        Publication::Concept {
-            concept: concept.clone(),
-            standing: Standing::Asserted,
-        },
-        Publication::Claim {
-            claim: claim.clone(),
-            standing: Standing::Asserted,
-        },
-        Publication::Assertion {
-            assertion: Assertion::By("Callen 1985", &claim, Scope::Unstated()),
-            standing: Standing::Asserted,
-        },
-    ]
-    .iter()
-    .map(|publication| return publication.Record(None))
-    .collect();
+
+    let records = Unstated_Scope_Records(&concept, &claim);
 
     let replayed = Replay(&records).expect("a run's own publications must replay");
     let assertions = replayed.Current().Assertions();

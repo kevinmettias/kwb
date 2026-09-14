@@ -15,10 +15,36 @@ fn Count(value: usize) -> NonZeroUsize
 
 // ---- Coverage: the 1,367-row incident ----
 
+/// How much material the run examined in the tests below.
+///
+/// It is larger than any findings count here on purpose, because a `Barren` reports how much was
+/// read: a run that read a lot and found nothing is a different claim from one that read almost
+/// nothing, and only the count it carries tells the two apart.
+const EXAMINED_MATERIAL: usize = 112;
+
+/// How many findings the completed run in the outcomes table reported, which is what separates a
+/// `Yielded` from a `Barren` over the same material.
+const FINDINGS_FROM_THE_COMPLETED_RUN: usize = 3;
+
+/// How much material the three-outcome fixture's run examined.
+///
+/// A fixture of its own rather than the incident's, and named apart from it so that the two are
+/// never taken for one run.
+const EXAMINED_MATERIAL_IN_THE_THREE_OUTCOME_FIXTURE: usize = 9;
+
+/// How much material the yield-of-nothing fixture's run examined.
+const EXAMINED_MATERIAL_IN_THE_BARREN_FIXTURE: usize = 40;
+
+/// How many findings the derivation's run reported.
+///
+/// `Of_Run` computes the outcome from it, so the number is meant to appear on both sides of the
+/// assertion that follows -- that the derivation carries it through unchanged is the property.
+const FINDINGS_IN_THE_DERIVATION_FIXTURE: usize = 2;
+
 #[test]
 fn Test_Barren_And_Unmet_Should_Not_Be_Interchangeable()
 {
-    let ran_and_found_nothing = Coverage::Of_Run(0, Count(112));
+    let ran_and_found_nothing = Coverage::Of_Run(0, Count(EXAMINED_MATERIAL));
     let never_ran = Coverage::Unmet { prerequisite: "the linking stage" };
 
     assert_ne!(ran_and_found_nothing, never_ran);
@@ -35,8 +61,8 @@ fn Test_Barren_And_Unmet_Should_Not_Be_Interchangeable()
 fn Test_Only_A_Completed_Run_That_Found_Nothing_Should_Be_Evidence_Of_Absence()
 {
     let outcomes = [
-        Coverage::Of_Run(3, Count(112)),
-        Coverage::Of_Run(0, Count(112)),
+        Coverage::Of_Run(FINDINGS_FROM_THE_COMPLETED_RUN, Count(EXAMINED_MATERIAL)),
+        Coverage::Of_Run(0, Count(EXAMINED_MATERIAL)),
         Coverage::Skipped { because: "the source is a duplicate of one already admitted" },
         Coverage::Unmet { prerequisite: "the linking stage" },
     ];
@@ -59,7 +85,7 @@ fn Test_Three_Outcomes_Have_No_Findings_And_Only_One_Means_There_Are_None()
 {
     // The trap this defends: a caller asking `Findings() == 0` instead of asking the
     // question, and deleting on the strength of it.
-    let none_found = Coverage::Of_Run(0, Count(9));
+    let none_found = Coverage::Of_Run(0, Count(EXAMINED_MATERIAL_IN_THE_THREE_OUTCOME_FIXTURE));
     let skipped = Coverage::Skipped { because: "out of scope for this run" };
     let unmet = Coverage::Unmet { prerequisite: "the chunker" };
 
@@ -83,15 +109,15 @@ fn Test_An_Outcome_Of_A_Run_Should_Be_Derived_From_What_It_Found()
     // leaves no setter for a caller to forget.
     assert_eq!(Coverage::Of_Run(0, Count(1)), Coverage::Barren { examined: Count(1) });
     assert_eq!(
-        Coverage::Of_Run(2, Count(1)),
-        Coverage::Yielded { findings: Count(2) }
+        Coverage::Of_Run(FINDINGS_IN_THE_DERIVATION_FIXTURE, Count(1)),
+        Coverage::Yielded { findings: Count(FINDINGS_IN_THE_DERIVATION_FIXTURE) }
     );
 }
 
 #[test]
 fn Test_A_Yield_Of_Nothing_Should_Be_A_Barren_Rather_Than_A_Yield_Of_Zero()
 {
-    let nothing_found = Coverage::Of_Run(0, Count(40));
+    let nothing_found = Coverage::Of_Run(0, Count(EXAMINED_MATERIAL_IN_THE_BARREN_FIXTURE));
 
     assert_eq!(nothing_found.Name(), "barren");
     assert!(
@@ -312,16 +338,35 @@ fn Test_An_Unstated_Scope_Should_Be_Recognisable_Rather_Than_Guessed()
     // encoded the old behaviour as intended is evidence about what was believed.
     let (_, claim) = Entropy();
 
+    Assert_Text_That_Names_Nothing_Is_Not_A_Scope();
+    Assert_An_Unstated_Scope_Says_So();
+    Assert_A_Source_Without_A_Stated_Scope_Kept_It_Unstated(&claim);
+}
+
+/// Blank text names no scope, and says so rather than resolving quietly to the unstated one.
+fn Assert_Text_That_Names_Nothing_Is_Not_A_Scope()
+{
     assert_eq!(
         Scope::Named("   "),
         None,
         "text that names nothing quietly became the unstated scope again"
     );
+}
 
+/// A scope the caller declined to state knows that about itself, so a reader can ask it.
+fn Assert_An_Unstated_Scope_Says_So()
+{
     let unstated = Scope::Unstated();
-    assert!(unstated.Is_Unstated());
 
-    let assertion = Assertion::By("Callen 1985", &claim, unstated);
+    assert!(unstated.Is_Unstated());
+}
+
+/// An assertion made by a source that stated no scope carries none, rather than borrowing the
+/// narrowest one on the source's behalf.
+fn Assert_A_Source_Without_A_Stated_Scope_Kept_It_Unstated(claim: &Claim)
+{
+    let assertion = Assertion::By("Callen 1985", claim, Scope::Unstated());
+
     assert!(
         assertion.Scope().Is_Unstated(),
         "a source that did not say how far it meant has not said the narrowest thing"

@@ -229,13 +229,21 @@ fn Test_A_Derived_Artifact_Should_Change_When_An_Input_Changes()
 
 // ---- rendering and recognition ----
 
+/// A SHA-256 digest is 32 bytes and hexadecimal renders each byte as two characters, so the
+/// full digest occupies this many characters.
+///
+/// It is written out rather than derived from `IDENTITY_CHARACTERS` because it is the claim
+/// that test makes: `rendered.len() == IDENTITY_CHARACTERS` holds for any truncated
+/// rendering too, and only a fixed count says the rendering is of the whole digest.
+const SHA256_RENDERED_CHARACTERS: usize = 64;
+
 #[test]
 fn Test_Render_Should_Produce_Lowercase_Hexadecimal_Of_The_Full_Digest()
 {
     let rendered = Derivation::Of("claim").With_Text("text", "x").Seal().Identity().Render();
 
     assert_eq!(rendered.len(), IDENTITY_CHARACTERS);
-    assert_eq!(IDENTITY_CHARACTERS, 64);
+    assert_eq!(IDENTITY_CHARACTERS, SHA256_RENDERED_CHARACTERS);
     assert!(rendered.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)));
 }
 
@@ -250,9 +258,11 @@ fn Test_Parse_Should_Recognize_What_Render_Produced()
 #[test]
 fn Test_Parse_Should_Refuse_A_Wrong_Length()
 {
+    let too_short = "abc";
+
     assert_eq!(
-        ContentIdentity::Parse("abc"),
-        Err(IdentityError::WrongLength { found: 3 })
+        ContentIdentity::Parse(too_short),
+        Err(IdentityError::WrongLength { found: too_short.len() })
     );
 }
 
