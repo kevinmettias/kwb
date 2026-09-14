@@ -46,6 +46,20 @@ use kwb_contract_tests::Repository_Root;
 /// guess wearing a measurement's clothes.
 const GAP: usize = 2;
 
+/// The fewest command lines a scan could find and still be reading something.
+///
+/// Seven command lines across three files when this was written, so the floor sits well below the
+/// real count and well above zero. That is the whole point of it: a scanner that reads nothing
+/// passes on every repository, and this is the number that makes that outcome fail.
+const MINIMUM_COMMANDS: usize = 5;
+
+/// The fewest files those command lines can be spread across and still show the walk is walking.
+///
+/// Three files when this was written. Separate from the command floor because the two failures it
+/// separates are different: finding too few commands is a reader that stopped early, and finding
+/// them all in one file is a walk that never descended.
+const MINIMUM_FILES: usize = 2;
+
 /// Whether a command line has a hole in it.
 ///
 /// Trimmed, so an indented command in a nested block is not a finding: what matters is a run a
@@ -142,20 +156,19 @@ fn Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It()
 #[test]
 fn Test_The_Scan_Should_Actually_Have_Found_The_Commands()
 {
-    // A scanner that reads nothing passes on every repository. This one has a small subject --
-    // seven command lines across three files when it was written -- so the floor is low and the
-    // point is that it is not zero.
+    // A scanner that reads nothing passes on every repository. This one has a small subject, so
+    // the floor is low and the point is that it is not zero.
     let commands = Commands();
     let files: std::collections::BTreeSet<&PathBuf> =
         commands.iter().map(|(path, _)| return path).collect();
 
     assert!(
-        commands.len() >= 5,
+        commands.len() >= MINIMUM_COMMANDS,
         "only {} command lines were found, so a clean result means nothing",
         commands.len()
     );
     assert!(
-        files.len() >= 2,
+        files.len() >= MINIMUM_FILES,
         "commands were found in only {} file, so the walk is not walking",
         files.len()
     );

@@ -82,7 +82,7 @@ pub fn Quoted_After(text: &str, prefix: &str) -> Option<String>
 
 /// Every workspace member's crate name, from the root manifest's `members` list.
 ///
-/// `tests/contract` names itself and is excluded: it asserts the tables, it is not a row in one.
+/// Which lines count and which crates are excluded is `Member_Name_On`'s, stated there.
 ///
 /// # Panics
 ///
@@ -98,28 +98,34 @@ pub fn Workspace_Members() -> BTreeSet<String>
     let mut names = BTreeSet::new();
     for line in manifest.lines()
     {
-        let trimmed = line.trim();
-        let Some(after_quote) = trimmed.strip_prefix('"')
-        else
+        if let Some(name) = Member_Name_On(line)
         {
-            continue;
-        };
-        let Some(path) = after_quote.split('"').next()
-        else
-        {
-            continue;
-        };
-        if path == "tests/contract" || path == "tests/integration"
-        {
-            continue;
-        }
-        if let Some(name) = path.rsplit('/').next()
-        {
-            names.insert(name.to_owned());
+            names.insert(name);
         }
     }
 
     return names;
+}
+
+/// The crate name a root-manifest line declares, when that line declares one.
+///
+/// A `members` list writes one quoted path per line, so a line is either a member or it is not
+/// one -- the `members = [` opener, a closing bracket, a blank line, or one of the band comments
+/// that say what a group is for. Anchoring to the *trimmed* line is what makes the reading right
+/// for a member indented under the list, which every member but the first is.
+///
+/// The two test crates are refused here rather than by the caller because they are a property of
+/// what a member *is* for this reader: `tests/contract` asserts the tables and `tests/integration`
+/// is its sibling, so neither is a row in one.
+fn Member_Name_On(line: &str) -> Option<String>
+{
+    let path = line.trim().strip_prefix('"')?.split('"').next()?;
+    if path == "tests/contract" || path == "tests/integration"
+    {
+        return None;
+    }
+
+    return path.rsplit('/').next().map(str::to_owned);
 }
 
 /// What a document carries between two markers, when it carries them.

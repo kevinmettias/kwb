@@ -58,6 +58,13 @@ const BANDS_OPEN: &str = "<!-- generated from crate manifests -->";
 /// And where that one ends.
 const BANDS_CLOSE: &str = "<!-- end generated bands -->";
 
+/// The fewest tools a registry could declare and still be worth projecting.
+///
+/// Five when this was written. The floor exists because a projection of an empty registry is an
+/// empty table, and an empty table matches an empty block -- so without this, the comparison above
+/// would pass on a surface that had stopped existing.
+const MINIMUM_TOOLS: usize = 5;
+
 /// The tool table, as the registry says it should read.
 ///
 /// Every column is derived, not only the names. The names already agreed while the prose did
@@ -110,7 +117,7 @@ fn Test_The_Projection_Should_Actually_Describe_The_Tools()
     let projected = Projected();
 
     assert!(
-        TOOLS.len() >= 5,
+        TOOLS.len() >= MINIMUM_TOOLS,
         "only {} tools were found in the registry, so this projection describes almost nothing",
         TOOLS.len()
     );
@@ -183,23 +190,38 @@ fn Collect_Rows(directory: &Path, rows: &mut Vec<Row>)
             Collect_Rows(&path, rows);
             continue;
         }
-        if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+        if let Some(row) = Row_From_Manifest(&path)
         {
-            continue;
+            rows.push(row);
         }
-
-        let text = std::fs::read_to_string(&path).expect("a readable manifest");
-        let (Some(name), Some(owns), Some(band)) = (
-            Quoted_After(&text, "name = "),
-            Quoted_After(&text, "description = "),
-            Quoted_After(&text, "band = "),
-        )
-        else
-        {
-            continue;
-        };
-        rows.push(Row { band, name, owns });
     }
+}
+
+/// The row a manifest declares, or `None` when the file is not a manifest that declares one.
+///
+/// A row is three values and a manifest has to state all three before it is one. A crate that
+/// declares a bandless manifest is deliberately *not* dropped in silence here:
+/// `Test_Every_Crate_Should_Declare_Which_Band_It_Is_In` is what fails for that, and it fails
+/// naming the crate, which is the outcome that gets it fixed.
+fn Row_From_Manifest(path: &Path) -> Option<Row>
+{
+    if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+    {
+        return None;
+    }
+
+    let text = std::fs::read_to_string(path).expect("a readable manifest");
+    let (Some(name), Some(owns), Some(band)) = (
+        Quoted_After(&text, "name = "),
+        Quoted_After(&text, "description = "),
+        Quoted_After(&text, "band = "),
+    )
+    else
+    {
+        return None;
+    };
+
+    return Some(Row { band, name, owns });
 }
 
 /// The bands table, as the manifests say it should read.

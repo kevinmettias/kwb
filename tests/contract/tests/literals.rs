@@ -26,8 +26,10 @@
 //! reads nothing passes on every repository, and this file's last three tests exist to make
 //! that impossible to mistake for a clean result.
 
+use std::iter::Peekable;
 use std::path::Path;
 use std::path::PathBuf;
+use std::str::Chars;
 
 use kwb_contract_tests::Repository_Root;
 
@@ -71,6 +73,32 @@ const GAP: usize = 8;
 /// break.
 const SENTENCE: usize = 30;
 
+/// The widest run of spaces this repository writes on purpose, measured rather than assumed.
+///
+/// Five, from the aligned column in `corpus     {} current, {} held`. `KWB-57`'s lesson was that a
+/// number argued from a sample of *damage* is a guess; this one is argued from the population the
+/// threshold has to stay above, and `Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run`
+/// recomputes it from the tree so the comment cannot quietly stop being true.
+const WIDEST_DELIBERATE_RUN: usize = 5;
+
+/// How much of a sentence to quote back when the widest deliberate run has grown.
+///
+/// Long enough to recognise which literal moved, short enough that the failure message stays one.
+const EXAMPLE_CHARS: usize = 60;
+
+/// The fewest source files a scan of both trees could read and still be reading them.
+///
+/// The real count is far above this; the floor sits well below it and well above zero, which is
+/// what it is for. A reader that read nothing produces a clean result that means nothing, and this
+/// is the number that makes that outcome fail instead.
+const MINIMUM_FILES: usize = 20;
+
+/// The fewest literals those files could yield and still show the reader is reading text.
+///
+/// Same shape as `MINIMUM_FILES`, on the other measurement: a file reader that returns nothing per
+/// file would clear the file floor and fail here.
+const MINIMUM_LITERALS: usize = 200;
+
 /// The literal's value, as Rust reads it: a `\` at end of line eats the newline and the
 /// indentation after it.
 ///
@@ -85,37 +113,48 @@ fn Value_Of(source: &str) -> String
 
     while let Some(character) = characters.next()
     {
-        if character != '\\'
+        if character == '\\'
         {
-            value.push(character);
+            Take_Escape(&mut value, &mut characters);
             continue;
         }
-
-        match characters.peek()
-        {
-            Some('\n') =>
-            {
-                characters.next();
-                while characters.peek().is_some_and(|next| return next.is_whitespace())
-                {
-                    characters.next();
-                }
-            }
-            // Any other escape is copied through with what it escapes, so a `\"` does not end a
-            // literal and a `\\` does not start a continuation.
-            Some(_) =>
-            {
-                value.push(character);
-                if let Some(escaped) = characters.next()
-                {
-                    value.push(escaped);
-                }
-            }
-            None => value.push(character),
-        }
+        value.push(character);
     }
 
     return value;
+}
+
+/// Take the escape the cursor is sitting on, leaving it past everything the escape covers.
+///
+/// # The two shapes an escape has here
+///
+/// A `\` followed by a newline is a *line continuation*: it eats the newline and the indentation
+/// after it, and the literal goes on reading as one sentence. Any other escape is copied through
+/// with what it escapes, so a `\"` does not end a literal and a `\\` does not start a continuation.
+/// A trailing `\` with nothing after it is copied as the backslash it is.
+fn Take_Escape(value: &mut String, characters: &mut Peekable<Chars<'_>>)
+{
+    if characters.peek() == Some(&'\n')
+    {
+        characters.next();
+        Skip_Indentation(characters);
+        return;
+    }
+
+    value.push('\\');
+    if let Some(escaped) = characters.next()
+    {
+        value.push(escaped);
+    }
+}
+
+/// Advance the cursor past the indentation a line continuation eats.
+fn Skip_Indentation(characters: &mut Peekable<Chars<'_>>)
+{
+    while characters.peek().is_some_and(|next| return next.is_whitespace())
+    {
+        characters.next();
+    }
 }
 
 /// Whether this literal's value reads with a gap in the middle of a sentence.
@@ -127,9 +166,18 @@ fn Has_A_Gap(literal: &str) -> bool
         return false;
     }
 
-    // Trimmed, so a leading indent in a usage line and a trailing pad are not gaps: a gap is
-    // something a reader meets *between* two words.
-    let trimmed = value.trim();
+    return Carries_A_Gap(value.trim());
+}
+
+/// Whether a literal already known to be long enough reads with a hole in it.
+///
+/// The scan is over the **trimmed** value, so a leading indent in a usage line and a trailing pad
+/// are not gaps: a gap is something a reader meets *between* two words. Indentation that follows a
+/// line break is not one either -- a literal carrying a newline of its own is laying something out
+/// rather than writing a sentence, which is what lets the guard tests hold whole indented functions
+/// in literals to feed their own detectors.
+fn Carries_A_Gap(trimmed: &str) -> bool
+{
     let mut run = 0_usize;
     let mut after_a_break = true;
 
@@ -138,16 +186,12 @@ fn Has_A_Gap(literal: &str) -> bool
         if character == ' '
         {
             run = run.saturating_add(1);
-            // Indentation follows a line break, and a literal carrying a newline of its own is
-            // laying something out rather than writing a sentence. The guard tests hold whole
-            // functions in literals to feed their own detectors, and those are indented.
             if run >= GAP && !after_a_break
             {
                 return true;
             }
             continue;
         }
-
         after_a_break = character == '\n';
         run = 0;
     }
@@ -164,38 +208,40 @@ fn Literals_In(source: &str) -> Vec<String>
 
     while let Some(character) = characters.next()
     {
-        match current
+        if current.is_none()
         {
-            None =>
-            {
-                if character == '"'
-                {
-                    current = Some(String::new());
-                }
-            }
-            Some(ref mut held) =>
-            {
-                if character == '\\'
-                {
-                    held.push(character);
-                    if let Some(escaped) = characters.next()
-                    {
-                        held.push(escaped);
-                    }
-                    continue;
-                }
-                if character == '"'
-                {
-                    literals.push(held.clone());
-                    current = None;
-                    continue;
-                }
-                held.push(character);
-            }
+            current = (character == '"').then(String::new);
+        }
+        else if character == '"'
+        {
+            literals.extend(current.take());
+        }
+        else if let Some(held) = current.as_mut()
+        {
+            Take_Escaped_Text(held, character, &mut characters);
         }
     }
 
     return literals;
+}
+
+/// Push one character of a literal's body, raw, consuming the rest of an escape when this is one.
+///
+/// Raw, and deliberately not `Value_Of`: this reader collects literals **as written**, continuation
+/// backslash and all, because `Value_Of` is the later step that decides what an escape meant. A
+/// `\` here hides the character after it from the quote test, which is what keeps a `\"` from
+/// ending the literal early.
+fn Take_Escaped_Text(held: &mut String, character: char, characters: &mut Peekable<Chars<'_>>)
+{
+    held.push(character);
+    if character != '\\'
+    {
+        return;
+    }
+    if let Some(escaped) = characters.next()
+    {
+        held.push(escaped);
+    }
 }
 
 /// Every line of every `.rs` file under a directory that is not a comment.
@@ -215,53 +261,86 @@ fn Code_Of(directory: &Path, into: &mut Vec<(PathBuf, String)>)
         let path = entry.expect("a readable directory entry").path();
         if path.is_dir()
         {
-            if path.file_name().is_some_and(|name| return name == "target")
-            {
-                continue;
-            }
-            Code_Of(&path, into);
+            Descend_Unless_Built(&path, into);
             continue;
         }
-        if path.extension().is_none_or(|extension| return extension != "rs")
+        if let Some(code) = Code_In(&path)
         {
-            continue;
+            into.push((path, code));
         }
-        // A scanner cannot scan its own evidence. These two files hold deliberately damaged
-        // strings as fixtures -- that is what they are for, and `KWB-57` is the item that
-        // established the fixture must be the real instance rather than a reconstruction. Named
-        // rather than pattern-matched, because there are two of them and a pattern would quietly
-        // exempt a third file somebody added for another reason.
-        let holds_fixtures = path
-            .file_name()
-            .is_some_and(|name| return name == "literals.rs" || name == "commands.rs");
-        if holds_fixtures
-        {
-            continue;
-        }
-
-        let text = std::fs::read_to_string(&path).expect("a readable source file");
-        let code: String = text
-            .lines()
-            .filter(|line| return !line.trim_start().starts_with("//"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        into.push((path, code));
     }
 }
 
-#[test]
-fn Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence()
+/// Walk into a subdirectory, unless it is one of the built ones.
+fn Descend_Unless_Built(path: &Path, into: &mut Vec<(PathBuf, String)>)
 {
-    // Both trees. `crates/` is the product; `tests/` is where the guards live, and a guard's
-    // own assert message is read by whoever is looking at a failure -- the worst moment to hand
-    // somebody a sentence with a hole in it. Scanning only `crates/` missed damage that landed
-    // in this very directory the day `KWB-61` was written.
+    if path.file_name().is_some_and(|name| return name == "target")
+    {
+        return;
+    }
+
+    Code_Of(path, into);
+}
+
+/// The comment-free code of a file a scanner may read, or `None` when the file is not one.
+///
+/// Comments are dropped because a doc comment's alignment table is legitimate and common here, and
+/// because a comment is not a string a person is ever handed.
+fn Code_In(path: &Path) -> Option<String>
+{
+    if path.extension().is_none_or(|extension| return extension != "rs")
+    {
+        return None;
+    }
+    if Holds_Fixtures(path)
+    {
+        return None;
+    }
+
+    let text = std::fs::read_to_string(path).expect("a readable source file");
+    let code: String = text
+        .lines()
+        .filter(|line| return !line.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    return Some(code);
+}
+
+/// Whether this file holds deliberately damaged strings as fixtures.
+///
+/// A scanner cannot scan its own evidence. These two files hold damaged strings as fixtures --
+/// that is what they are for, and `KWB-57` is the item that established the fixture must be the
+/// real instance rather than a reconstruction. Named rather than pattern-matched, because there
+/// are two of them and a pattern would quietly exempt a third file somebody added for another
+/// reason.
+fn Holds_Fixtures(path: &Path) -> bool
+{
+    return path
+        .file_name()
+        .is_some_and(|name| return name == "literals.rs" || name == "commands.rs");
+}
+
+/// Every comment-free line of every `.rs` file in both trees.
+///
+/// Both, because `crates/` is the product and `tests/` is where the guards live: a guard's own
+/// assert message is read by whoever is looking at a failure, the worst moment to hand somebody a
+/// sentence with a hole in it. Scanning only `crates/` missed damage that landed in this very
+/// directory the day `KWB-61` was written.
+fn Workspace_Code() -> Vec<(PathBuf, String)>
+{
     let mut code = Vec::new();
     Code_Of(&Repository_Root().join("crates"), &mut code);
     Code_Of(&Repository_Root().join("tests"), &mut code);
 
-    let mut damaged: Vec<String> = Vec::new();
-    for (path, text) in &code
+    return code;
+}
+
+/// Every literal in the given files that reads with a hole in the middle of a sentence.
+fn Damaged_In(code: &[(PathBuf, String)]) -> Vec<String>
+{
+    let mut damaged = Vec::new();
+    for (path, text) in code
     {
         for literal in Literals_In(text)
         {
@@ -271,6 +350,14 @@ fn Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence()
             }
         }
     }
+
+    return damaged;
+}
+
+#[test]
+fn Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence()
+{
+    let damaged = Damaged_In(&Workspace_Code());
 
     assert!(
         damaged.is_empty(),
@@ -284,9 +371,7 @@ fn Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence()
 #[test]
 fn Test_The_Scan_Should_Actually_Have_Read_The_Workspace()
 {
-    let mut code = Vec::new();
-    Code_Of(&Repository_Root().join("crates"), &mut code);
-    Code_Of(&Repository_Root().join("tests"), &mut code);
+    let code = Workspace_Code();
 
     let literals: usize = code
         .iter()
@@ -294,12 +379,12 @@ fn Test_The_Scan_Should_Actually_Have_Read_The_Workspace()
         .sum();
 
     assert!(
-        code.len() >= 20,
+        code.len() >= MINIMUM_FILES,
         "only {} source files were read, so a clean result means nothing",
         code.len()
     );
     assert!(
-        literals >= 200,
+        literals >= MINIMUM_LITERALS,
         "only {literals} literals were found in {} files, so the reader is not reading",
         code.len()
     );
@@ -324,28 +409,47 @@ fn Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For()
 #[test]
 fn Test_The_Detector_Should_Not_Find_What_Is_Not_Damage()
 {
-    // Each of these is a real shape from this repository, and each would be a false positive
-    // that got the guard turned off. Demonstrated rather than described, because a exemption
-    // nobody exercised is an exemption nobody has checked.
+    // Each of these is a real shape from this repository, and each would be a false positive that
+    // got the guard turned off. Demonstrated rather than described, because an exemption nobody
+    // exercised is an exemption nobody has checked.
+    A_Continued_Literal_Is_Not_Damage();
+    An_Aligned_Column_Is_Not_Damage();
+    A_Layout_Is_Not_Damage();
+}
 
-    // A literal written correctly across lines. In raw source this has a run of whitespace
-    // after the break, exactly like the damaged one; it differs only by the backslash, which is
-    // why `Value_Of` runs before anything else.
+/// A literal written correctly across lines.
+///
+/// In raw source this has a run of whitespace after the break, exactly like the damaged one; it
+/// differs only by the backslash, which is why `Value_Of` runs before anything else.
+fn A_Continued_Literal_Is_Not_Damage()
+{
     let continued = "the document was accepted and could not be made durable: {cause}. \\\n                 Refusing to report a write that reached memory and not the medium";
-    assert!(!Has_A_Gap(continued), "a correctly continued literal was flagged");
 
-    // An aligned column in printed output, at the widest this repository actually uses. The
-    // second is seven spaces, one below the boundary, which is the side of it that has to hold
-    // for the guard to survive contact with the code that exists.
+    assert!(!Has_A_Gap(continued), "a correctly continued literal was flagged");
+}
+
+/// Printed output that aligns a column, at the widest this repository actually uses.
+///
+/// The second is seven spaces, one below the boundary, which is the side of it that has to hold
+/// for the guard to survive contact with the code that exists.
+fn An_Aligned_Column_Is_Not_Damage()
+{
     assert!(!Has_A_Gap("coverage   {}"), "a printed table column was flagged");
     assert!(!Has_A_Gap("held       {}"), "a wider table column was flagged");
     assert!(
         !Has_A_Gap("corpus     {} current, {} held, and more besides to pass the length test"),
         "a table column in a literal long enough to be a sentence was flagged"
     );
+}
 
-    // Source held in a literal to feed another guard's detector. Its indentation follows a
-    // newline the literal carries itself, which is layout rather than a lost line break.
+/// Whitespace that is layout rather than a lost line break.
+///
+/// Three shapes, all of them here for a reason. Source held in a literal to feed another guard's
+/// detector, whose indentation follows a newline the literal carries itself. A leading indent in a
+/// usage line. And whitespace that is the subject rather than the separator, which the `Scope`
+/// tests pass.
+fn A_Layout_Is_Not_Damage()
+{
     assert!(
         !Has_A_Gap("pub fn Insert(
         &mut self,
@@ -353,16 +457,50 @@ fn Test_The_Detector_Should_Not_Find_What_Is_Not_Damage()
 ) { }"),
         "a code fixture's own indentation was flagged"
     );
-
-    // A leading indent in a usage line, which is a layout and not a gap.
     assert!(
         !Has_A_Gap("       kwb supersede <concept> --into <concept> --store <dir> --because <x>"),
         "an indented usage line was flagged"
     );
-
-    // Whitespace that is the subject rather than the separator -- `Scope` tests pass these.
     assert!(!Has_A_Gap("   "), "a literal that is itself whitespace was flagged");
     assert!(!Has_A_Gap("\t"), "a tab was flagged");
+}
+
+#[test]
+fn Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run()
+{
+    let (widest, example) = Widest_Deliberate_Run();
+
+    // There is deliberately no `assert!(widest < GAP)` here. The measurement reports only runs
+    // *below* `GAP`, so such an assertion could not fail -- a gate that passes on every tree,
+    // which is the shape this repository has a name for. The scan at the top of this file is
+    // what guards that side, and repeating it here would be a second authority for one question
+    // rather than a second check of it.
+    //
+    // This is the measurement the doc comment on `GAP` states. Not an equality: a table gaining
+    // a column is fine while it stays under the threshold. What must not happen unnoticed is it
+    // climbing towards one.
+    assert!(
+        widest <= WIDEST_DELIBERATE_RUN,
+        "the widest deliberate run has grown from {WIDEST_DELIBERATE_RUN} to {widest}, which is \
+         still under the threshold but means the comment on GAP is now describing a tree that \
+         changed: {:?}",
+        Quoted_Example(&example)
+    );
+}
+
+/// As much of a literal as a failure message quotes back, cut at a character boundary.
+///
+/// `EXAMPLE_CHARS` is the bound, and a literal that fits is quoted whole — so the ellipsis means
+/// there was more of it, rather than that this was all there was.
+fn Quoted_Example(example: &str) -> String
+{
+    let mut quoted: String = example.chars().take(EXAMPLE_CHARS).collect();
+    if quoted.chars().count() < example.chars().count()
+    {
+        quoted.push('…');
+    }
+
+    return quoted;
 }
 
 /// The threshold's left-hand bound, recomputed from the tree on every run.
@@ -373,67 +511,73 @@ fn Test_The_Detector_Should_Not_Find_What_Is_Not_Damage()
 /// measured once, at five, and a measurement taken once is a claim from then on — the exact
 /// shape this repository keeps finding in its own documents.
 ///
-/// So the number is recomputed here. If a printed table ever grows a column eight wide, this
-/// fails and says the threshold has stopped being safe, instead of the scan above quietly
+/// So the number is recomputed here. If a printed table ever grows a column eight wide, the test
+/// above fails and says the threshold has stopped being safe, instead of the scan quietly
 /// reporting somebody's deliberate alignment as damage and being switched off for it.
 ///
 /// It reads the same literals the scan reads and reports the widest run **below** the
 /// threshold, which is exactly the legitimate population — the scan at the top of this file is
-/// what proves there is nothing at or above it. That is also why this test asserts nothing
+/// what proves there is nothing at or above it. That is also why the test asserts nothing
 /// about the threshold's upper side: a bound computed below `GAP` cannot be found to exceed it,
 /// and an assertion that cannot fail is worse than none.
-#[test]
-fn Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run()
+fn Widest_Deliberate_Run() -> (usize, String)
 {
     let mut code = Vec::new();
     Code_Of(&Repository_Root().join("crates"), &mut code);
 
-    let mut widest = 0_usize;
-    let mut example = String::new();
-    for (_, text) in &code
-    {
-        for literal in Literals_In(text)
-        {
-            let value = Value_Of(&literal);
-            let trimmed = value.trim();
-            if trimmed.chars().count() < SENTENCE
-            {
-                continue;
-            }
+    return code
+        .iter()
+        .flat_map(|(_, text)| return Literals_In(text))
+        .filter_map(|literal| return Widest_Legitimate_Run(&literal))
+        .max_by_key(|(run, _)| return *run)
+        .unwrap_or_default();
+}
 
-            let mut run = 0_usize;
-            let mut after_a_break = true;
-            for character in trimmed.chars()
-            {
-                if character == ' '
-                {
-                    run = run.saturating_add(1);
-                    if !after_a_break && run > widest && run < GAP
-                    {
-                        widest = run;
-                        example = trimmed.chars().take(60).collect();
-                    }
-                    continue;
-                }
-                after_a_break = character == '\n';
-                run = 0;
-            }
-        }
+/// The widest run of spaces in one literal long enough to be a sentence, with that sentence, when
+/// the run is **below** `GAP`; `None` when the literal carries no such run.
+fn Widest_Legitimate_Run(literal: &str) -> Option<(usize, String)>
+{
+    let value = Value_Of(literal);
+    let trimmed = value.trim();
+    if trimmed.chars().count() < SENTENCE
+    {
+        return None;
     }
 
-    // There is deliberately no `assert!(widest < GAP)` here. The loop above records only runs
-    // *below* `GAP`, so such an assertion could not fail -- a gate that passes on every tree,
-    // which is the shape this repository has a name for. The scan at the top of this file is
-    // what guards that side, and repeating it here would be a second authority for one question
-    // rather than a second check of it.
-    //
-    // This is the measurement the doc comment on `GAP` states. Not an equality: a table gaining
-    // a column is fine while it stays under the threshold. What must not happen unnoticed is it
-    // climbing towards one.
-    assert!(
-        widest <= 5,
-        "the widest deliberate run has grown from 5 to {widest}, which is still under the \
-         threshold but means the comment on GAP is now describing a tree that changed: \
-         {example:?}"
-    );
+    let widest = Widest_Run_Below_The_Threshold(trimmed);
+    if widest == 0
+    {
+        return None;
+    }
+
+    return Some((widest, trimmed.to_owned()));
+}
+
+/// The widest run of spaces in a sentence, counting only runs **below** `GAP`; zero when there is
+/// none.
+///
+/// Runs at or above `GAP` are deliberately not counted: those are what the scan calls damage, and
+/// mixing the two populations is the confusion this measurement exists to avoid.
+fn Widest_Run_Below_The_Threshold(sentence: &str) -> usize
+{
+    let mut widest = 0_usize;
+    let mut run = 0_usize;
+    let mut after_a_break = true;
+
+    for character in sentence.chars()
+    {
+        if character == ' '
+        {
+            run = run.saturating_add(1);
+            if !after_a_break && run < GAP
+            {
+                widest = widest.max(run);
+            }
+            continue;
+        }
+        after_a_break = character == '\n';
+        run = 0;
+    }
+
+    return widest;
 }

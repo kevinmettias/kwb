@@ -11,41 +11,90 @@ use kwb_contract_tests::Quoted_After;
 use kwb_contract_tests::Repository_Root;
 use kwb_contract_tests::Workspace_Members;
 
-/// Every crate name named in `README.md`'s Bands table.
-fn Readme_Band_Table_Crate_Names() -> BTreeSet<String>
+/// `README.md`, which is where this repository says what exists and which band may depend on
+/// which.
+fn Readme() -> String
 {
-    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
+    return std::fs::read_to_string(Repository_Root().join("README.md"))
         .expect("README.md should be readable");
+}
 
-    let mut names = BTreeSet::new();
-    let mut in_band_table = false;
-    for line in readme.lines()
+/// `AGENTS.md`, which is where this repository routes a reader to the authority for a question.
+fn Operating_Contract() -> String
+{
+    return std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
+        .expect("AGENTS.md should be readable");
+}
+
+/// The composition root, which is where a verb the binary dispatches is declared.
+fn Dispatch() -> String
+{
+    return std::fs::read_to_string(Repository_Root().join("crates/host/kwb-cli/src/main.rs"))
+        .expect("the composition root should be readable");
+}
+
+/// The `kwb-mcp` tool surface, which is where a tool an agent can ask for is declared.
+fn Tool_Surface() -> String
+{
+    return std::fs::read_to_string(Repository_Root().join("crates/host/kwb-mcp/src/lib.rs"))
+        .expect("the tool surface should be readable");
+}
+
+/// The Bands table's header, which is where the table begins.
+const BAND_TABLE_HEADER: &str = "| Band | Crate | Owns |";
+
+/// The column a Bands table row puts its crate name in, and the one it puts the description in.
+///
+/// The header's own order is `Band`, `Crate`, `Owns`, and a row splits on the pipes with the
+/// empty cell before the first one kept at 0 — so the crate name is column 2 and the description
+/// column 3. Named because two readers index this table, and a column that moved would otherwise
+/// move in only one of them.
+const CRATE_COLUMN: usize = 2;
+const OWNS_COLUMN: usize = 3;
+
+/// The rows of `README.md`'s Bands table, each split into its cells and stripped of padding.
+///
+/// Two readers want this table — the one asking which crates it names and the one asking what
+/// each of them says — and both need the same answer to where it begins and where it ends. That
+/// is the part worth writing once: a table that grew a second header row, or a following
+/// paragraph that began with a pipe, is a shape the two would otherwise disagree about.
+fn Band_Table_Rows() -> Vec<Vec<String>>
+{
+    let readme = Readme();
+    let Some((_, table)) = readme.split_once(BAND_TABLE_HEADER)
+    else
     {
-        if line.starts_with("| Band | Crate | Owns |")
-        {
-            in_band_table = true;
-            continue;
-        }
-        if !in_band_table
-        {
-            continue;
-        }
+        return Vec::new();
+    };
+
+    let mut rows = Vec::new();
+    for line in table.trim_start().lines()
+    {
         if !line.starts_with('|')
         {
             break;
         }
-        let columns: Vec<&str> = line.split('|').collect();
-        let Some(crate_column) = columns.get(2) else { continue };
-        let trimmed = crate_column.trim();
-        let Some(name) = trimmed.strip_prefix('`').and_then(|rest| return rest.strip_suffix('`'))
-        else
-        {
-            continue;
-        };
-        names.insert(name.to_owned());
+        rows.push(line.split('|').map(|cell| return cell.trim().to_owned()).collect());
     }
 
-    return names;
+    return rows;
+}
+
+/// The crate a Bands table row names, when its crate column is backticked as the table writes it.
+fn Crate_Named_In(row: &[String]) -> Option<String>
+{
+    let cell = row.get(CRATE_COLUMN)?;
+
+    return cell.strip_prefix('`')?.strip_suffix('`').map(str::to_owned);
+}
+
+/// Every crate name named in `README.md`'s Bands table.
+fn Readme_Band_Table_Crate_Names() -> BTreeSet<String>
+{
+    return Band_Table_Rows()
+        .iter()
+        .filter_map(|row| return Crate_Named_In(row))
+        .collect();
 }
 
 #[test]
@@ -88,25 +137,38 @@ fn Records() -> BTreeMap<String, String>
     for entry in entries
     {
         let path = entry.expect("a readable directory entry").path();
-        if path.extension().is_some_and(|extension| return extension == "md")
+        if let Some((identifier, text)) = Record_At(&path)
         {
-            let name = path
-                .file_name()
-                .and_then(|name| return name.to_str())
-                .unwrap_or_default();
-            let mut parts = name.split('-');
-            let (Some(prefix), Some(number)) = (parts.next(), parts.next())
-            else
-            {
-                continue;
-            };
-            let text = std::fs::read_to_string(&path).expect("a readable record");
-            records.insert(format!("{prefix}-{number}"), text);
+            records.insert(identifier, text);
         }
     }
 
     assert!(!records.is_empty(), "no records were scanned, so this test proves nothing");
     return records;
+}
+
+/// A record's identifier and text, when the path is a record file.
+///
+/// `D-004-two-lists-were-not-enough.md` — the identifier is the first two dash-separated segments
+/// of the name and everything after them is prose. It is read off the name rather than out of the
+/// frontmatter because the name is what a relation's `target` matches.
+fn Record_At(path: &std::path::Path) -> Option<(String, String)>
+{
+    if !path.extension().is_some_and(|extension| return extension == "md")
+    {
+        return None;
+    }
+    let name = path.file_name().and_then(|name| return name.to_str())?;
+    let mut parts = name.split('-');
+    let (Some(prefix), Some(number)) = (parts.next(), parts.next())
+    else
+    {
+        return None;
+    };
+
+    let text = std::fs::read_to_string(path).expect("a readable record");
+
+    return Some((format!("{prefix}-{number}"), text));
 }
 
 /// Every relation a record's frontmatter declares, as `(source, target)`.
@@ -230,57 +292,38 @@ fn Collect_Manifests(directory: &std::path::Path, found: &mut BTreeMap<String, S
             Collect_Manifests(&path, found);
             continue;
         }
-        if path.file_name().is_none_or(|name| return name != "Cargo.toml")
-        {
-            continue;
-        }
-
-        let text = std::fs::read_to_string(&path).expect("a readable manifest");
-        let name = Quoted_After(&text, "name = ");
-        let description = Quoted_After(&text, "description = ");
-        if let (Some(name), Some(description)) = (name, description)
+        if let Some((name, description)) = Manifest_Description(&path)
         {
             found.insert(name, description);
         }
     }
 }
 
+/// A manifest's crate name and description, when the file is one that declares both.
+fn Manifest_Description(path: &std::path::Path) -> Option<(String, String)>
+{
+    if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+    {
+        return None;
+    }
+
+    let text = std::fs::read_to_string(path).expect("a readable manifest");
+
+    return Some((Quoted_After(&text, "name = ")?, Quoted_After(&text, "description = ")?));
+}
+
 /// Every crate row in `README.md`'s Bands table, as `crate -> what it owns`.
 fn Readme_Band_Descriptions() -> BTreeMap<String, String>
 {
-    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
-        .expect("README.md should be readable");
-
     let mut rows = BTreeMap::new();
-    let mut in_band_table = false;
-    for line in readme.lines()
+    for row in Band_Table_Rows()
     {
-        if line.starts_with("| Band | Crate | Owns |")
-        {
-            in_band_table = true;
-            continue;
-        }
-        if !in_band_table
-        {
-            continue;
-        }
-        if !line.starts_with('|')
-        {
-            break;
-        }
-
-        let cells: Vec<&str> = line.split('|').map(str::trim).collect();
-        let (Some(crate_cell), Some(owns)) = (cells.get(2), cells.get(3))
+        let (Some(name), Some(owns)) = (Crate_Named_In(&row), row.get(OWNS_COLUMN).cloned())
         else
         {
             continue;
         };
-        if let Some(name) = crate_cell
-            .strip_prefix('`')
-            .and_then(|rest| return rest.strip_suffix('`'))
-        {
-            rows.insert(name.to_owned(), (*owns).to_owned());
-        }
+        rows.insert(name, owns);
     }
 
     return rows;
@@ -321,19 +364,10 @@ fn Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places()
     let manifests = Manifest_Descriptions();
     let readme = Readme_Band_Descriptions();
 
-    let mut disagreements: Vec<String> = Vec::new();
-    for (name, owns) in &readme
-    {
-        let Some(description) = manifests.get(name)
-        else
-        {
-            continue;
-        };
-        if description != owns
-        {
-            disagreements.push(format!("{name}\n  README:   {owns}\n  manifest: {description}"));
-        }
-    }
+    let disagreements: Vec<String> = readme
+        .iter()
+        .filter_map(|(name, owns)| return Description_Disagreement(name, owns, manifests.get(name)))
+        .collect();
 
     assert!(
         disagreements.is_empty(),
@@ -341,6 +375,22 @@ fn Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places()
          and a reader cannot tell which: {}",
         disagreements.join("\n")
     );
+}
+
+/// How a crate's two descriptions differ, or `None` when they agree.
+///
+/// A crate the manifest side does not describe is not a disagreement: these two tables are not
+/// required to name the same crates, and `Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table`
+/// is the guard for a crate that is missing from the README rather than from its own manifest.
+fn Description_Disagreement(name: &str, owns: &str, described: Option<&String>) -> Option<String>
+{
+    let description = described?;
+    if description == owns
+    {
+        return None;
+    }
+
+    return Some(format!("{name}\n  README:   {owns}\n  manifest: {description}"));
 }
 
 // ---- KWB-40: the router routes everything there is ----
@@ -361,14 +411,36 @@ fn Test_Every_Crate_Should_Describe_Itself_The_Same_Way_In_Both_Places()
 #[test]
 fn Test_Every_Authority_Under_Docs_Should_Be_Routed_By_The_Operating_Contract()
 {
-    let contract = std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
-        .expect("AGENTS.md should be readable");
+    let contract = Operating_Contract();
 
+    let authorities = Authorities();
+    let unrouted: Vec<&String> = authorities
+        .iter()
+        .filter(|name| return !contract.contains(&format!("docs/{name}/")))
+        .collect();
+
+    assert!(
+        authorities.len() >= MINIMUM_AUTHORITIES,
+        "only {} authorities were scanned, so this test proves little",
+        authorities.len()
+    );
+    assert!(
+        unrouted.is_empty(),
+        "these authorities exist and AGENTS.md routes nobody to them, so a session following \
+         the operating contract cannot find them: {unrouted:?}"
+    );
+}
+
+/// The fewest authorities `docs/` could hold and still be the three kinds the contract routes.
+const MINIMUM_AUTHORITIES: usize = 3;
+
+/// Every directory under `docs/`, by name.
+fn Authorities() -> Vec<String>
+{
     let entries = std::fs::read_dir(Repository_Root().join("docs"))
         .expect("docs/ should be readable");
 
-    let mut unrouted: Vec<String> = Vec::new();
-    let mut seen = 0_usize;
+    let mut names = Vec::new();
     for entry in entries
     {
         let path = entry.expect("a readable directory entry").path();
@@ -376,24 +448,13 @@ fn Test_Every_Authority_Under_Docs_Should_Be_Routed_By_The_Operating_Contract()
         {
             continue;
         }
-        let Some(name) = path.file_name().and_then(|name| return name.to_str())
-        else
+        if let Some(name) = path.file_name().and_then(|name| return name.to_str())
         {
-            continue;
-        };
-        seen = seen.saturating_add(1);
-        if !contract.contains(&format!("docs/{name}/"))
-        {
-            unrouted.push(name.to_owned());
+            names.push(name.to_owned());
         }
     }
 
-    assert!(seen >= 3, "only {seen} authorities were scanned, so this test proves little");
-    assert!(
-        unrouted.is_empty(),
-        "these authorities exist and AGENTS.md routes nobody to them, so a session following \
-         the operating contract cannot find them: {unrouted:?}"
-    );
+    return names;
 }
 
 // ---- KWB-44: the readers are shown to read ----
@@ -472,41 +533,39 @@ fn Test_The_Manifest_Reader_Should_Take_The_Quoted_Value()
 #[test]
 fn Test_Every_Command_The_Readme_Shows_Should_Be_One_The_Binary_Dispatches()
 {
-    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
-        .expect("README.md should be readable");
-    let dispatch =
-        std::fs::read_to_string(Repository_Root().join("crates/host/kwb-cli/src/main.rs"))
-            .expect("the composition root should be readable");
+    let dispatched = Verbs_Dispatched(&Dispatch());
 
-    // Against the table, not against the source text. This looked for the match arm's `&"verb"`
-    // until `KWB-74` moved the verbs into `VERBS`, at which point it would have reported every
-    // verb as undispatched -- a guard that fails for the wrong reason, which is worse than one
-    // that passes for the wrong reason because it teaches people to ignore it.
-    let dispatched = Verbs_Dispatched(&dispatch);
-    assert!(
-        dispatched.len() >= 4,
-        "only {dispatched:?} were found in the table, so this guard covers almost nothing"
-    );
-
-    // `help` and its aliases are answered by the binary and are deliberately not capabilities in
-    // the table, so a README that mentions `kwb help` is not naming something undispatched.
-    let aliases = ["help", "--help", "-h"];
-    let mut missing: Vec<String> = Vec::new();
-    for verb in Verbs_Shown(&readme)
-    {
-        let known = dispatched.iter().any(|held| return *held == verb)
-            || aliases.contains(&verb.as_str());
-        if !known
-        {
-            missing.push(verb);
-        }
-    }
+    let missing: Vec<String> = Verbs_Shown(&Readme())
+        .into_iter()
+        .filter(|verb| return !Dispatch_Answers(verb, &dispatched))
+        .collect();
 
     assert!(
         missing.is_empty(),
         "the README shows commands the binary does not dispatch, so a reader following it would \
          find out the hard way: {missing:?}"
     );
+}
+
+/// The fewest verbs the composition root could declare and still be dispatching anything.
+const MINIMUM_VERBS: usize = 4;
+
+/// The verbs the binary answers and the dispatch table deliberately does not declare.
+///
+/// They are how a reader finds the rest rather than capabilities to be listed, so a README that
+/// mentions `kwb help` is not naming something undispatched.
+const HELP_ALIASES: &[&str] = &["help", "--help", "-h"];
+
+/// Whether the dispatch can answer a verb.
+///
+/// Asks the table rather than the source text. Until `KWB-74` the verbs *were* the source text —
+/// one match arm each — and this looked for the arm; when `KWB-74` moved them into `VERBS` that
+/// reading would have reported every verb as undispatched, which is a guard failing for the wrong
+/// reason and worse than one passing for the wrong reason, because it teaches people to ignore it.
+fn Dispatch_Answers(verb: &str, dispatched: &[String]) -> bool
+{
+    return HELP_ALIASES.contains(&verb)
+        || dispatched.iter().any(|held| return held.as_str() == verb);
 }
 
 /// Every verb the binary dispatches is one the README shows.
@@ -527,30 +586,27 @@ fn Test_Every_Command_The_Readme_Shows_Should_Be_One_The_Binary_Dispatches()
 #[test]
 fn Test_Every_Verb_The_Binary_Dispatches_Should_Be_One_The_Readme_Shows()
 {
-    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
-        .expect("README.md should be readable");
-    let dispatch =
-        std::fs::read_to_string(Repository_Root().join("crates/host/kwb-cli/src/main.rs"))
-            .expect("the composition root should be readable");
-
-    let shown = Verbs_Shown(&readme);
-    let dispatched = Verbs_Dispatched(&dispatch);
-
-    assert!(
-        dispatched.len() >= 4,
-        "only {dispatched:?} were found in the dispatch, so this guard covers almost nothing"
-    );
-
-    let undocumented: Vec<&String> = dispatched
-        .iter()
-        .filter(|verb| return !shown.iter().any(|seen| return seen == *verb))
-        .collect();
+    let shown = Verbs_Shown(&Readme());
+    let undocumented = Verbs_Outside(&Verbs_Dispatched(&Dispatch()), &shown);
 
     assert!(
         undocumented.is_empty(),
         "the binary answers these and the README never mentions them, so a reader sent to that \
          file for what exists cannot find them: {undocumented:?}"
     );
+}
+
+/// The verbs in `shown` that `known` does not name, in the order they appear.
+///
+/// The two directions of the verb check are this one comparison, and writing it once is what
+/// keeps them from parting: they are meant to be the same question asked from either end.
+fn Verbs_Outside(shown: &[String], known: &[String]) -> Vec<String>
+{
+    return shown
+        .iter()
+        .filter(|verb| return !known.iter().any(|held| return held.as_str() == verb.as_str()))
+        .cloned()
+        .collect();
 }
 
 /// Every verb the composition root's table declares.
@@ -577,51 +633,71 @@ fn Verbs_Dispatched(dispatch: &str) -> Vec<String>
         .split_once("\n];")
         .map_or(table, |(inside, _)| return inside);
 
-    let mut verbs: Vec<String> = Vec::new();
-    for fragment in table.split("name: \"").skip(1)
+    let verbs = Names_Declared_In(table);
+
+    // A reader that parsed nothing passes on every repository, so the floor is here rather than
+    // at each call site: an empty answer is a broken parse, not a clean workspace.
+    assert!(
+        verbs.len() >= MINIMUM_VERBS,
+        "only {verbs:?} were found in the dispatch table, so this guard covers almost nothing"
+    );
+    return verbs;
+}
+
+/// The names a run of `name: "…"` declarations carries, in order and each kept once.
+///
+/// The dispatch's `VERBS` table and the tool surface's `TOOLS` table are the same shape, so this
+/// is one reader rather than two: both declare a list of records whose first field is a name, and
+/// a second parser for the second list would be a second place for the shape to drift.
+fn Names_Declared_In(text: &str) -> Vec<String>
+{
+    let mut names: Vec<String> = Vec::new();
+    for fragment in text.split("name: \"").skip(1)
     {
-        let Some(inside) = fragment.split('"').next()
-        else
+        if let Some(name) = fragment.split('"').next()
         {
-            continue;
-        };
-        Remember(&mut verbs, inside);
+            Remember_Once(&mut names, name);
+        }
     }
 
-    return verbs;
+    return names;
 }
 
 /// Every `kwb-mcp` tool the README names is one the surface declares.
 #[test]
 fn Test_Every_Tool_The_Readme_Names_Should_Be_One_The_Surface_Declares()
 {
-    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
-        .expect("README.md should be readable");
-    let surface = std::fs::read_to_string(Repository_Root().join("crates/host/kwb-mcp/src/lib.rs"))
-        .expect("the tool surface should be readable");
+    let surface = Tool_Surface();
 
-    let mut missing: Vec<String> = Vec::new();
-    for line in readme.lines()
-    {
-        let Some(rest) = line.trim().strip_prefix("$ kwb-mcp ")
-        else
-        {
-            continue;
-        };
-        // `kwb-mcp <store> <tool> ...` — the tool is the second word, when there is one.
-        if let Some(tool) = rest.split_whitespace().nth(1)
-        {
-            if !surface.contains(&format!("name: \"{tool}\""))
-            {
-                missing.push(tool.to_owned());
-            }
-        }
-    }
+    let missing: Vec<String> = Tools_Shown(&Readme())
+        .into_iter()
+        .filter(|tool| return !surface.contains(&format!("name: \"{tool}\"")))
+        .collect();
 
     assert!(
         missing.is_empty(),
         "the README names tools the surface does not declare: {missing:?}"
     );
+}
+
+/// Every `kwb-mcp` tool the README names in a command line, in the order they appear.
+///
+/// `kwb-mcp <store> <tool> ...` — the tool is the second word, when there is one.
+fn Tools_Shown(readme: &str) -> Vec<String>
+{
+    let mut tools: Vec<String> = Vec::new();
+    for line in readme.lines()
+    {
+        if let Some(tool) = line
+            .trim()
+            .strip_prefix("$ kwb-mcp ")
+            .and_then(|rest| return rest.split_whitespace().nth(1))
+        {
+            Remember_Once(&mut tools, tool);
+        }
+    }
+
+    return tools;
 }
 
 /// Every `kwb` verb the README shows, in a console block or named in prose.
@@ -633,35 +709,53 @@ fn Test_Every_Tool_The_Readme_Names_Should_Be_One_The_Surface_Declares()
 fn Verbs_Shown(readme: &str) -> Vec<String>
 {
     let mut verbs: Vec<String> = Vec::new();
-
     for line in readme.lines()
     {
         if let Some(rest) = line.trim().strip_prefix("$ kwb ")
         {
-            Remember(&mut verbs, rest.split_whitespace().next().unwrap_or_default());
+            Remember_Once(&mut verbs, rest.split_whitespace().next().unwrap_or_default());
         }
     }
-
-    for fragment in readme.split("`kwb ").skip(1)
+    for verb in Verbs_Named_In_Prose(readme)
     {
-        let Some(inside) = fragment.split('`').next()
-        else
-        {
-            continue;
-        };
-        Remember(&mut verbs, inside.split_whitespace().next().unwrap_or_default());
+        Remember_Once(&mut verbs, &verb);
     }
 
-    assert!(verbs.len() >= 3, "only {verbs:?} were found, so this guard covers almost nothing");
+    assert!(
+        verbs.len() >= MINIMUM_SHOWN_VERBS,
+        "only {verbs:?} were found, so this guard covers almost nothing"
+    );
     return verbs;
 }
 
-/// Keep a verb once.
-fn Remember(verbs: &mut Vec<String>, verb: &str)
+/// Every `kwb` verb a document names in a `kwb …` code span.
+fn Verbs_Named_In_Prose(readme: &str) -> Vec<String>
 {
-    if !verb.is_empty() && !verbs.iter().any(|held| return held == verb)
+    let mut verbs: Vec<String> = Vec::new();
+    for fragment in readme.split("`kwb ").skip(1)
     {
-        verbs.push(verb.to_owned());
+        if let Some(inside) = fragment.split('`').next()
+        {
+            Remember_Once(&mut verbs, inside.split_whitespace().next().unwrap_or_default());
+        }
+    }
+
+    return verbs;
+}
+
+/// The fewest verbs a README could show and still be showing a capability list.
+const MINIMUM_SHOWN_VERBS: usize = 3;
+
+/// Keep a word once.
+///
+/// Used for verbs and for tools, which is why it is named for neither: both are a list of
+/// identifiers read out of a document, and a repeat in either one is noise in a failure message
+/// rather than a second fact.
+fn Remember_Once(seen: &mut Vec<String>, word: &str)
+{
+    if !word.is_empty() && !seen.iter().any(|held| return held == word)
+    {
+        seen.push(word.to_owned());
     }
 }
 
@@ -736,7 +830,7 @@ fn Test_Both_Records_That_Decide_Ownership_Should_Be_Routed()
 /// the stricter check.
 fn Referenced_By(record: &str) -> Vec<String>
 {
-    let Some((_, listed)) = record.split_once("## Referenced By")
+    let Some((_, listed)) = record.split_once(REFERENCE_SECTION)
     else
     {
         return Vec::new();
@@ -748,6 +842,9 @@ fn Referenced_By(record: &str) -> Vec<String>
         .map(|entry| return entry.trim().trim_matches('`').to_owned())
         .collect();
 }
+
+/// The heading a document lists its incoming relations under.
+const REFERENCE_SECTION: &str = "## Referenced By";
 
 /// A `Referenced By` entry that no record declares a relation to.
 ///
@@ -762,10 +859,23 @@ fn Referenced_By(record: &str) -> Vec<String>
 fn Test_No_Record_Should_Claim_A_Reference_Nobody_Declared()
 {
     let documents = Relating_Documents();
-    let declared = Declared_Relations(&documents);
+    let invented = Invented_References(&documents, &Declared_Relations(&documents));
 
-    let mut invented: Vec<String> = Vec::new();
-    for (identifier, text) in &documents
+    assert!(
+        invented.is_empty(),
+        "these Referenced By entries send a reader to a record that does not relate back, with \
+         the authority of a list this repository calls checked: {invented:#?}"
+    );
+}
+
+/// Every *Referenced By* entry that no document declares a relation to.
+fn Invented_References(
+    documents: &BTreeMap<String, String>,
+    declared: &[(String, String)],
+) -> Vec<String>
+{
+    let mut invented = Vec::new();
+    for (identifier, text) in documents
     {
         for listed in Referenced_By(text)
         {
@@ -779,11 +889,7 @@ fn Test_No_Record_Should_Claim_A_Reference_Nobody_Declared()
         }
     }
 
-    assert!(
-        invented.is_empty(),
-        "these Referenced By entries send a reader to a record that does not relate back, with \
-         the authority of a list this repository calls checked: {invented:#?}"
-    );
+    return invented;
 }
 
 // ---- KWB-62: a condition stated as items is checked against the board ----
@@ -810,23 +916,40 @@ fn Conditions_Named(records: &BTreeMap<String, String>) -> Vec<(String, String)>
     {
         for line in text.lines()
         {
-            let Some(rest) = line.trim().strip_prefix("**Condition met:**")
+            let Some(items) = Met_Condition_On(line)
             else
             {
                 continue;
             };
-            for item in rest.split(',')
+            for item in items
             {
-                let item = item.trim().trim_matches('`').trim();
-                if !item.is_empty()
-                {
-                    named.push((identifier.clone(), item.to_owned()));
-                }
+                named.push((identifier.clone(), item));
             }
         }
     }
 
     return named;
+}
+
+/// The marker a line states a met condition behind, and the only place it is written.
+const CONDITION_MET_MARKER: &str = "**Condition met:**";
+
+/// The items a line names as a met condition, when the line states one.
+///
+/// A line that merely mentions an item states nothing, which is why the marker is required: of
+/// the four passages that name an item near a condition-like phrase, two are conditions and two
+/// are not, so a guard reading all four would be wrong half the time — and a guard that is wrong
+/// half the time is switched off.
+fn Met_Condition_On(line: &str) -> Option<Vec<String>>
+{
+    let rest = line.trim().strip_prefix(CONDITION_MET_MARKER)?;
+
+    return Some(
+        rest.split(',')
+            .map(|item| return item.trim().trim_matches('`').trim().to_owned())
+            .filter(|item| return !item.is_empty())
+            .collect(),
+    );
 }
 
 /// Every item named in a met condition is actually done on the board.
@@ -843,8 +966,7 @@ fn Conditions_Named(records: &BTreeMap<String, String>) -> Vec<(String, String)>
 #[test]
 fn Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board()
 {
-    let records = Records();
-    let named = Conditions_Named(&records);
+    let named = Conditions_Named(&Records());
 
     assert!(
         !named.is_empty(),
@@ -854,36 +976,48 @@ fn Test_Every_Condition_A_Record_Calls_Met_Should_Be_Met_On_The_Board()
     let board = std::fs::read_to_string(Repository_Root().join("work/ledger.json"))
         .expect("the board should be readable");
 
-    let mut unmet: Vec<String> = Vec::new();
-    for (record, item) in named
-    {
-        // Read from the board, anchored on the field rather than on a substring near it. The
-        // first attempt looked for `"done"` after the identifier and reported four defects that
-        // did not exist, because the board writes `"Done"`. A guard whose parser is wrong does
-        // not report nothing -- it reports something false, with the authority of a test.
-        // `Claimed` counts, and `KWB-64` is why. A record amended **by** the item that satisfies
-        // its condition writes the marker while that item is still held -- the predicate runs
-        // before `finish`, so requiring `Done` here makes the only item that can honestly add a
-        // marker the one item that cannot. That is a guard fighting the workflow rather than a
-        // defect.
-        //
-        // It gives nothing up. An abandoned claim returns the item to `ready` and this fires
-        // then, and a declined one fires immediately, so a marker whose item never lands is
-        // still caught -- just at the moment the board says so rather than before.
-        let state = State_Of(&board, &item).unwrap_or_default();
-        let landing = state.eq_ignore_ascii_case("done") || state.eq_ignore_ascii_case("claimed");
-
-        if !landing
-        {
-            unmet.push(format!("{record} calls {item} met and the board says {state:?}"));
-        }
-    }
-
+    let unmet = Unmet_Conditions(&named, &board);
     assert!(
         unmet.is_empty(),
         "a record says a condition is satisfied and the board disagrees, so a subject is \
          declared workable while what it waits on is still open: {unmet:#?}"
     );
+}
+
+/// The met conditions the board disagrees with, each as a sentence naming both.
+///
+/// The state is read anchored on the field rather than on a substring near it. The first attempt
+/// looked for `"done"` after the identifier and reported four defects that did not exist, because
+/// the board writes `"Done"`. A guard whose parser is wrong does not report nothing — it reports
+/// something false, with the authority of a test.
+fn Unmet_Conditions(named: &[(String, String)], board: &str) -> Vec<String>
+{
+    let mut unmet = Vec::new();
+    for (record, item) in named
+    {
+        let state = State_Of(board, item).unwrap_or_default();
+        if !Has_Landed(&state)
+        {
+            unmet.push(format!("{record} calls {item} met and the board says {state:?}"));
+        }
+    }
+
+    return unmet;
+}
+
+/// Whether a board state means the item has landed.
+///
+/// `Claimed` counts, and `KWB-64` is why. A record amended **by** the item that satisfies its
+/// condition writes the marker while that item is still held — the predicate runs before
+/// `finish`, so requiring `Done` here makes the only item that can honestly add a marker the one
+/// item that cannot. That is a guard fighting the workflow rather than a defect.
+///
+/// It gives nothing up. An abandoned claim returns the item to `ready` and this fires then, and a
+/// declined one fires immediately, so a marker whose item never lands is still caught — just at
+/// the moment the board says so rather than before.
+fn Has_Landed(state: &str) -> bool
+{
+    return state.eq_ignore_ascii_case("done") || state.eq_ignore_ascii_case("claimed");
 }
 
 /// An item's `state` on the board, read from the field and not from text near it.
@@ -919,24 +1053,8 @@ fn State_Of(board: &str, item: &str) -> Option<String>
 #[test]
 fn Test_Every_Tool_The_Surface_Declares_Should_Be_One_The_Readme_Names()
 {
-    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
-        .expect("README.md should be readable");
-    let surface = std::fs::read_to_string(Repository_Root().join("crates/host/kwb-mcp/src/lib.rs"))
-        .expect("the tool surface should be readable");
-
-    let mut declared: Vec<String> = Vec::new();
-    for fragment in surface.split("name: \"").skip(1)
-    {
-        if let Some(name) = fragment.split('"').next()
-        {
-            Remember(&mut declared, name);
-        }
-    }
-
-    assert!(
-        declared.len() >= 5,
-        "only {declared:?} were found in the surface, so this guard covers almost nothing"
-    );
+    let readme = Readme();
+    let declared = Tools_Declared(&Tool_Surface());
 
     let undocumented: Vec<&String> = declared
         .iter()
@@ -948,6 +1066,24 @@ fn Test_Every_Tool_The_Surface_Declares_Should_Be_One_The_Readme_Names()
         "the surface declares these and the README never names them, so an agent sent to that \
          file for what it can ask cannot find them: {undocumented:?}"
     );
+}
+
+/// The fewest tools a registry could declare and still be a surface worth checking.
+const MINIMUM_TOOLS: usize = 5;
+
+/// Every tool the surface declares, by name.
+///
+/// The floor is here rather than at a call site, for the reason `Verbs_Dispatched` gives: every
+/// tool the surface could lack is a README entry that passes a comparison against nothing.
+fn Tools_Declared(surface: &str) -> Vec<String>
+{
+    let tools = Names_Declared_In(surface);
+
+    assert!(
+        tools.len() >= MINIMUM_TOOLS,
+        "only {tools:?} were found in the surface, so this guard covers almost nothing"
+    );
+    return tools;
 }
 
 // ---- KWB-78: a record's frontmatter says what its body says ----
@@ -1000,11 +1136,10 @@ fn Versions_And_Amendments(records: &BTreeMap<String, String>) -> Vec<(String, u
 #[test]
 fn Test_A_Records_Version_Should_Be_What_Its_Amendments_Make_It()
 {
-    let records = Records();
-    let found = Versions_And_Amendments(&records);
+    let found = Versions_And_Amendments(&Records());
 
     assert!(
-        found.len() >= 10,
+        found.len() >= MINIMUM_VERSIONED_RECORDS,
         "only {} records declared a version, so this guard covers almost nothing",
         found.len()
     );
@@ -1013,7 +1148,21 @@ fn Test_A_Records_Version_Should_Be_What_Its_Amendments_Make_It()
         "no record carries an amendment, so this guard would pass on a rule nothing exercises"
     );
 
-    let disagreeing: Vec<String> = found
+    let disagreeing = Disagreeing_Versions(&found);
+    assert!(
+        disagreeing.is_empty(),
+        "these records' frontmatter disagrees with their own bodies about how many times they \
+         have been revised: {disagreeing:#?}"
+    );
+}
+
+/// The fewest records that could declare a version and still exercise the rule.
+const MINIMUM_VERSIONED_RECORDS: usize = 10;
+
+/// Every record whose frontmatter version is not one plus its amendment count.
+fn Disagreeing_Versions(found: &[(String, usize, usize)]) -> Vec<String>
+{
+    return found
         .iter()
         .filter(|(_, declared, amendments)| return *declared != amendments.saturating_add(1))
         .map(|(identifier, declared, amendments)| {
@@ -1022,18 +1171,17 @@ fn Test_A_Records_Version_Should_Be_What_Its_Amendments_Make_It()
             );
         })
         .collect();
+}
 
-    assert!(
-        disagreeing.is_empty(),
-        "these records' frontmatter disagrees with their own bodies about how many times they \
-         have been revised: {disagreeing:#?}"
-    );
-
-    // The route is part of the rule. A guard nobody is sent to before writing only ever reports
-    // the mistake after it is made, so `AGENTS.md` has to still be pointing here -- and at *this*
-    // file, derived rather than spelled out, so renaming it breaks the pointer loudly.
-    let contract = std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
-        .expect("AGENTS.md should be readable");
+/// The version rule is one an author should meet before writing, which means the route holds.
+///
+/// The route is part of the rule. A guard nobody is sent to before writing only ever reports the
+/// mistake after it is made, so `AGENTS.md` has to still be pointing here — and at *this* file,
+/// derived rather than spelled out, so renaming it breaks the pointer loudly.
+#[test]
+fn Test_The_Operating_Contract_Should_Still_Route_Record_Authors_Here()
+{
+    let contract = Operating_Contract();
     let here = file!().replace('\\', "/");
 
     assert!(
@@ -1160,36 +1308,55 @@ fn Test_No_Test_File_Should_Declare_A_Reader_The_Library_Owns()
     let files = Test_Files();
 
     assert!(
-        readers.len() >= 4,
+        readers.len() >= MINIMUM_READERS,
         "only {} readers were found in the library, so this guard compares against almost \
          nothing",
         readers.len()
     );
     assert!(
-        files.len() >= 4,
+        files.len() >= MINIMUM_TEST_FILES,
         "only {} test files were read, so this guard covers almost nothing",
         files.len()
     );
 
-    let mut duplicated: Vec<String> = Vec::new();
-    for (name, text) in &files
-    {
-        for reader in &readers
-        {
-            let declaration = format!("fn {reader}(");
-            if text.contains(&declaration)
-            {
-                duplicated.push(format!("{name} declares its own {reader}"));
-            }
-        }
-    }
-
+    let duplicated = Duplicated_Readers(&files, &readers);
     assert!(
         duplicated.is_empty(),
         "these are second copies of readers `kwb_contract_tests` already owns -- import them \
          instead, because two bodies behind one name is where a divergence lives unobserved: \
          {duplicated:#?}"
     );
+}
+
+/// The fewest readers the library could export and still be the shared one.
+const MINIMUM_READERS: usize = 4;
+
+/// The fewest test files those readers could be spread across and still show the walk is walking.
+///
+/// Separate from the reader floor because the two failures differ: finding too few readers is a
+/// library that stopped being shared, and finding them all in one file is a walk that never
+/// descended.
+const MINIMUM_TEST_FILES: usize = 4;
+
+/// Every test file that declares a reader the library already owns, naming both.
+fn Duplicated_Readers(
+    files: &BTreeMap<String, String>,
+    readers: &BTreeSet<String>,
+) -> Vec<String>
+{
+    let mut duplicated = Vec::new();
+    for (name, text) in files
+    {
+        for reader in readers
+        {
+            if text.contains(&format!("fn {reader}("))
+            {
+                duplicated.push(format!("{name} declares its own {reader}"));
+            }
+        }
+    }
+
+    return duplicated;
 }
 
 // ---- KWB-81: the band constrains something, and the quarantine holds ----
@@ -1241,35 +1408,55 @@ fn Collect_Crates(directory: &std::path::Path, found: &mut BTreeMap<String, Crat
             Collect_Crates(&path, found);
             continue;
         }
-        if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+        if let Some((name, one)) = Declared_Crate(&path)
         {
-            continue;
+            found.insert(name, one);
         }
-
-        let text = std::fs::read_to_string(&path).expect("a readable manifest");
-        let (Some(name), Some(band)) =
-            (Quoted_After(&text, "name = "), Quoted_After(&text, "band = "))
-        else
-        {
-            continue;
-        };
-
-        let mut depends_on = BTreeSet::new();
-        let mut names_xvpe = false;
-        for dependency in Declared_Dependencies(&text)
-        {
-            if dependency.starts_with("kwb-") && dependency != name
-            {
-                depends_on.insert(dependency.clone());
-            }
-            if Names_An_Xvpe_Crate(&dependency)
-            {
-                names_xvpe = true;
-            }
-        }
-
-        found.insert(name, Crate { band, depends_on, names_xvpe });
     }
+}
+
+/// The crate a manifest declares, when the file is one that declares both a name and a band.
+fn Declared_Crate(path: &std::path::Path) -> Option<(String, Crate)>
+{
+    if path.file_name().is_none_or(|name| return name != "Cargo.toml")
+    {
+        return None;
+    }
+
+    let text = std::fs::read_to_string(path).expect("a readable manifest");
+    let (Some(name), Some(band)) =
+        (Quoted_After(&text, "name = "), Quoted_After(&text, "band = "))
+    else
+    {
+        return None;
+    };
+
+    let (depends_on, names_xvpe) = Depends_On(&text, &name);
+
+    return Some((name, Crate { band, depends_on, names_xvpe }));
+}
+
+/// The workspace crates a manifest depends on, and whether it names an XVPE crate directly.
+///
+/// Two answers from one walk because the walk is the same one: a manifest states each dependency
+/// once, and both questions are about that list.
+fn Depends_On(manifest: &str, name: &str) -> (BTreeSet<String>, bool)
+{
+    let mut depends_on = BTreeSet::new();
+    let mut names_xvpe = false;
+    for dependency in Declared_Dependencies(manifest)
+    {
+        if dependency.starts_with("kwb-") && dependency != name
+        {
+            depends_on.insert(dependency.clone());
+        }
+        if Names_An_Xvpe_Crate(&dependency)
+        {
+            names_xvpe = true;
+        }
+    }
+
+    return (depends_on, names_xvpe);
 }
 
 /// Every dependency a manifest declares, in either spelling TOML allows.
@@ -1290,22 +1477,15 @@ fn Declared_Dependencies(manifest: &str) -> Vec<String>
     for line in manifest.lines()
     {
         let trimmed = line.trim();
-
-        // `[dependencies.name]`, and the dev, build and target-specific tables that end the
-        // same way. The name is the last segment, so the prefix does not need enumerating.
-        if let Some(inner) = trimmed.strip_prefix('[').and_then(|rest| return rest.strip_suffix(']'))
+        let table = trimmed.strip_prefix('[').and_then(|rest| return rest.strip_suffix(']'));
+        if let Some(inner) = table
         {
-            if inner.contains("dependencies.")
+            if let Some(name) = Table_Dependency(inner)
             {
-                if let Some(name) = inner.rsplit('.').next()
-                {
-                    found.push(name.to_owned());
-                }
+                found.push(name);
             }
             continue;
         }
-
-        // `name = { … }` or `name = "1.0"`, which is every ordinary entry.
         if let Some((name, _)) = trimmed.split_once(" = ")
         {
             found.push(name.to_owned());
@@ -1313,6 +1493,21 @@ fn Declared_Dependencies(manifest: &str) -> Vec<String>
     }
 
     return found;
+}
+
+/// The crate name a bracketed table declares, when it is a dependencies table.
+///
+/// `[dependencies.name]`, and the dev, build and target-specific tables that end the same way. The
+/// name is the last segment, so the prefix does not need enumerating — which is why a table this
+/// does not recognise answers `None` rather than a wrong name.
+fn Table_Dependency(table: &str) -> Option<String>
+{
+    if !table.contains("dependencies.")
+    {
+        return None;
+    }
+
+    return table.rsplit('.').next().map(str::to_owned);
 }
 
 /// Whether an identifier names an XVPE crate, rather than merely containing the letters.
@@ -1340,13 +1535,16 @@ fn Names_An_Xvpe_Crate(identifier: &str) -> bool
 /// (`kwb-platform-std` on `kwb-platform`) and a reader on the seam it implements (`kwb-extract`
 /// on `kwb-ingest`). An upward edge is a decision to record, and this test is what makes adding
 /// one require that rather than a commit.
+/// The fewest crates a bands guard could read and still be reading the workspace.
+const MINIMUM_CRATES: usize = 10;
+
 #[test]
 fn Test_No_Crate_Should_Depend_On_A_Higher_Band()
 {
     let crates = Crates();
 
     assert!(
-        crates.len() >= 10,
+        crates.len() >= MINIMUM_CRATES,
         "only {} crates were read, so this guard covers almost nothing",
         crates.len()
     );
@@ -1356,8 +1554,19 @@ fn Test_No_Crate_Should_Depend_On_A_Higher_Band()
          read"
     );
 
-    let mut upward: Vec<String> = Vec::new();
-    for (name, one) in &crates
+    let upward = Upward_Edges(&crates);
+    assert!(
+        upward.is_empty(),
+        "these edges point up the bands, which inverts the order README.md states -- adding one \
+         is a decision to record rather than a dependency to add: {upward:#?}"
+    );
+}
+
+/// The dependency edges that point at a crate in a higher band, as `source -> target`.
+fn Upward_Edges(crates: &BTreeMap<String, Crate>) -> Vec<String>
+{
+    let mut upward = Vec::new();
+    for (name, one) in crates
     {
         for dependency in &one.depends_on
         {
@@ -1376,11 +1585,7 @@ fn Test_No_Crate_Should_Depend_On_A_Higher_Band()
         }
     }
 
-    assert!(
-        upward.is_empty(),
-        "these edges point up the bands, which inverts the order README.md states -- adding one \
-         is a decision to record rather than a dependency to add: {upward:#?}"
-    );
+    return upward;
 }
 
 /// Only `kwb-platform-xvpe` names an XVPE crate.
@@ -1391,30 +1596,16 @@ fn Test_No_Crate_Should_Depend_On_A_Higher_Band()
 /// happens by git reference and commit SHA into a crate that exists to quarantine it. Both were
 /// prose until `KWB-81`. Measured then, the invariant held — and it held while nothing checked
 /// it, which is the condition under which it quietly stops holding.
+/// The crate permitted to name XVPE, which the bands table and `D-007` both name.
+const QUARANTINE_CRATE: &str = "kwb-platform-xvpe";
+
+/// The fewest source files a quarantine guard could read and still be reading the workspace.
+const MINIMUM_SOURCES: usize = 20;
+
 #[test]
 fn Test_Only_The_Quarantine_Crate_Should_Name_Xvpe()
 {
-    let crates = Crates();
-
-    assert!(
-        crates.contains_key("kwb-platform-xvpe"),
-        "the quarantine crate was not found, so this guard does not know what it is excepting"
-    );
-    assert!(
-        crates
-            .get("kwb-platform-xvpe")
-            .is_some_and(|one| return one.names_xvpe),
-        "the quarantine crate's manifest names no XVPE crate, so either adoption has been removed \
-         or this guard has stopped recognising it -- and either way it would now pass on every \
-         crate in the workspace"
-    );
-
-    let breaches: Vec<&String> = crates
-        .iter()
-        .filter(|(name, one)| return one.names_xvpe && *name != "kwb-platform-xvpe")
-        .map(|(name, _)| return name)
-        .collect();
-
+    let breaches = Manifest_Breaches(&Crates());
     assert!(
         breaches.is_empty(),
         "these crates name an XVPE crate directly, so the dependency is no longer quarantined \
@@ -1423,51 +1614,100 @@ fn Test_Only_The_Quarantine_Crate_Should_Name_Xvpe()
 
     // The manifest is only half of it. A crate could reach an XVPE type through a re-export it
     // did not declare, and the rule is about naming XVPE, not about declaring it.
-    let mut using: Vec<String> = Vec::new();
-    let mut sources: Vec<(std::path::PathBuf, String)> = Vec::new();
-    Rust_Sources(&Repository_Root().join("crates"), &mut sources);
-
-    assert!(
-        sources.len() >= 20,
-        "only {} source files were read, so the source half of this guard covers almost nothing",
-        sources.len()
-    );
-
-    for (path, text) in &sources
-    {
-        let display = path.display().to_string().replace('\\', "/");
-        if display.contains("/kwb-platform-xvpe/")
-        {
-            continue;
-        }
-        for line in text.lines()
-        {
-            let Some(position) = line.find("xvpe_")
-            else
-            {
-                continue;
-            };
-            // `kwb_platform_xvpe::` ends in the same letters. What distinguishes a direct use is
-            // that `xvpe_` begins the identifier, so the character before it is not one that can
-            // sit inside a Rust name.
-            let preceding = line
-                .get(..position)
-                .and_then(|before| return before.chars().next_back());
-            if preceding.is_some_and(|character| {
-                return character.is_alphanumeric() || character == '_';
-            })
-            {
-                continue;
-            }
-            using.push(format!("{display} uses {}", line.trim()));
-        }
-    }
-
+    let using = Xvpe_Reachers(&Crate_Sources());
     assert!(
         using.is_empty(),
         "these files reach an XVPE crate without going through the quarantine, so what the bands \
          table calls the one crate permitted to name XVPE is no longer the one: {using:#?}"
     );
+}
+
+/// The crates whose manifests name an XVPE crate, other than the quarantine itself.
+fn Manifest_Breaches(crates: &BTreeMap<String, Crate>) -> Vec<String>
+{
+    Assert_The_Quarantine_Is_Real(crates);
+
+    return crates
+        .iter()
+        .filter(|(name, one)| return one.names_xvpe && name.as_str() != QUARANTINE_CRATE)
+        .map(|(name, _)| return name.clone())
+        .collect();
+}
+
+/// The quarantine crate exists and names an XVPE crate, or this guard excepts nothing.
+///
+/// The floor lives here rather than at the call site: the guard's whole subject is one exception,
+/// so a run that cannot find the crate it excepts would pass on every crate in the workspace.
+fn Assert_The_Quarantine_Is_Real(crates: &BTreeMap<String, Crate>)
+{
+    assert!(
+        crates.contains_key(QUARANTINE_CRATE),
+        "the quarantine crate was not found, so this guard does not know what it is excepting"
+    );
+    assert!(
+        crates
+            .get(QUARANTINE_CRATE)
+            .is_some_and(|one| return one.names_xvpe),
+        "the quarantine crate's manifest names no XVPE crate, so either adoption has been removed \
+         or this guard has stopped recognising it -- and either way it would now pass on every \
+         crate in the workspace"
+    );
+}
+
+/// Every Rust source file under `crates/`, with the floor that makes a clean scan a scan.
+fn Crate_Sources() -> Vec<(std::path::PathBuf, String)>
+{
+    let mut sources = Vec::new();
+    Rust_Sources(&Repository_Root().join("crates"), &mut sources);
+
+    assert!(
+        sources.len() >= MINIMUM_SOURCES,
+        "only {} source files were read, so the source half of this guard covers almost nothing",
+        sources.len()
+    );
+    return sources;
+}
+
+/// The files outside the quarantine that reach an XVPE crate by name.
+fn Xvpe_Reachers(sources: &[(std::path::PathBuf, String)]) -> Vec<String>
+{
+    let quarantine = format!("/{QUARANTINE_CRATE}/");
+    let mut using = Vec::new();
+    for (path, text) in sources
+    {
+        let display = path.display().to_string().replace('\\', "/");
+        if display.contains(&quarantine)
+        {
+            continue;
+        }
+        for line in text.lines()
+        {
+            if Names_Xvpe_Directly(line)
+            {
+                using.push(format!("{display} uses {}", line.trim()));
+            }
+        }
+    }
+
+    return using;
+}
+
+/// Whether a line uses an XVPE crate by name, rather than merely containing the letters.
+///
+/// `kwb_platform_xvpe::` ends in the same letters. What distinguishes a direct use is that `xvpe_`
+/// begins the identifier, so the character before it is not one that can sit inside a Rust name.
+fn Names_Xvpe_Directly(line: &str) -> bool
+{
+    let Some(position) = line.find("xvpe_")
+    else
+    {
+        return false;
+    };
+    let preceding = line.get(..position).and_then(|before| return before.chars().next_back());
+
+    return !preceding.is_some_and(|character| {
+        return character.is_alphanumeric() || character == '_';
+    });
 }
 
 /// Every Rust source file under a directory, as `path -> text`.
@@ -1504,6 +1744,12 @@ fn Rust_Sources(directory: &std::path::Path, into: &mut Vec<(std::path::PathBuf,
 /// reads `accepted` on all fifteen and discriminates nothing — see the record guard above.
 const OBSERVATION_STATUSES: [&str; 2] = ["open", "closed"];
 
+/// How many `-`-separated segments an observation's file name carries.
+const OBSERVATION_NAME_PARTS: usize = 4;
+
+/// How many of those segments are the identifier itself.
+const OBSERVATION_IDENTIFIER_PARTS: usize = 3;
+
 /// Every observation's identifier, mapped to its text.
 fn Observations() -> BTreeMap<String, String>
 {
@@ -1514,26 +1760,30 @@ fn Observations() -> BTreeMap<String, String>
     for entry in entries
     {
         let path = entry.expect("a readable directory entry").path();
-        if !path.extension().is_some_and(|extension| return extension == "md")
+        if let Some((identifier, text)) = Observation_At(&path)
         {
-            continue;
+            found.insert(identifier, text);
         }
-        let name = path
-            .file_name()
-            .and_then(|name| return name.to_str())
-            .unwrap_or_default();
-        // `OD-LEDGER-001-a-record-cannot-...` — the identifier is the first three segments.
-        let parts: Vec<&str> = name.splitn(4, '-').collect();
-        let Some(identifier) = parts.get(..3).map(|segments| return segments.join("-"))
-        else
-        {
-            continue;
-        };
-        let text = std::fs::read_to_string(&path).expect("a readable observation");
-        found.insert(identifier, text);
     }
 
     return found;
+}
+
+/// An observation's identifier and text, when the path is an observation file.
+///
+/// `OD-LEDGER-001-a-record-cannot-...` — the identifier is the first three segments.
+fn Observation_At(path: &std::path::Path) -> Option<(String, String)>
+{
+    if !path.extension().is_some_and(|extension| return extension == "md")
+    {
+        return None;
+    }
+    let name = path.file_name().and_then(|name| return name.to_str())?;
+    let parts: Vec<&str> = name.splitn(OBSERVATION_NAME_PARTS, '-').collect();
+    let identifier = parts.get(..OBSERVATION_IDENTIFIER_PARTS)?.join("-");
+
+    let text = std::fs::read_to_string(path).expect("a readable observation");
+    return Some((identifier, text));
 }
 
 /// The value of a frontmatter field, from the field and not from text near it.
@@ -1569,40 +1819,13 @@ fn Field_Of(document: &str, field: &str) -> Option<String>
 fn Test_Every_Observation_Should_Declare_A_Version_And_A_Meaningful_Status()
 {
     let observations = Observations();
-
     assert!(
-        observations.len() >= 2,
+        observations.len() >= MINIMUM_OBSERVATIONS,
         "only {} observations were read, so this guard covers almost nothing",
         observations.len()
     );
 
-    let mut wrong: Vec<String> = Vec::new();
-    for (identifier, text) in &observations
-    {
-        match Field_Of(text, "version").and_then(|value| return value.parse::<usize>().ok())
-        {
-            Some(version) if version >= 1 =>
-            {}
-            _ =>
-            {
-                wrong.push(format!("{identifier} declares no usable version"));
-            }
-        }
-
-        let Some(status) = Field_Of(text, "status")
-        else
-        {
-            wrong.push(format!("{identifier} declares no status"));
-            continue;
-        };
-        if !OBSERVATION_STATUSES.contains(&status.as_str())
-        {
-            wrong.push(format!(
-                "{identifier} says status {status}, which is not one of {OBSERVATION_STATUSES:?}"
-            ));
-        }
-    }
-
+    let wrong = Unusable_Observations(&observations);
     assert!(
         wrong.is_empty(),
         "an observation's status says whether anything has acted on the finding, and its version \
@@ -1611,8 +1834,13 @@ fn Test_Every_Observation_Should_Declare_A_Version_And_A_Meaningful_Status()
 
     // The route is part of the rule, for the reason the record guard above gives: a convention an
     // author meets only as a failing test is one they have already broken.
-    let contract = std::fs::read_to_string(Repository_Root().join("AGENTS.md"))
-        .expect("AGENTS.md should be readable");
+    Assert_The_Contract_Distinguishes_The_Two_Versions();
+}
+
+/// The operating contract says an observation's version is revised in place, and says so in terms.
+fn Assert_The_Contract_Distinguishes_The_Two_Versions()
+{
+    let contract = Operating_Contract();
 
     assert!(
         contract.contains("counts revisions made **in place**"),
@@ -1620,6 +1848,54 @@ fn Test_Every_Observation_Should_Declare_A_Version_And_A_Meaningful_Status()
          record rule across -- and gets it wrong in the direction no guard catches, because the \
          record guard does not read this directory"
     );
+}
+
+/// The fewest observations a field guard could read and still be reading the directory.
+const MINIMUM_OBSERVATIONS: usize = 2;
+
+/// The observations whose frontmatter carries no usable version or no meaningful status.
+fn Unusable_Observations(observations: &BTreeMap<String, String>) -> Vec<String>
+{
+    let mut wrong = Vec::new();
+    for (identifier, text) in observations
+    {
+        if !Declares_A_Version(text)
+        {
+            wrong.push(format!("{identifier} declares no usable version"));
+        }
+        if let Some(note) = Status_Complaint(identifier, text)
+        {
+            wrong.push(note);
+        }
+    }
+
+    return wrong;
+}
+
+/// Whether a document's `version` field holds a number of at least one.
+fn Declares_A_Version(text: &str) -> bool
+{
+    return Field_Of(text, "version")
+        .and_then(|value| return value.parse::<usize>().ok())
+        .is_some_and(|version| return version >= 1);
+}
+
+/// Why an observation's `status` is unusable, when it is.
+fn Status_Complaint(identifier: &str, text: &str) -> Option<String>
+{
+    let Some(status) = Field_Of(text, "status")
+    else
+    {
+        return Some(format!("{identifier} declares no status"));
+    };
+    if OBSERVATION_STATUSES.contains(&status.as_str())
+    {
+        return None;
+    }
+
+    return Some(format!(
+        "{identifier} says status {status}, which is not one of {OBSERVATION_STATUSES:?}"
+    ));
 }
 
 /// The record's version rule does not reach observations, and that is deliberate.
@@ -1701,35 +1977,54 @@ fn Collapsed(text: &str) -> String
 /// The italic note a record carries under its *Referenced By* heading, when it carries one.
 fn Referenced_By_Note(record: &str) -> Option<String>
 {
-    let after = record.split("## Referenced By").nth(1)?;
+    let after = record.split(REFERENCE_SECTION).nth(1)?;
     let (note, _) = after.trim_start().split_once("*\n")?;
 
     return Some(format!("{note}*"));
 }
+
+/// The fewest records carrying a *Referenced By* section before the guard is reading the corpus.
+const MINIMUM_NOTED_RECORDS: usize = 10;
 
 /// Every record with a *Referenced By* section carries the note, and it is the note.
 #[test]
 fn Test_Every_Referenced_By_Section_Should_Carry_The_One_Note()
 {
     let records = Records();
-
-    let carrying: Vec<&String> = records
-        .iter()
-        .filter(|(_, text)| return text.contains("## Referenced By"))
-        .map(|(identifier, _)| return identifier)
-        .collect();
-
+    let carrying = With_A_Reference_Section(&records);
     assert!(
-        carrying.len() >= 10,
+        carrying.len() >= MINIMUM_NOTED_RECORDS,
         "only {} records have a Referenced By section, so this guard covers almost nothing",
         carrying.len()
     );
 
+    let wrong = Notes_That_Differ(&records, &carrying);
+    assert!(
+        wrong.is_empty(),
+        "these records describe the relation check differently from every other record -- the \
+         note is derived from REFERENCED_BY_NOTE and a record may not carry its own version of \
+         it: {wrong:#?}"
+    );
+}
+
+/// The records that carry a *Referenced By* section.
+fn With_A_Reference_Section(records: &BTreeMap<String, String>) -> Vec<String>
+{
+    return records
+        .iter()
+        .filter(|(_, text)| return text.contains(REFERENCE_SECTION))
+        .map(|(identifier, _)| return identifier.clone())
+        .collect();
+}
+
+/// The carried notes that are not the one note, as `identifier: note`.
+fn Notes_That_Differ(records: &BTreeMap<String, String>, carrying: &[String]) -> Vec<String>
+{
     let expected = Collapsed(REFERENCED_BY_NOTE);
-    let mut wrong: Vec<String> = Vec::new();
-    for identifier in &carrying
+    let mut wrong = Vec::new();
+    for identifier in carrying
     {
-        let text = records.get(*identifier).expect("a record just enumerated");
+        let text = records.get(identifier).expect("a record just enumerated");
         let Some(note) = Referenced_By_Note(text)
         else
         {
@@ -1742,12 +2037,7 @@ fn Test_Every_Referenced_By_Section_Should_Carry_The_One_Note()
         }
     }
 
-    assert!(
-        wrong.is_empty(),
-        "these records describe the relation check differently from every other record -- the \
-         note is derived from REFERENCED_BY_NOTE and a record may not carry its own version of \
-         it: {wrong:#?}"
-    );
+    return wrong;
 }
 
 /// A record with no incoming relation has no *Referenced By* section, and that is the whole rule.
@@ -1768,11 +2058,34 @@ fn Test_A_Record_Has_A_Referenced_By_Section_Exactly_When_Something_Points_At_It
     let records = Records();
     let declared = Declared_Relations(&documents);
 
-    let mut wrong: Vec<String> = Vec::new();
-    for (identifier, text) in &records
+    assert!(
+        declared.len() >= MINIMUM_RELATIONS,
+        "only {} relations were found, so this guard compares against almost nothing",
+        declared.len()
+    );
+
+    let wrong = Misplaced_Sections(&records, &declared);
+    assert!(
+        wrong.is_empty(),
+        "a Referenced By section means something points here, and its absence means nothing \
+         does -- these say otherwise: {wrong:#?}"
+    );
+}
+
+/// The fewest declared relations before the guard is comparing against something.
+const MINIMUM_RELATIONS: usize = 10;
+
+/// The records whose *Referenced By* section disagrees with whether anything points at them.
+fn Misplaced_Sections(
+    records: &BTreeMap<String, String>,
+    declared: &[(String, String)],
+) -> Vec<String>
+{
+    let mut wrong = Vec::new();
+    for (identifier, text) in records
     {
         let pointed_at = declared.iter().any(|(_, target)| return target == identifier);
-        let has_section = text.contains("## Referenced By");
+        let has_section = text.contains(REFERENCE_SECTION);
 
         if pointed_at && !has_section
         {
@@ -1786,16 +2099,7 @@ fn Test_A_Record_Has_A_Referenced_By_Section_Exactly_When_Something_Points_At_It
         }
     }
 
-    assert!(
-        declared.len() >= 10,
-        "only {} relations were found, so this guard compares against almost nothing",
-        declared.len()
-    );
-    assert!(
-        wrong.is_empty(),
-        "a Referenced By section means something points here, and its absence means nothing \
-         does -- these say otherwise: {wrong:#?}"
-    );
+    return wrong;
 }
 
 // ---- KWB-96: the XVPE edge adopts one commit, not several ----
@@ -1812,35 +2116,48 @@ fn Xvpe_Pinned_Revisions() -> Vec<(String, String)>
     let manifest = std::fs::read_to_string(Repository_Root().join(XVPE_MANIFEST))
         .expect("the XVPE quarantine manifest should be readable");
 
+    return Pinned_From(&manifest);
+}
+
+/// Every `[dependencies.x]` table's pinned revision, in the order the manifest declares them.
+fn Pinned_From(manifest: &str) -> Vec<(String, String)>
+{
     let mut pinned = Vec::new();
     let mut dependency = String::new();
     for line in manifest.lines()
     {
-        let trimmed = line.trim();
-        if let Some(rest) = trimmed.strip_prefix("[dependencies.")
+        if let Some(name) = Dependency_Table_On(line)
         {
-            if let Some(name) = rest.strip_suffix(']')
+            name.clone_into(&mut dependency);
+            continue;
+        }
+        if let Some(rev) = Pinned_Revision_On(line)
+        {
+            if !dependency.is_empty()
             {
-                name.clone_into(&mut dependency);
+                pinned.push((dependency.clone(), rev));
             }
-            continue;
-        }
-        if !trimmed.starts_with("rev")
-        {
-            continue;
-        }
-        let Some((_, value)) = trimmed.split_once('=')
-        else
-        {
-            continue;
-        };
-        if !dependency.is_empty()
-        {
-            pinned.push((dependency.clone(), value.trim().trim_matches('"').to_owned()));
         }
     }
 
     return pinned;
+}
+
+/// The dependency a `[dependencies.x]` line opens, when the line opens one.
+fn Dependency_Table_On(line: &str) -> Option<&str>
+{
+    return line
+        .trim()
+        .strip_prefix("[dependencies.")
+        .and_then(|rest| return rest.strip_suffix(']'));
+}
+
+/// The revision a `rev = "…"` line pins, when the line pins one.
+fn Pinned_Revision_On(line: &str) -> Option<String>
+{
+    let (_, value) = line.trim().strip_prefix("rev")?.split_once('=')?;
+
+    return Some(value.trim().trim_matches('"').to_owned());
 }
 
 /// The XVPE edge names one commit, so a partial bump fails instead of adopting two.
@@ -1858,13 +2175,16 @@ fn Xvpe_Pinned_Revisions() -> Vec<(String, String)>
 /// *Which* commit is pinned. That is a decision, `D-007` is where it is recorded, and a test
 /// demanding a particular SHA would fail on every deliberate bump -- which is how a guard gets
 /// switched off.
+/// The fewest pins the manifest must carry before one commit can be said to be the rule.
+const MINIMUM_XVPE_PINS: usize = 4;
+
 #[test]
 fn Test_Every_Xvpe_Dependency_Should_Pin_The_Same_Commit()
 {
     let pinned = Xvpe_Pinned_Revisions();
 
     assert!(
-        pinned.len() >= 4,
+        pinned.len() >= MINIMUM_XVPE_PINS,
         "only {} XVPE pins were read from {XVPE_MANIFEST}, so this guard is comparing almost \
          nothing and the manifest's shape has moved under it: {pinned:#?}",
         pinned.len()
@@ -1912,22 +2232,30 @@ fn Printed_Label(line: &str) -> Option<String>
 /// way the README did. The run is anchored on `source` and walks forward while the lines keep
 /// printing a label: that is how the report is written, one `println!` per field, consecutive and
 /// all unconditional.
+/// The field the admit report opens with, which is where the run of fields starts.
+const ADMIT_FIRST_LABEL: &str = "source";
+
 fn Admit_Report_Labels() -> Vec<String>
 {
     let printer = std::fs::read_to_string(Repository_Root().join(ADMIT_PRINTER))
         .expect("the admit report's printer should be readable");
 
-    let lines: Vec<&str> = printer.lines().collect();
-    let Some(start) = lines
-        .iter()
-        .position(|line| return Printed_Label(line).as_deref() == Some("source"))
+    let Some(start) = printer
+        .lines()
+        .position(|line| return Printed_Label(line).as_deref() == Some(ADMIT_FIRST_LABEL))
     else
     {
         return Vec::new();
     };
 
+    return Labels_From(printer.lines().skip(start));
+}
+
+/// The consecutive labels a run of `println!` lines writes, stopping at the first other line.
+fn Labels_From<'a>(lines: impl Iterator<Item = &'a str>) -> Vec<String>
+{
     let mut labels = Vec::new();
-    for line in lines.iter().skip(start)
+    for line in lines
     {
         let Some(label) = Printed_Label(line)
         else
@@ -1940,23 +2268,25 @@ fn Admit_Report_Labels() -> Vec<String>
     return labels;
 }
 
+/// The command a `kwb admit` transcript in `README.md` is introduced by.
+const ADMIT_COMMAND: &str = "$ kwb admit";
+
 /// The field labels each `kwb admit` transcript in `README.md` shows, one entry per block.
 fn Readme_Admit_Block_Labels() -> Vec<Vec<String>>
 {
-    let readme = std::fs::read_to_string(Repository_Root().join("README.md"))
-        .expect("README.md should be readable");
+    return Transcript_Labels(&Readme(), ADMIT_COMMAND);
+}
 
+/// The field labels of every transcript a document opens with `command`, one entry per block.
+fn Transcript_Labels(document: &str, command: &str) -> Vec<Vec<String>>
+{
     let mut blocks = Vec::new();
     let mut collecting: Option<Vec<String>> = None;
-    for line in readme.lines()
+    for line in document.lines()
     {
-        if line.starts_with("$ kwb admit")
+        if line.starts_with(command)
         {
-            if let Some(block) = collecting.take()
-            {
-                blocks.push(block);
-            }
-            collecting = Some(Vec::new());
+            Push_Block(&mut blocks, collecting.replace(Vec::new()));
             continue;
         }
         let Some(block) = collecting.as_mut()
@@ -1964,22 +2294,47 @@ fn Readme_Admit_Block_Labels() -> Vec<Vec<String>>
         {
             continue;
         };
-        if line.trim().is_empty() || line.starts_with("$ ") || line.starts_with("```")
+        if !Note_Label(block, line)
         {
-            blocks.push(collecting.take().unwrap_or_default());
-            continue;
-        }
-        if let Some(label) = line.split_whitespace().next()
-        {
-            block.push(label.to_owned());
+            Push_Block(&mut blocks, collecting.take());
         }
     }
-    if let Some(block) = collecting.take()
+    Push_Block(&mut blocks, collecting.take());
+
+    return blocks;
+}
+
+/// Collect a transcript that has just ended, if there is one to collect.
+fn Push_Block(blocks: &mut Vec<Vec<String>>, collecting: Option<Vec<String>>)
+{
+    if let Some(block) = collecting
     {
         blocks.push(block);
     }
+}
 
-    return blocks;
+/// Add a transcript line's field label, or report that the line ends the transcript.
+fn Note_Label(block: &mut Vec<String>, line: &str) -> bool
+{
+    let Some(label) = Field_Label_On(line)
+    else
+    {
+        return false;
+    };
+    block.push(label);
+
+    return true;
+}
+
+/// A transcript line's field label, or `None` when the line ends the transcript.
+fn Field_Label_On(line: &str) -> Option<String>
+{
+    if line.trim().is_empty() || line.starts_with("$ ") || line.starts_with("```")
+    {
+        return None;
+    }
+
+    return line.split_whitespace().next().map(str::to_owned);
 }
 
 /// Every `kwb admit` transcript in the README shows every field the binary prints, in order.
@@ -2002,12 +2357,18 @@ fn Readme_Admit_Block_Labels() -> Vec<Vec<String>>
 ///
 /// The values, and in particular the content addresses. Those are hashes of files the README does
 /// not ship, so a reader cannot reproduce them and this guard must not imply otherwise.
+/// The fewest report fields the guard could read and still be comparing against the report.
+const MINIMUM_REPORT_FIELDS: usize = 8;
+
+/// The fewest `kwb admit` transcripts the README could show and still be showing the section.
+const MINIMUM_ADMIT_BLOCKS: usize = 2;
+
 #[test]
 fn Test_Every_Readme_Admit_Transcript_Should_Show_Every_Field_The_Binary_Prints()
 {
     let labels = Admit_Report_Labels();
     assert!(
-        labels.len() >= 8,
+        labels.len() >= MINIMUM_REPORT_FIELDS,
         "only {} report fields were read from {ADMIT_PRINTER}, so this guard is comparing against \
          almost nothing and the printer has moved under it: {labels:?}",
         labels.len()
@@ -2015,24 +2376,32 @@ fn Test_Every_Readme_Admit_Transcript_Should_Show_Every_Field_The_Binary_Prints(
 
     let blocks = Readme_Admit_Block_Labels();
     assert!(
-        blocks.len() >= 2,
+        blocks.len() >= MINIMUM_ADMIT_BLOCKS,
         "only {} `kwb admit` transcripts were found in README.md, so this guard read almost \
          nothing of the section it exists to hold",
         blocks.len()
     );
 
-    let wrong: Vec<String> = blocks
-        .iter()
-        .enumerate()
-        .filter(|(_, block)| return *block != &labels)
-        .map(|(index, block)| {
-            return format!("block {} shows {block:?}, the binary prints {labels:?}", index + 1);
-        })
-        .collect();
-
+    let wrong = Blocks_Not_Showing(&blocks, &labels);
     assert!(
         wrong.is_empty(),
         "a README transcript is what a reader compares their own output against, and these do not \
          show what the binary prints: {wrong:#?}"
     );
+}
+
+/// The transcripts that do not show every field, as `block N shows …, the binary prints …`.
+fn Blocks_Not_Showing(blocks: &[Vec<String>], labels: &[String]) -> Vec<String>
+{
+    return blocks
+        .iter()
+        .enumerate()
+        .filter(|(_, block)| return *block != labels)
+        .map(|(index, block)| {
+            return format!(
+                "block {} shows {block:?}, the binary prints {labels:?}",
+                index.saturating_add(1)
+            );
+        })
+        .collect();
 }
