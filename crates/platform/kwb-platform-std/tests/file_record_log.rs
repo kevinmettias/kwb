@@ -18,6 +18,19 @@ fn Scratch_Root(name: &str) -> std::path::PathBuf
 }
 
 #[test]
+fn Test_At_Should_Create_The_Log_File_And_The_Directory_Above_It()
+{
+    let path = Scratch_Root("creates-its-file");
+    let above = path.parent().expect("the scratch path names a file inside a directory");
+    assert!(!above.exists(), "the scratch directory survived the attempt to clear it");
+
+    let log = FileRecordLog::At(&path).expect("At creates the log file and its directory");
+
+    assert!(path.is_file(), "At returned a log over a file it never created");
+    assert_eq!(log.Records().expect("At created the log file, so there is one to read"), Vec::<String>::new());
+}
+
+#[test]
 fn Test_Records_Should_Read_Back_Oldest_First()
 {
     let log = FileRecordLog::At(Scratch_Root("order")).expect("At creates the log file and its directory");

@@ -22,6 +22,19 @@ fn Scratch_Root(name: &str) -> PathBuf
 }
 
 #[test]
+fn Test_Under_Should_Create_The_Directory_It_Is_Given()
+{
+    let root = Scratch_Root("creates-its-root");
+    assert!(!root.exists(), "the scratch directory survived the attempt to clear it");
+
+    let store = DirectoryContentStore::Under(&root).expect("Under creates the directory it is given");
+
+    assert!(root.is_dir(), "Under returned a store over a directory it never created");
+    store.Put("abcd", b"one").expect("Under created the root, so the store can stage the bytes");
+    assert_eq!(store.Get("abcd").expect("the bytes were stored at this address above"), b"one".to_vec());
+}
+
+#[test]
 fn Test_Stored_Bytes_Should_Read_Back_Unchanged()
 {
     let root = Scratch_Root("round-trip");

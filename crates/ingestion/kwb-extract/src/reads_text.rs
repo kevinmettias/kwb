@@ -464,3 +464,93 @@ fn Malformed_Answer(what: &str) -> ExtractionError
         cause: format!("the answer is not what was asked for: {what}"),
     };
 }
+
+/// The assertions [`crate::tests`] cannot make, because they are about the rungs below it.
+///
+/// `crate::tests` tests the reader end to end and reaches `Request_For` only through
+/// `Recording_Answering` — a fixture, not a test, so nothing there *names* it. `Over` and
+/// `Propositions_Schema` are not named there at all. This module is the companion unit for this
+/// file, which is where the rule reads for them, and it is deliberately small: the behaviour
+/// worth asserting is already asserted next door.
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+    use kwb_platform_xvpe::inference::ReplayInference;
+
+    /// The model these tests ask through.
+    fn Model() -> ModelIdentifier
+    {
+        return ModelIdentifier::New("a-recorded-reader".to_owned());
+    }
+
+    #[test]
+    fn Test_Over_Should_Carry_The_Reach_It_Was_Given_Into_The_Reader()
+    {
+        // `D-010` puts scope on the assertion, so the scope is the reader's to carry rather than
+        // a default filled in downstream. If `Over` dropped it, every reading this reader made
+        // would be asserted at a scope nobody chose and nothing would say so.
+        let scope = Scope::Named("physical theory").expect("a named scope");
+        let reader = ReadsText::Over(
+            ReplayInference::From_Recordings(Vec::new()),
+            Model(),
+            scope.clone(),
+        );
+
+        assert_eq!(reader.Scope(), scope, "the scope `Over` was given is not the one it asserts at");
+    }
+
+    #[test]
+    fn Test_Request_For_Should_Ask_About_One_Passage_Under_One_Model()
+    {
+        let model = Model();
+        let request = Request_For(&model, "Entropy does not decrease in an isolated system.");
+
+        assert_eq!(request.Model().As_Str(), "a-recorded-reader");
+        assert_eq!(request.Content().len(), 1, "a passage travels as exactly one content block");
+        assert_eq!(request.Maximum_Output_Tokens(), ANSWER_TOKEN_BUDGET);
+        assert!(
+            request.Schema().is_some(),
+            "the request carries no schema, so nothing constrains the answer it comes back with"
+        );
+    }
+
+    #[test]
+    fn Test_Propositions_Schema_Should_Require_A_Concept_And_A_Claim_From_Each_Proposition()
+    {
+        let schema = Propositions_Schema();
+
+        assert_eq!(schema.Name(), "propositions");
+        let SchemaNode::Sequence {
+            items,
+            maximum_length,
+            ..
+        } = schema.Root()
+        else
+        {
+            panic!("the schema's root is not a sequence of propositions");
+        };
+        assert_eq!(
+            *maximum_length,
+            Some(MAXIMUM_PROPOSITIONS),
+            "the ceiling belongs in the request, so an answer that overflows is refused rather \
+             than trimmed here"
+        );
+
+        let SchemaNode::Record { fields, .. } = items.as_ref()
+        else
+        {
+            panic!("a proposition is not a record of fields");
+        };
+        let required: Vec<&str> = fields
+            .iter()
+            .filter(|field| return field.Is_Required())
+            .map(|field| return field.Name())
+            .collect();
+        assert_eq!(
+            required,
+            ["concept", "claim"],
+            "an answer could leave a concept or a claim out, so a proposition would arrive half-read"
+        );
+    }
+}
