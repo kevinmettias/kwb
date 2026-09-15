@@ -251,8 +251,8 @@ fn Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
     .Record(None);
 
     assert_eq!(
-        Fields(&record),
-        Fields(&Recorded("entropy")),
+        Fields_Of_Record(&record),
+        Fields_Of_Record(&Recorded_Concept("entropy")),
         "a value carried a separator into the record, so a reader would split it into the \
          wrong number of fields: {record:?}"
     );
@@ -312,7 +312,7 @@ fn Test_An_Empty_Sequence_Should_Replay_To_An_Empty_Graph()
 }
 
 /// A concept record, for a name.
-fn Recorded(name: &str) -> String
+fn Recorded_Concept(name: &str) -> String
 {
     return Publication::Concept {
         concept: Concept::Named(name),
@@ -322,7 +322,7 @@ fn Recorded(name: &str) -> String
 }
 
 /// How many fields a record splits into.
-fn Fields(record: &str) -> usize
+fn Fields_Of_Record(record: &str) -> usize
 {
     return record.split(SEPARATOR).count();
 }
@@ -371,8 +371,8 @@ fn Assert_Records_Differ_Only_In_The_Scope_Field(stated: &str, unstated: &str)
          so D-010's distinction is gone from the only place it survives a process"
     );
     assert_eq!(
-        Fields(stated),
-        Fields(unstated),
+        Fields_Of_Record(stated),
+        Fields_Of_Record(unstated),
         "the two differ in field count rather than in the scope field, which would mean \
          replay reads one of them as a different kind of record"
     );

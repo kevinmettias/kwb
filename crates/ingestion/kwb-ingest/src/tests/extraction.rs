@@ -22,7 +22,7 @@ fn Reading_Stated_By(
 ) -> ProposedReading
 {
     let source = Document::Of(b"a source".to_vec()).Identity();
-    let statements = vec![Offered("entropy", statement)];
+    let statements = vec![An_Extraction("entropy", statement)];
 
     return Stated::Of(
         statements,
@@ -65,7 +65,7 @@ fn Test_A_Reader_Who_Stated_Nothing_Should_Not_Become_A_Reader()
 
     assert!(
         Stated::Of(
-            vec![Offered("entropy", "It is non-decreasing.")],
+            vec![An_Extraction("entropy", "It is non-decreasing.")],
             SourceLocation::Named("throughout"),
             A_Reading("a person"),
             Unstated(),
@@ -137,7 +137,7 @@ fn Test_A_Reading_Should_Carry_The_Address_Of_What_Was_Read()
     // not, which a filename cannot express.
     let source = Document::Of(b"a source".to_vec()).Identity();
     let reading = Stated::Of(
-        vec![Offered("entropy", "It is non-decreasing.")],
+        vec![An_Extraction("entropy", "It is non-decreasing.")],
         SourceLocation::Named("chapter two"),
         A_Reading("a person"),
         Scope::Named("physical theory").expect("a named scope"),
@@ -176,7 +176,7 @@ impl ExtractionStrategy for TextOnly
         // its subject is that a reader which *can* read proposes, and one which cannot refuses.
         let proposed = core::str::from_utf8(content).map_or_else(
             |_| return Vec::new(),
-            |text| return vec![Offered("a concept", text)],
+            |text| return vec![An_Extraction("a concept", text)],
         );
 
         return Ok(vec![ProposedReading::Of(
@@ -258,7 +258,7 @@ impl ExtractionStrategy for Confused
         return Ok(vec![ProposedReading::Of(
             Document::Of(b"some other document".to_vec()).Identity(),
             SourceLocation::Named("throughout"),
-            vec![Offered("entropy", "It is non-decreasing.")],
+            vec![An_Extraction("entropy", "It is non-decreasing.")],
             A_Reading("a reader with the wrong book open"),
         )]);
     }
@@ -304,7 +304,7 @@ fn Test_A_Reading_About_The_Right_Document_Should_Still_Be_Admitted()
 
     let report = Admit_Source(
         b"a source".to_vec(),
-        Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Unstated())),
+        Some(&Stated_By_A_Person(&[An_Extraction("entropy", "It is non-decreasing.")], &Unstated())),
         ReadingKind::Text,
         &mut store,
     )

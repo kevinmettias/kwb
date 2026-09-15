@@ -135,7 +135,7 @@ fn Verbs_Declared_In(table: &str) -> Vec<String>
 /// by accident. `KWB-55` is the item where a check that looked for an identifier anywhere in a
 /// document let a stale section through; the same weakness, rebuilt by the session that removed
 /// it, and caught by mutating the real file rather than by review.
-fn Offered(help: &str) -> Vec<String>
+fn Offered_In_Help(help: &str) -> Vec<String>
 {
     let mut offered: Vec<String> = Vec::new();
     for line in help.lines()
@@ -148,7 +148,7 @@ fn Offered(help: &str) -> Vec<String>
         };
         if let Some(verb) = rest.split_whitespace().next()
         {
-            if !verb.starts_with('-') && !Already_Offered(&offered, verb)
+            if !verb.starts_with('-') && !Is_Already_Offered(&offered, verb)
             {
                 offered.push(verb.to_owned());
             }
@@ -160,7 +160,7 @@ fn Offered(help: &str) -> Vec<String>
 
 /// Whether a usage line for this verb has already been read, so one verb is listed once however
 /// many times the help spells its usage out.
-fn Already_Offered(offered: &[String], verb: &str) -> bool
+fn Is_Already_Offered(offered: &[String], verb: &str) -> bool
 {
     return offered.iter().any(|held| return held == verb);
 }
@@ -170,7 +170,7 @@ fn Test_Every_Verb_The_Binary_Dispatches_Should_Appear_In_Its_Own_Help()
 {
     let help = Help();
     let dispatched = Dispatched();
-    let offered = Offered(&help);
+    let offered = Offered_In_Help(&help);
 
     Assert_The_Dispatch_Declares_Enough_Verbs(&dispatched);
     Assert_The_Help_Offers_A_Usage_Line(&offered);
@@ -220,7 +220,7 @@ fn Test_The_Help_Should_Not_Offer_A_Verb_The_Binary_Cannot_Answer()
     // README and nothing caught for the help.
     let help = Help();
     let dispatched = Dispatched();
-    let offered = Offered(&help);
+    let offered = Offered_In_Help(&help);
 
     assert!(
         !offered.is_empty(),

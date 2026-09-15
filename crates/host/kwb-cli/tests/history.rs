@@ -40,14 +40,14 @@ fn Store_With_Log(test: &str, log: &str) -> PathBuf
 }
 
 /// The directory inside a store that sources are written to, created if it is not already there.
-fn Sources(store: &Path) -> PathBuf
+fn Sources_In_Store(store: &Path) -> PathBuf
 {
     let directory = store.join("sources");
     std::fs::create_dir_all(&directory).expect("a writable temporary directory");
     return directory;
 }
 
-fn Run(arguments: &[&str]) -> Output
+fn Run_From_String_Arguments(arguments: &[&str]) -> Output
 {
     return Command::new(KWB)
         .args(arguments)
@@ -55,13 +55,13 @@ fn Run(arguments: &[&str]) -> Output
         .expect("the binary this test was built alongside should run");
 }
 
-fn Stdout(output: &Output) -> String
+fn Stdout_Text(output: &Output) -> String
 {
     return String::from_utf8_lossy(&output.stdout).into_owned();
 }
 
 /// The value of a reported line, by its label.
-fn Reported(output: &str, label: &str) -> String
+fn Reported_Line_By_Label(output: &str, label: &str) -> String
 {
     return output
         .lines()
@@ -74,9 +74,9 @@ fn Reported(output: &str, label: &str) -> String
 /// How many publications a store's log holds, as `history` counts them.
 fn Published_Count(store: &Path) -> usize
 {
-    let output = Stdout(&Run(&["history", "--store", &store.display().to_string()]));
+    let output = Stdout_Text(&Run_From_String_Arguments(&["history", "--store", &store.display().to_string()]));
 
-    return Reported(&output, "through")
+    return Reported_Line_By_Label(&output, "through")
         .split_whitespace()
         .next()
         .and_then(|count| return count.parse().ok())
@@ -119,11 +119,11 @@ fn Second_Source() -> Admission<'static>
 }
 
 /// Admit a source saying one thing about one concept.
-fn Admit(store: &Path, sources: &Path, admission: &Admission<'_>)
+fn Admit_Via_The_Binary(store: &Path, sources: &Path, admission: &Admission<'_>)
 {
     let source = sources.join(admission.name);
     std::fs::write(&source, admission.contents).expect("a writable temporary source");
-    let output = Run(&[
+    let output = Run_From_String_Arguments(&[
         "admit",
         &source.display().to_string(),
         "--store",
@@ -132,7 +132,7 @@ fn Admit(store: &Path, sources: &Path, admission: &Admission<'_>)
         admission.concept,
         admission.claim,
     ]);
-    assert!(output.status.success(), "admit failed: {}", Stdout(&output));
+    assert!(output.status.success(), "admit failed: {}", Stdout_Text(&output));
 }
 
 /// Ask `history` for the graph as it stood at one earlier point, after a second source lands.
@@ -143,15 +143,15 @@ fn Admit(store: &Path, sources: &Path, admission: &Admission<'_>)
 /// the graph at `boundary` is handed back for the caller to assert against.
 fn Earlier_Graph(store: &Path, sources: &Path, boundary: &[&str]) -> String
 {
-    Admit(store, sources, &Second_Source());
+    Admit_Via_The_Binary(store, sources, &Second_Source());
 
-    let now = Stdout(&Run(&["history", "--store", &store.display().to_string()]));
-    assert_eq!(Reported(&now, "concepts"), "2", "the second admission did not land: {now}");
+    let now = Stdout_Text(&Run_From_String_Arguments(&["history", "--store", &store.display().to_string()]));
+    assert_eq!(Reported_Line_By_Label(&now, "concepts"), "2", "the second admission did not land: {now}");
 
     let path = store.display().to_string();
     let mut arguments = vec!["history", "--store", path.as_str()];
     arguments.extend_from_slice(boundary);
-    return Stdout(&Run(&arguments));
+    return Stdout_Text(&Run_From_String_Arguments(&arguments));
 }
 
 #[test]
@@ -163,14 +163,14 @@ fn Test_A_Prefix_Should_Give_The_Graph_Before_A_Later_Publication()
     // were ignored and the whole log replayed, both would report two concepts and this test
     // would fail rather than pass for the wrong reason.
     let store = Store_For("prefix");
-    let sources = Sources(&store);
-    Admit(&store, &sources, &First_Source("the first source"));
+    let sources = Sources_In_Store(&store);
+    Admit_Via_The_Binary(&store, &sources, &First_Source("the first source"));
 
     let published = Published_Count(&store);
     let earlier = Earlier_Graph(&store, &sources, &["--through", &published.to_string()]);
 
     assert_eq!(
-        Reported(&earlier, "concepts"),
+        Reported_Line_By_Label(&earlier, "concepts"),
         "1",
         "replaying a prefix gave the whole log, so the graph as of a point is the graph as of \
          now and the capability is not there: {earlier}"
@@ -184,10 +184,10 @@ fn Test_Asking_For_More_History_Than_Exists_Should_Be_Refused()
     // the corpus is older than it is, and could not tell that from a corpus that really is that
     // old -- the shape `Coverage` exists to keep apart, one layer up.
     let store = Store_For("overrun");
-    let sources = Sources(&store);
-    Admit(&store, &sources, &First_Source("the only source"));
+    let sources = Sources_In_Store(&store);
+    Admit_Via_The_Binary(&store, &sources, &First_Source("the only source"));
 
-    let output = Run(&[
+    let output = Run_From_String_Arguments(&[
         "history",
         "--store",
         &store.display().to_string(),
@@ -195,7 +195,7 @@ fn Test_Asking_For_More_History_Than_Exists_Should_Be_Refused()
         "9999",
     ]);
 
-    assert!(!output.status.success(), "an impossible count was accepted: {}", Stdout(&output));
+    assert!(!output.status.success(), "an impossible count was accepted: {}", Stdout_Text(&output));
     let complaint = String::from_utf8_lossy(&output.stderr).into_owned();
     assert!(
         complaint.contains("9999"),
@@ -209,7 +209,7 @@ fn Test_History_Without_A_Store_Should_Say_Why_Rather_Than_Report_An_Empty_Graph
     // Without `--store` there is no log, and a graph replayed from no log is empty. Reporting
     // zero concepts would be true of the value and false about the corpus, which is the
     // distinction this repository spends most of its types on.
-    let output = Run(&["history"]);
+    let output = Run_From_String_Arguments(&["history"]);
 
     assert!(!output.status.success(), "a history with no log reported success");
     let complaint = String::from_utf8_lossy(&output.stderr).into_owned();
@@ -236,12 +236,12 @@ fn Test_A_Log_Written_Before_Timestamps_Should_Still_Replay()
     );
     let store = Store_With_Log("untimed", untimed);
 
-    let output = Run(&["history", "--store", &store.display().to_string()]);
+    let output = Run_From_String_Arguments(&["history", "--store", &store.display().to_string()]);
 
     assert!(output.status.success(), "a log from before timestamps stopped replaying: {}",
         String::from_utf8_lossy(&output.stderr));
-    assert_eq!(Reported(&Stdout(&output), "concepts"), "1");
-    assert_eq!(Reported(&Stdout(&output), "claims"), "1");
+    assert_eq!(Reported_Line_By_Label(&Stdout_Text(&output), "concepts"), "1");
+    assert_eq!(Reported_Line_By_Label(&Stdout_Text(&output), "claims"), "1");
 }
 
 #[test]
@@ -252,16 +252,16 @@ fn Test_As_Of_Should_Answer_A_Time_And_Not_A_Position()
     // between them must give the earlier graph -- and would give the whole log if the time were
     // ignored, which is what the assertion catches.
     let store = Store_For("as-of");
-    let sources = Sources(&store);
+    let sources = Sources_In_Store(&store);
 
-    Admit(&store, &sources, &First_Source("the first source"));
+    Admit_Via_The_Binary(&store, &sources, &First_Source("the first source"));
     let between = Latest_Time(&store).expect("the first admission carries a time");
 
     std::thread::sleep(APART);
     let earlier = Earlier_Graph(&store, &sources, &["--as-of", &between.to_string()]);
 
     assert_eq!(
-        Reported(&earlier, "concepts"),
+        Reported_Line_By_Label(&earlier, "concepts"),
         "1",
         "as-of gave the whole log, so a time is being ignored and the instant D-012 defers to \
          is still unanswerable: {earlier}"
@@ -276,7 +276,7 @@ fn Test_As_Of_Should_Be_Refused_On_A_Log_That_Carries_No_Time()
     let untimed = "concept\u{1F}asserted\u{1F}\u{1F}\u{1F}entropy\n";
     let store = Store_With_Log("as-of-untimed", untimed);
 
-    let output = Run(&[
+    let output = Run_From_String_Arguments(&[
         "history",
         "--store",
         &store.display().to_string(),

@@ -7,7 +7,7 @@ use kwb_platform::{ContentStoreStrategy, StorageError};
 use kwb_platform_std::DirectoryContentStore;
 
 /// A directory nothing else is using, named for the test that asked for it.
-fn Scratch(name: &str) -> PathBuf
+fn Scratch_Root(name: &str) -> PathBuf
 {
     let root = std::env::temp_dir().join(format!("kwb-store-test-{name}"));
     if let Err(error) = fs::remove_dir_all(&root)
@@ -24,7 +24,7 @@ fn Scratch(name: &str) -> PathBuf
 #[test]
 fn Test_Stored_Bytes_Should_Read_Back_Unchanged()
 {
-    let root = Scratch("round-trip");
+    let root = Scratch_Root("round-trip");
     let store = DirectoryContentStore::Under(&root).expect("Under creates the directory it is given");
     let content = b"fn main() {}\n\n  indented\t\x00\xFF".to_vec();
 
@@ -37,7 +37,7 @@ fn Test_Stored_Bytes_Should_Read_Back_Unchanged()
 #[test]
 fn Test_An_Absent_Address_Should_Be_Refused_Rather_Than_Empty()
 {
-    let root = Scratch("absent");
+    let root = Scratch_Root("absent");
     let store = DirectoryContentStore::Under(&root).expect("Under creates the directory it is given");
 
     let refusal = store.Get("nothing").expect_err("must refuse");
@@ -49,7 +49,7 @@ fn Test_An_Absent_Address_Should_Be_Refused_Rather_Than_Empty()
 #[test]
 fn Test_Storing_One_Address_Twice_Should_Be_Idempotent()
 {
-    let root = Scratch("idempotent");
+    let root = Scratch_Root("idempotent");
     let store = DirectoryContentStore::Under(&root).expect("Under creates the directory it is given");
 
     store.Put("abcd", b"one").expect("the root exists, so the store can stage the bytes");
@@ -62,7 +62,7 @@ fn Test_Storing_One_Address_Twice_Should_Be_Idempotent()
 #[test]
 fn Test_A_Completed_Write_Should_Leave_No_Staged_File_Behind()
 {
-    let root = Scratch("no-staging-left");
+    let root = Scratch_Root("no-staging-left");
     let store = DirectoryContentStore::Under(&root).expect("Under creates the directory it is given");
 
     store.Put("abcd", b"one").expect("the root exists, so the store can stage the bytes");
@@ -87,7 +87,7 @@ fn Test_A_Completed_Write_Should_Leave_No_Staged_File_Behind()
 #[test]
 fn Test_A_Write_Should_Be_Staged_And_Renamed_Rather_Than_Written_In_Place()
 {
-    let root = Scratch("staged");
+    let root = Scratch_Root("staged");
     let store = DirectoryContentStore::Under(&root).expect("Under creates the directory it is given");
     // A directory at the destination address: the rename cannot complete.
     fs::create_dir_all(root.join("abcd")).expect("creates the obstruction");

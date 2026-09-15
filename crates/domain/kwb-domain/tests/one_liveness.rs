@@ -4,7 +4,7 @@
 
 use kwb_domain::{Concept, KnowledgeGraph, Standing, Versioned};
 
-fn Asserted(name: &str) -> Versioned<Concept>
+fn Asserted_Concept(name: &str) -> Versioned<Concept>
 {
     return Versioned::Asserted(Concept::Named(name));
 }
@@ -129,8 +129,8 @@ fn Liveness_Definitions(source: &str) -> Vec<String>
 fn Test_A_Superseded_Concept_Should_Be_Absent_From_Current_And_Present_In_Every_Version()
 {
     let names = ["entropy", "thermodynamic entropy"];
-    let entropy = Asserted(names[0]);
-    let successor = Asserted(names[1]);
+    let entropy = Asserted_Concept(names[0]);
+    let successor = Asserted_Concept(names[1]);
 
     let graph = KnowledgeGraph::Empty()
         .With_Concept(entropy.clone())
@@ -151,8 +151,8 @@ fn Test_The_Merge_Log_Should_Be_Answerable_From_The_All_Versions_Read()
     // merge-audit resolved the merge log's identifiers against a view that excluded losers,
     // resolved none, printed "nothing has been merged away" and exited 0. Every merge on
     // record could have been wrong and the gate would have passed.
-    let loser = Asserted("C");
-    let keeper = Asserted("C++");
+    let loser = Asserted_Concept("C");
+    let keeper = Asserted_Concept("C++");
     let graph = KnowledgeGraph::Empty()
         .With_Concept(keeper.clone())
         .With_Concept(loser.Closed(Standing::Superseded {
@@ -175,7 +175,7 @@ fn Test_A_Retired_Concept_Should_Not_Claim_A_Successor()
 {
     // Not current and merged-into-something are different facts, and a retired concept has
     // the first without the second.
-    let retired = Asserted("phlogiston").Closed(Standing::Retired {
+    let retired = Asserted_Concept("phlogiston").Closed(Standing::Retired {
             because: "the concept was withdrawn by its source".to_owned(),
         });
 
@@ -188,7 +188,7 @@ fn Test_A_Retired_Concept_Should_Not_Claim_A_Successor()
 #[test]
 fn Test_Publishing_Should_Leave_The_Previous_Version_Queryable()
 {
-    let entropy = Asserted("entropy");
+    let entropy = Asserted_Concept("entropy");
     let before = KnowledgeGraph::Empty().With_Concept(entropy.clone());
 
     let after = before.With_Concept(entropy.Closed(Standing::Retired {
@@ -210,7 +210,7 @@ fn Test_The_Two_Reads_Should_Not_Be_One_Type_With_A_Flag()
     // read takes an argument selecting a world, so neither can be pointed at the other by
     // passing the wrong value, and a caller that needs merge losers has had to name
     // Every_Version to get one.
-    let graph = KnowledgeGraph::Empty().With_Concept(Asserted("entropy"));
+    let graph = KnowledgeGraph::Empty().With_Concept(Asserted_Concept("entropy"));
 
     assert_eq!(graph.Current().Concepts().len(), 1);
     assert_eq!(graph.Every_Version().Concepts().len(), 1);
@@ -227,7 +227,7 @@ fn Listing_Of(names: &[&str]) -> Vec<String>
     let mut graph = KnowledgeGraph::Empty();
     for name in names
     {
-        graph = graph.With_Concept(Asserted(name));
+        graph = graph.With_Concept(Asserted_Concept(name));
     }
 
     let listing: Vec<String> = graph

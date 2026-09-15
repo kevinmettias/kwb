@@ -50,7 +50,7 @@ fn Model() -> ModelIdentifier
 }
 
 /// One proposition, as an answer conforming to `Propositions_Schema`.
-fn Proposition(concept: &str, claim: &str) -> AnswerValue
+fn Proposition_As_Answer(concept: &str, claim: &str) -> AnswerValue
 {
     return AnswerValue::Record(vec![
         ("concept".to_owned(), AnswerValue::Text(concept.to_owned())),
@@ -66,7 +66,7 @@ const PASSAGE: &str = "Entropy does not decrease in an isolated system.";
 const CITATIONS_FOR_TWO_SOURCES: usize = 2;
 
 /// A recording answering the question this reader asks about `passage`.
-fn Recorded(passage: &str, answer: AnswerValue) -> ReplayRecording
+fn Recording_Answering(passage: &str, answer: AnswerValue) -> ReplayRecording
 {
     let request = Request_For(&Model(), passage);
     let usage = kwb_platform_xvpe::inference::TokenUsage::New(0, 0, 0, 0);
@@ -79,7 +79,7 @@ fn Recorded(passage: &str, answer: AnswerValue) -> ReplayRecording
 }
 
 /// A reader answering from these recordings.
-fn Reader(recordings: Vec<ReplayRecording>) -> ReadsText<ReplayInference>
+fn Reader_Over_Recordings(recordings: Vec<ReplayRecording>) -> ReadsText<ReplayInference>
 {
     return ReadsText::Over(
         ReplayInference::From_Recordings(recordings),
@@ -93,17 +93,17 @@ fn Reader_Answering(passage: &str, propositions: &[(&str, &str)]) -> ReadsText<R
 {
     let answers = propositions
         .iter()
-        .map(|(concept, claim)| return Proposition(concept, claim))
+        .map(|(concept, claim)| return Proposition_As_Answer(concept, claim))
         .collect();
 
-    return Reader(vec![Recorded(passage, AnswerValue::Sequence(answers))]);
+    return Reader_Over_Recordings(vec![Recording_Answering(passage, AnswerValue::Sequence(answers))]);
 }
 
 /// A reader answering `passage` with one proposition NOT wrapped in the sequence the schema
 /// requires, which is the malformed answer two tests below need to refuse.
 fn Reader_Answering_Malformed(passage: &str, concept: &str, claim: &str) -> ReadsText<ReplayInference>
 {
-    return Reader(vec![Recorded(passage, Proposition(concept, claim))]);
+    return Reader_Over_Recordings(vec![Recording_Answering(passage, Proposition_As_Answer(concept, claim))]);
 }
 
 /// The reading a text reader must produce from one recorded passage: exactly one, about the
@@ -130,12 +130,12 @@ fn Assert_One_Reading_About(readings: &[ProposedReading], source: ContentIdentit
 ///
 /// This is the corroboration setup: the same proposition reached from two sources is the whole
 /// reason identity ignores the source, so testing it needs both documents read and both published.
-fn Corroborated(callen: &str, kittel: &str) -> KnowledgeGraph
+fn Corroborated_Graph(callen: &str, kittel: &str) -> KnowledgeGraph
 {
-    let proposition = Proposition("entropy", "It does not decrease in an isolated system.");
-    let reader = Reader(vec![
-        Recorded(callen, AnswerValue::Sequence(vec![proposition.clone()])),
-        Recorded(kittel, AnswerValue::Sequence(vec![proposition])),
+    let proposition = Proposition_As_Answer("entropy", "It does not decrease in an isolated system.");
+    let reader = Reader_Over_Recordings(vec![
+        Recording_Answering(callen, AnswerValue::Sequence(vec![proposition.clone()])),
+        Recording_Answering(kittel, AnswerValue::Sequence(vec![proposition])),
     ]);
     let mut store = DocumentStore::Empty();
     let graph = KnowledgeGraph::Empty();
@@ -196,7 +196,7 @@ fn Test_A_Passage_Nobody_Recorded_Should_Refuse_Rather_Than_Answer_Emptily()
     // distinction `Coverage` exists for.
     let passage = "Enthalpy is a thermodynamic potential.";
     let source = Document::Of(passage.as_bytes().to_vec()).Identity();
-    let reader = Reader(Vec::new());
+    let reader = Reader_Over_Recordings(Vec::new());
 
     let refusal = reader
         .Read(source, passage.as_bytes(), ReadingKind::Text)
@@ -206,11 +206,11 @@ fn Test_A_Passage_Nobody_Recorded_Should_Refuse_Rather_Than_Answer_Emptily()
 }
 
 #[test]
-fn Test_A_Source_Needing_A_Look_Should_Be_Refused_By_A_Text_Reader()
+fn Test_A_Source_Needing_A_Look_Should_Be_Refused_By_A_Text_Reader_Over_Recordings()
 {
     let passage = "a scan";
     let source = Document::Of(passage.as_bytes().to_vec()).Identity();
-    let reader = Reader(Vec::new());
+    let reader = Reader_Over_Recordings(Vec::new());
 
     let refusal = reader
         .Read(source, passage.as_bytes(), ReadingKind::Visual)
@@ -233,7 +233,7 @@ fn Test_A_Refused_Reading_Should_Reach_Admission_As_Unmet_And_Never_As_Barren()
     // End to end, because the seam's whole purpose is what happens downstream of a refusal.
     let passage = "Entropy does not decrease in an isolated system.";
     let mut store = DocumentStore::Empty();
-    let reader = Reader(Vec::new());
+    let reader = Reader_Over_Recordings(Vec::new());
 
     let report = Admit_Source(
         passage.as_bytes().to_vec(),
@@ -257,7 +257,7 @@ fn Test_Two_Sources_Read_By_A_Model_Should_Meet_At_One_Claim()
     // The property every identity decision in this workspace was made to support, reached for
     // the first time **without a person typing the claim**. Two different documents, read
     // separately, proposing the same proposition: one claim, two citations.
-    let corpus = Corroborated(
+    let corpus = Corroborated_Graph(
         "Callen says entropy does not decrease in an isolated system.",
         "Kittel says entropy does not decrease in an isolated system.",
     );
@@ -307,7 +307,7 @@ fn Test_A_Passage_That_Asserts_Nothing_Should_Be_Barren_And_Not_A_Refusal()
     // pass by calling every reading a failure.
     let passage = "A page of front matter.";
     let mut store = DocumentStore::Empty();
-    let reader = Reader(vec![Recorded(passage, AnswerValue::Sequence(Vec::new()))]);
+    let reader = Reader_Over_Recordings(vec![Recording_Answering(passage, AnswerValue::Sequence(Vec::new()))]);
 
     let report = Admit_Source(
         passage.as_bytes().to_vec(),

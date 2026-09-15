@@ -12,8 +12,8 @@ use super::*;
 fn Test_A_Claim_Should_Be_Linked_Only_To_The_Concept_Its_Own_Extraction_Named()
 {
     let offered = [
-        Offered("entropy", "It is non-decreasing in an isolated system."),
-        Offered("enthalpy", "It is a thermodynamic potential."),
+        An_Extraction("entropy", "It is non-decreasing in an isolated system."),
+        An_Extraction("enthalpy", "It is a thermodynamic potential."),
     ];
     let linked = Link_Concepts(&offered);
 
@@ -33,9 +33,9 @@ fn Test_A_Claim_Should_Be_Linked_Only_To_The_Concept_Its_Own_Extraction_Named()
 fn Test_Every_Claims_Concept_Should_Be_Among_The_Concepts()
 {
     let linked = Link_Concepts(&[
-        Offered("entropy", "one"),
-        Offered("enthalpy", "two"),
-        Offered("entropy", "three"),
+        An_Extraction("entropy", "one"),
+        An_Extraction("enthalpy", "two"),
+        An_Extraction("entropy", "three"),
     ]);
 
     for claim in linked.Claims()
@@ -54,9 +54,9 @@ fn Test_Every_Claims_Concept_Should_Be_Among_The_Concepts()
 fn Test_An_Incomplete_Extraction_Should_Be_Refused_And_Counted()
 {
     let offered = [
-        Offered("entropy", "It is non-decreasing."),
-        Offered("enthalpy", "   "),
-        Offered("", "orphaned text"),
+        An_Extraction("entropy", "It is non-decreasing."),
+        An_Extraction("enthalpy", "   "),
+        An_Extraction("", "orphaned text"),
     ];
     let linked = Link_Concepts(&offered);
 

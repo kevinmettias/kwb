@@ -8,7 +8,7 @@ use core::num::NonZeroUsize;
 use super::*;
 
 /// A count that is known non-zero at the call site, so a test reads as what it is testing.
-fn Count(value: usize) -> NonZeroUsize
+fn Nonzero_Count(value: usize) -> NonZeroUsize
 {
     return NonZeroUsize::new(value).expect("the test supplied a non-zero count");
 }
@@ -44,7 +44,7 @@ const FINDINGS_IN_THE_DERIVATION_FIXTURE: usize = 2;
 #[test]
 fn Test_Barren_And_Unmet_Should_Not_Be_Interchangeable()
 {
-    let ran_and_found_nothing = Coverage::Of_Run(0, Count(EXAMINED_MATERIAL));
+    let ran_and_found_nothing = Coverage::Of_Run(0, Nonzero_Count(EXAMINED_MATERIAL));
     let never_ran = Coverage::Unmet { prerequisite: "the linking stage" };
 
     assert_ne!(ran_and_found_nothing, never_ran);
@@ -61,8 +61,8 @@ fn Test_Barren_And_Unmet_Should_Not_Be_Interchangeable()
 fn Test_Only_A_Completed_Run_That_Found_Nothing_Should_Be_Evidence_Of_Absence()
 {
     let outcomes = [
-        Coverage::Of_Run(FINDINGS_FROM_THE_COMPLETED_RUN, Count(EXAMINED_MATERIAL)),
-        Coverage::Of_Run(0, Count(EXAMINED_MATERIAL)),
+        Coverage::Of_Run(FINDINGS_FROM_THE_COMPLETED_RUN, Nonzero_Count(EXAMINED_MATERIAL)),
+        Coverage::Of_Run(0, Nonzero_Count(EXAMINED_MATERIAL)),
         Coverage::Skipped { because: "the source is a duplicate of one already admitted" },
         Coverage::Unmet { prerequisite: "the linking stage" },
     ];
@@ -85,7 +85,7 @@ fn Test_Three_Outcomes_Have_No_Findings_And_Only_One_Means_There_Are_None()
 {
     // The trap this defends: a caller asking `Findings() == 0` instead of asking the
     // question, and deleting on the strength of it.
-    let none_found = Coverage::Of_Run(0, Count(EXAMINED_MATERIAL_IN_THE_THREE_OUTCOME_FIXTURE));
+    let none_found = Coverage::Of_Run(0, Nonzero_Count(EXAMINED_MATERIAL_IN_THE_THREE_OUTCOME_FIXTURE));
     let skipped = Coverage::Skipped { because: "out of scope for this run" };
     let unmet = Coverage::Unmet { prerequisite: "the chunker" };
 
@@ -107,17 +107,17 @@ fn Test_An_Outcome_Of_A_Run_Should_Be_Derived_From_What_It_Found()
 {
     // D20: a computed property cannot fall out of step with the counts it describes, and
     // leaves no setter for a caller to forget.
-    assert_eq!(Coverage::Of_Run(0, Count(1)), Coverage::Barren { examined: Count(1) });
+    assert_eq!(Coverage::Of_Run(0, Nonzero_Count(1)), Coverage::Barren { examined: Nonzero_Count(1) });
     assert_eq!(
-        Coverage::Of_Run(FINDINGS_IN_THE_DERIVATION_FIXTURE, Count(1)),
-        Coverage::Yielded { findings: Count(FINDINGS_IN_THE_DERIVATION_FIXTURE) }
+        Coverage::Of_Run(FINDINGS_IN_THE_DERIVATION_FIXTURE, Nonzero_Count(1)),
+        Coverage::Yielded { findings: Nonzero_Count(FINDINGS_IN_THE_DERIVATION_FIXTURE) }
     );
 }
 
 #[test]
 fn Test_A_Yield_Of_Nothing_Should_Be_A_Barren_Rather_Than_A_Yield_Of_Zero()
 {
-    let nothing_found = Coverage::Of_Run(0, Count(EXAMINED_MATERIAL_IN_THE_BARREN_FIXTURE));
+    let nothing_found = Coverage::Of_Run(0, Nonzero_Count(EXAMINED_MATERIAL_IN_THE_BARREN_FIXTURE));
 
     assert_eq!(nothing_found.Name(), "barren");
     assert!(
@@ -290,7 +290,7 @@ fn Test_The_Same_Source_At_A_Different_Scope_Should_Be_A_Different_Assertion()
 }
 
 #[test]
-fn Test_A_Preference_And_A_Measurement_Saying_One_Thing_Should_Meet_At_The_Claim()
+fn Test_A_Preference_And_A_Measurement_Should_Meet_At_The_Claim()
 {
     // The contamination D-010 exists to prevent, and the thing that makes preventing it
     // worthwhile: whether the two agree is the one question worth asking of the pair, and it

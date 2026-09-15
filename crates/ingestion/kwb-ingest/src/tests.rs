@@ -13,7 +13,7 @@
 //! one file — is a reading that ends in the middle, and what a reader loses is exactly the
 //! comparison `D18` says to make: that a property is asserted of the structure, and not only of
 //! what the structure usually produces. The shared builders below are what the sections have in
-//! common, and they are here rather than copied because a second copy of `Said` is a second
+//! common, and they are here rather than copied because a second copy of `Stated_By_A_Person` is a second
 //! place the reading seam can be entered differently.
 //!
 //! `linking` is stage one, `normalization` stage two, `admission` stage three and its report,
@@ -56,7 +56,7 @@ fn A_Reading(reader: &str) -> ExtractionLineage
     return A_Reading_Under("stated-by-a-person", reader);
 }
 
-fn Offered(concept: &str, claim: &str) -> Extraction
+fn An_Extraction(concept: &str, claim: &str) -> Extraction
 {
     return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
 }
@@ -65,7 +65,7 @@ fn Offered(concept: &str, claim: &str) -> Extraction
 ///
 /// Every admission test goes through this rather than through a prepared list, because that is
 /// now the only way in — and so these tests exercise the same path the command line does.
-fn Said(statements: &[Extraction], scope: &Scope) -> Stated
+fn Stated_By_A_Person(statements: &[Extraction], scope: &Scope) -> Stated
 {
     return Stated::Of(
         statements.to_vec(),
@@ -98,7 +98,7 @@ fn Admitted_From(
     store: &mut DocumentStore,
 ) -> AdmissionReport
 {
-    let reader = Said(statements, &Unstated());
+    let reader = Stated_By_A_Person(statements, &Unstated());
 
     return Admitted_By(bytes, &reader, ReadingKind::Text, store);
 }

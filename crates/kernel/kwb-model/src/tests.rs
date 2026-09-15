@@ -13,7 +13,7 @@ use super::*;
 /// workspace rests on. It is taken as a parameter and deliberately never written, because a
 /// test that never passes a source could not demonstrate that passing a different one
 /// changes nothing.
-fn Claim(concept: &str, text: &str, scope: Option<&str>, source: &str) -> Sealed
+fn Sealed_Claim(concept: &str, text: &str, scope: Option<&str>, source: &str) -> Sealed
 {
     let _ = source;
 
@@ -37,8 +37,8 @@ fn Claim(concept: &str, text: &str, scope: Option<&str>, source: &str) -> Sealed
 #[test]
 fn Test_Two_Claims_Differing_Only_By_Source_Should_Have_One_Identity()
 {
-    let first = Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "Callen 1985");
-    let second = Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "Kittel 1980");
+    let first = Sealed_Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "Callen 1985");
+    let second = Sealed_Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "Kittel 1980");
 
     assert_eq!(
         first.Identity(),
@@ -50,7 +50,7 @@ fn Test_Two_Claims_Differing_Only_By_Source_Should_Have_One_Identity()
 #[test]
 fn Test_The_Source_Exclusion_Should_Be_Recorded_With_Its_Reason()
 {
-    let claim = Claim("entropy", "Anything.", None, "Callen 1985");
+    let claim = Sealed_Claim("entropy", "Anything.", None, "Callen 1985");
 
     let excluded = claim.Excluded();
     assert_eq!(excluded.len(), 1);
@@ -66,8 +66,8 @@ fn Test_The_Source_Exclusion_Should_Be_Recorded_With_Its_Reason()
 #[test]
 fn Test_A_Changed_Claim_Should_Not_Keep_Its_Identity()
 {
-    let before = Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "Callen 1985");
-    let after = Claim("entropy", "Entropy is non-increasing in an isolated system.", None, "Callen 1985");
+    let before = Sealed_Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "Callen 1985");
+    let after = Sealed_Claim("entropy", "Entropy is non-increasing in an isolated system.", None, "Callen 1985");
 
     assert_ne!(
         before.Identity(),
@@ -79,7 +79,7 @@ fn Test_A_Changed_Claim_Should_Not_Keep_Its_Identity()
 #[test]
 fn Test_Included_Fields_Should_Be_Reported_In_Order()
 {
-    let claim = Claim("entropy", "Anything.", Some("classical thermodynamics"), "Callen 1985");
+    let claim = Sealed_Claim("entropy", "Anything.", Some("classical thermodynamics"), "Callen 1985");
 
     assert_eq!(claim.Included(), ["concept", "text", "scope"]);
 }
@@ -89,8 +89,8 @@ fn Test_Included_Fields_Should_Be_Reported_In_Order()
 #[test]
 fn Test_Reflowed_Text_Should_Not_Change_Identity()
 {
-    let flowed = Claim("entropy", "Entropy is non-decreasing\r\n  in an isolated   system.", None, "x");
-    let plain = Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "x");
+    let flowed = Sealed_Claim("entropy", "Entropy is non-decreasing\r\n  in an isolated   system.", None, "x");
+    let plain = Sealed_Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "x");
 
     assert_eq!(flowed.Identity(), plain.Identity());
 }
@@ -98,8 +98,8 @@ fn Test_Reflowed_Text_Should_Not_Change_Identity()
 #[test]
 fn Test_Changed_Capitalisation_Should_Change_Identity()
 {
-    let upper = Claim("notation", "Polish notation", None, "x");
-    let lower = Claim("notation", "polish notation", None, "x");
+    let upper = Sealed_Claim("notation", "Polish notation", None, "x");
+    let lower = Sealed_Claim("notation", "polish notation", None, "x");
 
     assert_ne!(
         upper.Identity(),

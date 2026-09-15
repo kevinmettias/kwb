@@ -23,9 +23,9 @@ use super::*;
 fn Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct()
 {
     let offered = [
-        Offered("z m", "an abbreviation in the text"),
-        Offered("zero mass", "a particle with no rest mass"),
-        Offered("zero matrix", "the additive identity of a matrix ring"),
+        An_Extraction("z m", "an abbreviation in the text"),
+        An_Extraction("zero mass", "a particle with no rest mass"),
+        An_Extraction("zero matrix", "the additive identity of a matrix ring"),
     ];
     let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
@@ -45,9 +45,9 @@ fn Test_Names_A_Variant_Relation_Would_Bridge_Should_Remain_Distinct()
 fn Test_Repeated_Mentions_Of_One_Concept_Should_Become_One_Concept()
 {
     let offered = [
-        Offered("entropy", "It is non-decreasing."),
-        Offered("entropy", "It has units of joules per kelvin."),
-        Offered("entropy", "It is extensive."),
+        An_Extraction("entropy", "It is non-decreasing."),
+        An_Extraction("entropy", "It has units of joules per kelvin."),
+        An_Extraction("entropy", "It is extensive."),
     ];
     let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
@@ -70,9 +70,9 @@ fn Test_The_Grouping_Relation_Should_Be_Transitive_Over_A_Chain()
     // transitive. Equality is, and a three-link chain is the smallest case that would
     // expose a relation that is not.
     let offered = [
-        Offered("BVH", "one"),
-        Offered("BVH", "two"),
-        Offered("BVH", "three"),
+        An_Extraction("BVH", "one"),
+        An_Extraction("BVH", "two"),
+        An_Extraction("BVH", "three"),
     ];
     let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
@@ -89,7 +89,7 @@ fn Test_Case_Differences_Should_Not_Be_Grouped()
 {
     // The recorded divergence from the prototype's LOWER() index, exercised at the stage
     // where folding it would do the damage.
-    let offered = [Offered("BVH", "one"), Offered("bvh", "two")];
+    let offered = [An_Extraction("BVH", "one"), An_Extraction("bvh", "two")];
     let normalized = Normalize_Concepts(Link_Concepts(&offered));
 
     assert_eq!(
@@ -103,9 +103,9 @@ fn Test_Case_Differences_Should_Not_Be_Grouped()
 fn Test_Normalization_Should_Remove_No_Claim()
 {
     let linked = Link_Concepts(&[
-        Offered("entropy", "one"),
-        Offered("entropy", "two"),
-        Offered("enthalpy", "three"),
+        An_Extraction("entropy", "one"),
+        An_Extraction("entropy", "two"),
+        An_Extraction("enthalpy", "three"),
     ]);
     let before = linked.Claims().len();
 
