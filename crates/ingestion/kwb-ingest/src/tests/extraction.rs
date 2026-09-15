@@ -30,7 +30,7 @@ fn Reading_Stated_By(
         lineage,
         scope,
     )
-    .expect("a reader")
+    .expect("the statements are non-empty, so Stated answers Some")
     .Read(source, b"the passage", ReadingKind::Text)
     .expect("a stated reading cannot fail")
     .remove(0);
@@ -41,7 +41,7 @@ fn Claim_Of(reading: &ProposedReading) -> kwb_model::ContentIdentity
 {
     let linked = Link_Concepts(reading.Proposed());
 
-    return linked.Claims().first().expect("one claim").Identity();
+    return linked.Claims().first().expect("the reading proposed exactly one statement").Identity();
 }
 
 #[test]
@@ -142,7 +142,7 @@ fn Test_A_Reading_Should_Carry_The_Address_Of_What_Was_Read()
         A_Reading("a person"),
         Scope::Named("physical theory").expect("a named scope"),
     )
-    .expect("a reader")
+    .expect("the statements are non-empty, so Stated answers Some")
     .Read(source, b"the passage", ReadingKind::Text)
     .expect("a stated reading cannot fail")
     .remove(0);
@@ -229,7 +229,7 @@ fn Test_The_Same_Reader_Should_Read_A_Source_That_Is_Already_Text()
         ReadingKind::Text,
         &mut store,
     )
-    .expect("admits");
+    .expect("the source is non-empty, so admission runs");
 
     assert_eq!(report.Coverage().Name(), "yielded");
     assert_eq!(report.Assertions().len(), 1);
@@ -305,7 +305,7 @@ fn Test_A_Reading_About_The_Right_Document_Should_Still_Be_Admitted()
         ReadingKind::Text,
         &mut store,
     )
-    .expect("admits");
+    .expect("the source is non-empty, so admission runs");
 
     assert_eq!(report.Assertions().len(), 1);
     assert!(report.Refusal().is_none());

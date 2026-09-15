@@ -6,7 +6,25 @@ use kwb_domain::{
 use kwb_retrieval::{CurrentQueries, HistoricalQueries};
 
 /// A graph holding one concept, one claim about it, and one assertion of that claim.
-fn Corpus() -> (KnowledgeGraph, Concept, Claim)
+///
+/// Named rather than returned as a tuple because the callers want different subsets of the three,
+/// and a tuple communicates by position alone: a test that wants only the graph would write
+/// `let (graph, _, _)`, which tells a reader nothing about what was dropped. A named member says
+/// which it is, and a test that wants none of it simply does not mention it.
+struct Corpus
+{
+    /// The graph, holding the concept, the claim and the assertion.
+    graph: KnowledgeGraph,
+
+    /// The concept the claim is about, which the tests below close or supersede.
+    entropy: Concept,
+
+    /// The claim, whose identity the keyword search is expected to return.
+    claim: Claim,
+}
+
+/// The corpus above, assembled.
+fn Corpus() -> Corpus
 {
     let entropy = Concept::Named("entropy");
     let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.");
@@ -17,7 +35,7 @@ fn Corpus() -> (KnowledgeGraph, Concept, Claim)
         .With_Claim(Versioned::Asserted(claim.clone()))
         .With_Assertion(Versioned::Asserted(assertion));
 
-    return (graph, entropy, claim);
+    return Corpus { graph, entropy, claim };
 }
 
 /// How many concepts the graphs below hold: the one `Corpus` supplies, and the one more that
@@ -110,21 +128,21 @@ fn Mutating_Public_Methods(source: &str) -> Vec<String>
 #[test]
 fn Test_A_Claim_Should_Be_Found_By_Words_It_Contains()
 {
-    let (graph, _, claim) = Corpus();
+    let corpus = Corpus();
 
-    let found = CurrentQueries::Over(&graph).Claims_Matching("isolated system");
+    let found = CurrentQueries::Over(&corpus.graph).Claims_Matching("isolated system");
 
     assert_eq!(found.len(), 1);
-    assert_eq!(found.first().map(|found| return found.Identity()), Some(claim.Identity()));
+    assert_eq!(found.first().map(|found| return found.Identity()), Some(corpus.claim.Identity()));
 }
 
 #[test]
 fn Test_Every_Word_Should_Have_To_Match()
 {
-    let (graph, _, _) = Corpus();
+    let corpus = Corpus();
 
     assert!(
-        CurrentQueries::Over(&graph)
+        CurrentQueries::Over(&corpus.graph)
             .Claims_Matching("isolated unicorn")
             .is_empty(),
         "one word matching is not a match"
@@ -134,8 +152,8 @@ fn Test_Every_Word_Should_Have_To_Match()
 #[test]
 fn Test_Word_Order_And_Spacing_Should_Not_Decide_A_Match()
 {
-    let (graph, _, _) = Corpus();
-    let queries = CurrentQueries::Over(&graph);
+    let corpus = Corpus();
+    let queries = CurrentQueries::Over(&corpus.graph);
 
     assert_eq!(queries.Claims_Matching("system isolated").len(), 1);
     assert_eq!(queries.Claims_Matching("  isolated   system  ").len(), 1);
@@ -144,10 +162,10 @@ fn Test_Word_Order_And_Spacing_Should_Not_Decide_A_Match()
 #[test]
 fn Test_Case_Should_Be_Significant_Here_As_Everywhere_Else()
 {
-    let (graph, _, _) = Corpus();
+    let corpus = Corpus();
 
     assert!(
-        CurrentQueries::Over(&graph).Claims_Matching("Isolated").is_empty(),
+        CurrentQueries::Over(&corpus.graph).Claims_Matching("Isolated").is_empty(),
         "folding case in one place and not another is how two searches come to disagree"
     );
 }
@@ -155,8 +173,8 @@ fn Test_Case_Should_Be_Significant_Here_As_Everywhere_Else()
 #[test]
 fn Test_An_Empty_Query_Should_Match_Nothing_Rather_Than_Everything()
 {
-    let (graph, _, _) = Corpus();
-    let queries = CurrentQueries::Over(&graph);
+    let corpus = Corpus();
+    let queries = CurrentQueries::Over(&corpus.graph);
 
     assert!(queries.Claims_Matching("").is_empty());
     assert!(queries.Claims_Matching("   ").is_empty());
@@ -168,33 +186,33 @@ fn Test_An_Empty_Query_Should_Match_Nothing_Rather_Than_Everything()
 #[test]
 fn Test_A_Neighbourhood_Should_Reach_A_Concepts_Claims_And_Their_Assertions()
 {
-    let (graph, entropy, claim) = Corpus();
+    let corpus = Corpus();
 
-    let neighbourhood = CurrentQueries::Over(&graph)
-        .Neighbourhood_Of(entropy.Identity())
+    let neighbourhood = CurrentQueries::Over(&corpus.graph)
+        .Neighbourhood_Of(corpus.entropy.Identity())
         .expect("the concept is current");
 
-    assert_eq!(neighbourhood.concept.Identity(), entropy.Identity());
+    assert_eq!(neighbourhood.concept.Identity(), corpus.entropy.Identity());
     assert_eq!(neighbourhood.claims.len(), 1);
     assert_eq!(neighbourhood.assertions.len(), 1);
     assert_eq!(
         neighbourhood.assertions.first().map(|found| return found.Claim()),
-        Some(claim.Identity())
+        Some(corpus.claim.Identity())
     );
 }
 
 #[test]
 fn Test_A_Neighbourhood_Should_Not_Reach_Another_Concepts_Claims()
 {
-    let (graph, entropy, _) = Corpus();
+    let corpus = Corpus();
     let other = Concept::Named("enthalpy");
     let unrelated = Claim::About(&other, "It is a thermodynamic potential.");
-    let graph = graph
+    let graph = corpus.graph
         .With_Concept(Versioned::Asserted(other))
         .With_Claim(Versioned::Asserted(unrelated));
 
     let neighbourhood = CurrentQueries::Over(&graph)
-        .Neighbourhood_Of(entropy.Identity())
+        .Neighbourhood_Of(corpus.entropy.Identity())
         .expect("the concept is current");
 
     assert_eq!(neighbourhood.claims.len(), 1, "a neighbourhood reached a claim about something else");
@@ -206,18 +224,18 @@ fn Test_A_Neighbourhood_Should_Not_Reach_Another_Concepts_Claims()
 #[test]
 fn Test_A_Merge_Loser_Should_Be_Invisible_To_Current_And_Visible_To_Historical()
 {
-    let (graph, entropy, _) = Corpus();
+    let corpus = Corpus();
     let keeper = Concept::Named("thermodynamic entropy");
-    let graph = graph
+    let graph = corpus.graph
         .With_Concept(Versioned::Asserted(keeper.clone()))
-        .With_Concept(Versioned::Asserted(entropy.clone()).Closed(Standing::Superseded {
+        .With_Concept(Versioned::Asserted(corpus.entropy.clone()).Closed(Standing::Superseded {
             by: keeper.Identity(),
             because: "the two names denote one concept".to_owned(),
         }));
 
     assert!(
         CurrentQueries::Over(&graph)
-            .Neighbourhood_Of(entropy.Identity())
+            .Neighbourhood_Of(corpus.entropy.Identity())
             .is_none(),
         "a merge loser is not a current concept"
     );
@@ -233,10 +251,10 @@ fn Test_A_Merge_Loser_Should_Be_Invisible_To_Current_And_Visible_To_Historical()
 #[test]
 fn Test_A_Claim_Of_A_Retired_Concept_Should_Leave_The_Current_Keyword_Index()
 {
-    let (graph, entropy, _) = Corpus();
+    let corpus = Corpus();
 
-    let retired = graph.With_Concept(
-        Versioned::Asserted(entropy).Closed(Standing::Retired {
+    let retired = corpus.graph.With_Concept(
+        Versioned::Asserted(corpus.entropy).Closed(Standing::Retired {
             because: "the concept was withdrawn by its source".to_owned(),
         }),
     );

@@ -105,7 +105,7 @@ fn Reader_Answering_Malformed(passage: &str, concept: &str, claim: &str) -> Read
 fn Assert_One_Reading_About(readings: &[ProposedReading], source: ContentIdentity, concept: &str)
 {
     assert_eq!(readings.len(), 1, "one passage, one reading");
-    let reading = readings.first().expect("one");
+    let reading = readings.first().expect("the count was asserted to be one on the line above");
     assert_eq!(reading.Proposed().len(), 1);
     assert_eq!(reading.Proposed().first().expect("one").concept_name, concept);
     assert_eq!(reading.Source(), source, "a reading must be about the document it was handed");
@@ -132,10 +132,10 @@ fn Corroborated(callen: &str, kittel: &str) -> KnowledgeGraph
     let graph = KnowledgeGraph::Empty();
 
     let first = Admit(callen.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
-        .expect("admits");
+        .expect("the Callen passage is non-empty, so admission runs");
     let after_first = first.Published_Into(&graph);
     let second = Admit(kittel.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
-        .expect("admits");
+        .expect("the Kittel passage is non-empty, so admission runs");
 
     return second.Published_Into(&after_first);
 }
@@ -306,7 +306,7 @@ fn Test_A_Passage_That_Asserts_Nothing_Should_Be_Barren_And_Not_A_Refusal()
         ReadingKind::Text,
         &mut store,
     )
-    .expect("admits");
+    .expect("the passage text is non-empty, so admission runs");
 
     assert_eq!(report.Coverage().Name(), "barren");
     assert!(

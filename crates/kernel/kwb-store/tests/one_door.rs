@@ -14,6 +14,24 @@ fn Passage(text: &str) -> Document
     return Document::Of(text.as_bytes().to_vec());
 }
 
+/// Clears a directory this test owns, and fails the test on anything but its absence.
+///
+/// Each root below is one property's own name under the temp directory, and a run begins by
+/// clearing it. Not finding it is therefore the ordinary first run rather than a fault. Any
+/// other failure leaves the store pointed at a tree this test cannot reason about, which is
+/// worth stopping on rather than writing past.
+fn Clear_Root(root: &std::path::Path)
+{
+    if let Err(error) = std::fs::remove_dir_all(root)
+    {
+        assert_eq!(
+            error.kind(),
+            std::io::ErrorKind::NotFound,
+            "the test root could not be cleared: {error}"
+        );
+    }
+}
+
 // ---- the property KWB-2 exists for ----
 
 /// The claim is structural, so the test is structural: it reads this crate's own source
@@ -106,7 +124,7 @@ fn Test_A_Write_Should_Return_The_Address_Its_Content_Has()
     let identity = document.Identity();
     let mut store = DocumentStore::Empty();
 
-    let written = store.Write(document).expect("writes");
+    let written = store.Write(document).expect("the document carries bytes, which is all an unbacked store requires");
 
     assert_eq!(written.Identity(), identity);
     assert_eq!(written.Admission(), Admission::Stored);
@@ -120,10 +138,10 @@ fn Test_A_Written_Document_Should_Reread_Byte_Identical()
     let content = b"fn main() {}\n\n  indented\t\x00\xFF".to_vec();
     let mut store = DocumentStore::Empty();
 
-    let written = store.Write(Document::Of(content.clone())).expect("writes");
+    let written = store.Write(Document::Of(content.clone())).expect("the document carries bytes, which is all an unbacked store requires");
 
     assert_eq!(
-        store.Read(written.Identity()).expect("reads").Content(),
+        store.Read(written.Identity()).expect("the identity came from a write this store accepted").Content(),
         content,
         "the store holds something other than the octets it was given"
     );
@@ -151,8 +169,8 @@ fn Test_Writing_The_Same_Document_Twice_Should_Say_So_Rather_Than_Report_Two_Adm
 {
     let mut store = DocumentStore::Empty();
 
-    let first = store.Write(Passage("a passage")).expect("writes");
-    let second = store.Write(Passage("a passage")).expect("writes again");
+    let first = store.Write(Passage("a passage")).expect("the document carries bytes, which is all an unbacked store requires");
+    let second = store.Write(Passage("a passage")).expect("a re-offered document is answered, never refused");
 
     assert_eq!(first.Identity(), second.Identity(), "content addressing produced two addresses");
     assert_eq!(first.Admission(), Admission::Stored);
@@ -171,8 +189,8 @@ fn Test_Two_Documents_Differing_Only_By_Whitespace_Should_Both_Be_Held()
 {
     let mut store = DocumentStore::Empty();
 
-    let spaced = store.Write(Passage("a  passage")).expect("writes");
-    let tight = store.Write(Passage("a passage")).expect("writes");
+    let spaced = store.Write(Passage("a  passage")).expect("the document carries bytes, which is all an unbacked store requires");
+    let tight = store.Write(Passage("a passage")).expect("the document carries bytes, which is all an unbacked store requires");
 
     assert_ne!(
         spaced.Identity(),
@@ -192,7 +210,7 @@ fn Test_An_Admission_Should_Have_No_Default_To_Fall_Into()
     // the line below is the only shape available, and it goes through the door.
     let mut store = DocumentStore::Empty();
 
-    let admission = store.Write(Passage("a passage")).expect("writes").Admission();
+    let admission = store.Write(Passage("a passage")).expect("the document carries bytes, which is all an unbacked store requires").Admission();
 
     assert_eq!(admission, Admission::Stored);
 }
@@ -203,13 +221,13 @@ fn Test_An_Admission_Should_Have_No_Default_To_Fall_Into()
 fn Test_A_Held_Document_Should_Not_Change_When_Another_Is_Written()
 {
     let mut store = DocumentStore::Empty();
-    let held = store.Write(Passage("the first passage")).expect("writes");
-    let before = store.Read(held.Identity()).expect("reads").clone();
+    let held = store.Write(Passage("the first passage")).expect("the document carries bytes, which is all an unbacked store requires");
+    let before = store.Read(held.Identity()).expect("the identity came from a write this store accepted").clone();
 
-    let unrelated = store.Write(Passage("an unrelated passage")).expect("writes");
+    let unrelated = store.Write(Passage("an unrelated passage")).expect("the document carries bytes, which is all an unbacked store requires");
     assert!(unrelated.Was_Stored());
 
-    assert_eq!(&before, store.Read(held.Identity()).expect("reads"));
+    assert_eq!(&before, store.Read(held.Identity()).expect("the identity came from a write this store accepted"));
     assert_eq!(store.Length(), [held, unrelated].len());
 }
 
@@ -220,7 +238,7 @@ fn Test_Every_Address_The_Store_Reports_Should_Read_Back()
     let passages = ["one", "two", "three"];
     for passage in passages
     {
-        assert!(store.Write(Passage(passage)).expect("writes").Was_Stored());
+        assert!(store.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Was_Stored());
     }
 
     let identities: Vec<_> = store.Identities().collect();
@@ -240,11 +258,11 @@ fn Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In()
     let mut backwards = DocumentStore::Empty();
     for passage in ["one", "two", "three"]
     {
-        assert!(forwards.Write(Passage(passage)).expect("writes").Was_Stored());
+        assert!(forwards.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Was_Stored());
     }
     for passage in ["three", "two", "one"]
     {
-        assert!(backwards.Write(Passage(passage)).expect("writes").Was_Stored());
+        assert!(backwards.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Was_Stored());
     }
 
     assert_eq!(
@@ -296,20 +314,20 @@ fn Test_The_Collision_Refusal_Should_Render_Its_Address()
 fn Test_A_Backed_Store_Should_Keep_What_It_Wrote_Beyond_Its_Own_Lifetime()
 {
     let root = std::env::temp_dir().join("kwb-store-test-survives");
-    let _ = std::fs::remove_dir_all(&root);
+    Clear_Root(&root);
     let content = b"a passage worth keeping".to_vec();
 
     let identity = {
-        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
+        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("Under creates the root");
         let mut store = DocumentStore::Backed_By(Box::new(backing));
         assert!(store.Is_Durable());
-        store.Write(Document::Of(content.clone())).expect("writes").Identity()
+        store.Write(Document::Of(content.clone())).expect("the root exists and the document is not empty").Identity()
     };
 
     // The store is gone. The bytes are not.
-    let survivor = kwb_platform_std::DirectoryContentStore::Under(&root).expect("reopens");
+    let survivor = kwb_platform_std::DirectoryContentStore::Under(&root).expect("the root exists from above");
     assert_eq!(
-        kwb_platform::ContentStoreStrategy::Get(&survivor, &identity.Render()).expect("reads"),
+        kwb_platform::ContentStoreStrategy::Get(&survivor, &identity.Render()).expect("the identity came from a write this store accepted"),
         content,
         "the document did not survive the store that wrote it"
     );
@@ -321,10 +339,10 @@ fn Test_An_Unbacked_Store_Should_Still_Work_And_Say_It_Keeps_Nothing()
     // A test suite that needed a filesystem to test a type would be testing the filesystem.
     let mut store = DocumentStore::Empty();
 
-    let written = store.Write(Passage("a passage")).expect("writes");
+    let written = store.Write(Passage("a passage")).expect("the document carries bytes, which is all an unbacked store requires");
 
     assert!(!store.Is_Durable(), "an unbacked store must not claim to keep anything");
-    assert_eq!(store.Read(written.Identity()).expect("reads").Content(), b"a passage");
+    assert_eq!(store.Read(written.Identity()).expect("the identity came from a write this store accepted").Content(), b"a passage");
 }
 
 #[test]
@@ -334,10 +352,10 @@ fn Test_A_Durable_Write_That_Cannot_Complete_Should_Refuse_The_Whole_Call()
     // exists until the process ends, and a caller told nothing would not know which of its
     // documents were real.
     let root = std::env::temp_dir().join("kwb-store-test-refuses");
-    let _ = std::fs::remove_dir_all(&root);
-    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
+    Clear_Root(&root);
+    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("Under creates the root");
     let document = Passage("a passage");
-    std::fs::create_dir_all(root.join(document.Identity().Render())).expect("obstructs");
+    std::fs::create_dir_all(root.join(document.Identity().Render())).expect("the root exists to create it under");
 
     let mut store = DocumentStore::Backed_By(Box::new(backing));
     let refusal = store.Write(document).expect_err("must refuse");
@@ -360,7 +378,7 @@ fn Write_And_Drop_The_Store(root: &std::path::Path, content: &[u8]) -> Written
 {
     let backing = kwb_platform_std::DirectoryContentStore::Under(root).expect("opens the root");
     let mut store = DocumentStore::Backed_By(Box::new(backing));
-    return store.Write(Document::Of(content.to_vec())).expect("writes");
+    return store.Write(Document::Of(content.to_vec())).expect("the root exists and the document is not empty");
 }
 
 #[test]
@@ -371,7 +389,7 @@ fn Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present
     // had. That is a success value produced on a path that did no work, in the crate whose one
     // job is not lying about writes.
     let root = std::env::temp_dir().join("kwb-store-test-across-processes");
-    let _ = std::fs::remove_dir_all(&root);
+    Clear_Root(&root);
     let content = b"a passage".to_vec();
 
     let first = Write_And_Drop_The_Store(&root, &content);
@@ -394,18 +412,18 @@ fn Test_A_Document_Held_Only_On_The_Medium_Should_Still_Read_Back()
     // The regression the fix above could have introduced: an AlreadyPresent document that
     // never entered memory would be one the store holds and cannot answer for.
     let root = std::env::temp_dir().join("kwb-store-test-reads-across");
-    let _ = std::fs::remove_dir_all(&root);
+    Clear_Root(&root);
     let content = b"a passage worth reading".to_vec();
 
     let identity = {
-        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("creates");
+        let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("Under creates the root");
         let mut store = DocumentStore::Backed_By(Box::new(backing));
-        store.Write(Document::Of(content.clone())).expect("writes").Identity()
+        store.Write(Document::Of(content.clone())).expect("the root exists and the document is not empty").Identity()
     };
 
-    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("reopens");
+    let backing = kwb_platform_std::DirectoryContentStore::Under(&root).expect("the root exists from above");
     let mut store = DocumentStore::Backed_By(Box::new(backing));
-    let written = store.Write(Document::Of(content.clone())).expect("writes");
+    let written = store.Write(Document::Of(content.clone())).expect("the root exists and the document is not empty");
 
     assert!(!written.Was_Stored());
     assert_eq!(
@@ -419,8 +437,8 @@ fn Test_An_Unbacked_Store_Should_Decide_Its_Admissions_Exactly_As_Before()
 {
     let mut store = DocumentStore::Empty();
 
-    let first = store.Write(Passage("a passage")).expect("writes");
-    let second = store.Write(Passage("a passage")).expect("writes again");
+    let first = store.Write(Passage("a passage")).expect("the document carries bytes, which is all an unbacked store requires");
+    let second = store.Write(Passage("a passage")).expect("a re-offered document is answered, never refused");
 
     assert!(first.Was_Stored());
     assert_eq!(second.Admission(), Admission::AlreadyPresent);

@@ -41,7 +41,7 @@ fn Test_Examining_Extractions_And_Finding_None_Admissible_Should_Be_Barren()
         Some(&Said(&[Offered("entropy", "  "), Offered("", "orphaned")], &Unstated())),
         ReadingKind::Text,
         &mut store,)
-    .expect("admits");
+    .expect("the source is non-empty, so admission runs");
 
     assert_eq!(report.Coverage().Name(), "barren");
     assert!(
@@ -60,7 +60,7 @@ fn Test_The_Report_Should_Not_Count_More_Than_It_Holds()
         Some(&Said(&[Offered("entropy", "one"), Offered("enthalpy", "two")], &Unstated())),
         ReadingKind::Text,
         &mut store,)
-    .expect("admits");
+    .expect("the source is non-empty, so admission runs");
 
     assert_eq!(
         report.Coverage().Findings(),
@@ -77,10 +77,10 @@ fn Test_An_Admitted_Source_Should_Be_Readable_Back_From_The_Store()
     let mut store = DocumentStore::Empty();
     let bytes = b"a source document".to_vec();
 
-    let report = Admit(bytes.clone(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store).expect("admits");
+    let report = Admit(bytes.clone(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
 
     let written = report.Source().expect("a source was written");
-    assert_eq!(store.Read(written.Identity()).expect("reads").Content(), bytes);
+    assert_eq!(store.Read(written.Identity()).expect("the address came from the write just above").Content(), bytes);
 }
 
 #[test]
@@ -89,14 +89,14 @@ fn Test_Admitting_The_Same_Source_Twice_Should_Not_Duplicate_It()
     let mut store = DocumentStore::Empty();
     let extractions = [Offered("entropy", "one")];
 
-    let first = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits");
+    let first = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
     let second = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits again");
 
     assert_eq!(
-        first.Source().expect("written").Identity(),
-        second.Source().expect("written").Identity()
+        first.Source().expect("the source went through the write door, so it is present").Identity(),
+        second.Source().expect("the source went through the write door, so it is present").Identity()
     );
-    assert!(!second.Source().expect("written").Was_Stored());
+    assert!(!second.Source().expect("the source went through the write door, so it is present").Was_Stored());
     assert_eq!(store.Length(), 1);
 }
 
@@ -151,7 +151,7 @@ fn Test_Publishing_Should_Leave_The_Graph_It_Was_Given_Unchanged()
 {
     let mut store = DocumentStore::Empty();
     let report = Admit(b"a source".to_vec(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
-        .expect("admits");
+        .expect("the source is non-empty, so admission runs");
     let before = KnowledgeGraph::Empty();
 
     let after = report.Published_Into(&before);
@@ -170,7 +170,7 @@ fn Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts()
     let mut store = DocumentStore::Empty();
     let extractions = [Offered("entropy", "one"), Offered("entropy", "two")];
 
-    let first = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits");
+    let first = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
     let graph = first.Published_Into(&KnowledgeGraph::Empty());
     let second = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits again");
     let graph = second.Published_Into(&graph);
@@ -190,10 +190,10 @@ fn Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current()
     // would have said that a claim about a retired concept is not current knowledge.
     let mut store = DocumentStore::Empty();
     let report = Admit(b"a source".to_vec(), Some(&Said(&[Offered("phlogiston", "It is released in combustion.")], &Unstated())), ReadingKind::Text, &mut store)
-        .expect("admits");
+        .expect("the source is non-empty, so admission runs");
     let graph = report.Published_Into(&KnowledgeGraph::Empty());
     let held = graph.Every_Version().Concepts();
-    let concept = (*held.first().expect("one concept")).clone();
+    let concept = (*held.first().expect("the graph holds the concepts just published")).clone();
 
     let retired = graph.With_Concept(concept.Closed(Standing::Retired {
             because: "the concept was withdrawn by its source".to_owned(),
@@ -213,12 +213,12 @@ fn Test_A_Published_Concept_Should_Be_Addressed_By_Its_Content()
 {
     let mut store = DocumentStore::Empty();
     let report = Admit(b"a source".to_vec(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
-        .expect("admits");
+        .expect("the source is non-empty, so admission runs");
 
     let graph = report.Published_Into(&KnowledgeGraph::Empty());
 
     let held = graph.Current().Concepts();
-    let concept = held.first().expect("one concept");
+    let concept = held.first().expect("the graph holds the concepts just published");
     assert_eq!(concept.Canonical_Name(), "entropy");
     assert_eq!(
         Some(concept.Identity()),
@@ -276,8 +276,8 @@ fn Test_Two_Sources_Asserting_One_Claim_Should_Be_One_Claim_With_Two_Citations()
     Assert_Corroborated_By(&graph, SOURCES_IN_CORROBORATION);
     let cited = Cited_Documents(&graph);
     assert!(
-        cited.contains(&callen.Source().expect("written").Identity().Render().as_str())
-            && cited.contains(&kittel.Source().expect("written").Identity().Render().as_str()),
+        cited.contains(&callen.Source().expect("the source went through the write door, so it is present").Identity().Render().as_str())
+            && cited.contains(&kittel.Source().expect("the source went through the write door, so it is present").Identity().Render().as_str()),
         "a citation must name the document it was read out of: {cited:?}"
     );
 }
@@ -294,12 +294,12 @@ fn Test_A_Citation_Should_Resolve_To_The_Bytes_The_Claim_Was_Read_Out_Of()
         Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Unstated())),
         ReadingKind::Text,
         &mut store,)
-    .expect("admits");
+    .expect("the source is non-empty, so admission runs");
 
     let assertion = report.Assertions().first().expect("one assertion");
-    let address = kwb_model::ContentIdentity::Parse(assertion.Source()).expect("an address");
+    let address = kwb_model::ContentIdentity::Parse(assertion.Source()).expect("the source was rendered from a content identity");
 
-    assert_eq!(store.Read(address).expect("resolves").Content(), bytes);
+    assert_eq!(store.Read(address).expect("the citation names a document in this store").Content(), bytes);
 }
 
 #[test]
@@ -311,10 +311,10 @@ fn Test_An_Unstated_Scope_Should_Stay_Unstated_Rather_Than_Become_The_Narrowest(
         Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Unstated())),
         ReadingKind::Text,
         &mut store,)
-    .expect("admits");
+    .expect("the source is non-empty, so admission runs");
 
     assert!(
-        report.Assertions().first().expect("one").Scope().Is_Unstated(),
+        report.Assertions().first().expect("the run recorded one assertion").Scope().Is_Unstated(),
         "a source that did not say how far it meant has not said the narrowest thing"
     );
 }
@@ -328,9 +328,9 @@ fn Test_A_Stated_Scope_Should_Reach_The_Assertion()
         Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Scope::Named("physical theory").expect("a named scope"))),
         ReadingKind::Text,
         &mut store,)
-    .expect("admits");
+    .expect("the source is non-empty, so admission runs");
 
-    assert_eq!(report.Assertions().first().expect("one").Scope().Name(), "physical theory");
+    assert_eq!(report.Assertions().first().expect("the run recorded one assertion").Scope().Name(), "physical theory");
 }
 
 #[test]

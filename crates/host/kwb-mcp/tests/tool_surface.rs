@@ -121,7 +121,7 @@ fn After_A_Merge() -> KnowledgeGraph
     let winner = Concept::Named("oxidation");
     let lost = Claim::About(&loser, "It is released in combustion.");
     let kept = Claim::About(&winner, "It is combination with oxygen.");
-    let cited = Assertion::By("Stahl 1703", &lost, Scope::Named("chemistry").expect("a scope"));
+    let cited = Assertion::By("Stahl 1703", &lost, Scope::Named("chemistry").expect("the name is not blank, so Named answers Some"));
 
     let graph = KnowledgeGraph::Empty()
         .With_Concept(Versioned::Asserted(winner.clone()))

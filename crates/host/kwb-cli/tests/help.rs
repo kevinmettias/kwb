@@ -148,7 +148,7 @@ fn Offered(help: &str) -> Vec<String>
         };
         if let Some(verb) = rest.split_whitespace().next()
         {
-            if !verb.starts_with('-') && !offered.iter().any(|held| return held == verb)
+            if !verb.starts_with('-') && !Already_Offered(&offered, verb)
             {
                 offered.push(verb.to_owned());
             }
@@ -156,6 +156,13 @@ fn Offered(help: &str) -> Vec<String>
     }
 
     return offered;
+}
+
+/// Whether a usage line for this verb has already been read, so one verb is listed once however
+/// many times the help spells its usage out.
+fn Already_Offered(offered: &[String], verb: &str) -> bool
+{
+    return offered.iter().any(|held| return held == verb);
 }
 
 #[test]

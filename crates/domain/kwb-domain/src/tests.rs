@@ -235,17 +235,20 @@ fn Test_A_Claim_Should_Carry_No_Scope_And_No_Confidence()
 
 // ---- KWB-23: an assertion is where a source and a scope attach ----
 
-fn Entropy() -> (Concept, Claim)
+/// A claim about entropy, which is the proposition every assertion below is an assertion of.
+///
+/// The concept is not returned with it: each of the five callers names only the claim, and a
+/// pair whose first half nobody reads is a tuple asking to be destructured and discarded.
+fn Entropy_Claim() -> Claim
 {
     let concept = Concept::Named("entropy");
-    let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
-    return (concept, claim);
+    return Claim::About(&concept, "It is non-decreasing in an isolated system.");
 }
 
 #[test]
 fn Test_Two_Sources_Asserting_One_Claim_Should_Be_Two_Assertions_Of_One_Claim()
 {
-    let (_, claim) = Entropy();
+    let claim = Entropy_Claim();
     let thermodynamics = Scope::Named("physical theory").expect("a named scope");
 
     let callen = Assertion::By("Callen 1985", &claim, thermodynamics.clone());
@@ -262,7 +265,7 @@ fn Test_Two_Sources_Asserting_One_Claim_Should_Be_Two_Assertions_Of_One_Claim()
 #[test]
 fn Test_One_Source_Asserting_One_Claim_Twice_Should_Be_One_Assertion()
 {
-    let (_, claim) = Entropy();
+    let claim = Entropy_Claim();
 
     let once = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
     let twice = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
@@ -273,7 +276,7 @@ fn Test_One_Source_Asserting_One_Claim_Twice_Should_Be_One_Assertion()
 #[test]
 fn Test_The_Same_Source_At_A_Different_Scope_Should_Be_A_Different_Assertion()
 {
-    let (_, claim) = Entropy();
+    let claim = Entropy_Claim();
 
     let broad = Assertion::By("Callen 1985", &claim, Scope::Named("universal mathematics").expect("a named scope"));
     let narrow = Assertion::By("Callen 1985", &claim, Scope::Named("this game workload").expect("a named scope"));
@@ -313,7 +316,7 @@ fn Test_An_Assertion_Should_Carry_No_Strength_Of_Any_Kind()
     // D-004 holds the epistemic-strength model as pending. The prototype shipped the
     // alternative in forty types: Confidence { get; set; } = 1.0. This fixes the absence --
     // adding a grade changes the derivation and every assertion identity in the corpus.
-    let (_, claim) = Entropy();
+    let claim = Entropy_Claim();
     let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
 
     assert_eq!(assertion.Source(), "Callen 1985");
@@ -336,7 +339,7 @@ fn Test_An_Unstated_Scope_Should_Be_Recognisable_Rather_Than_Guessed()
     // The rule is now that blank text names no scope and the caller says `Unstated` when that
     // is what it means. Left as a comment rather than replaced quietly, because a test that
     // encoded the old behaviour as intended is evidence about what was believed.
-    let (_, claim) = Entropy();
+    let claim = Entropy_Claim();
 
     Assert_Text_That_Names_Nothing_Is_Not_A_Scope();
     Assert_An_Unstated_Scope_Says_So();

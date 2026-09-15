@@ -17,13 +17,39 @@ const CONCEPTS_IN_CORPUS: usize = 2;
 
 /// The subject the corpus is about: two concepts, the claim stated about the first, and the
 /// assertion a source made of it.
-fn Corpus_Subject() -> (Concept, Concept, Claim, Assertion)
+///
+/// Named rather than returned as a tuple because two of the four are concepts, and `Concept` is
+/// `Concept` whichever role it plays. Their positions would be the only thing saying which is the
+/// subject and which the bystander, and swapping the two would still compile.
+struct Subject
+{
+    /// The concept the corpus's claim is about.
+    entropy: Concept,
+
+    /// The concept the corpus retires, about which nothing is claimed.
+    enthalpy: Concept,
+
+    /// What the corpus says about the entropy concept.
+    claim: Claim,
+
+    /// Who said it, and how far they meant it.
+    assertion: Assertion,
+}
+
+/// The subject the corpus is about.
+fn Corpus_Subject() -> Subject
 {
     let entropy = Concept::Named("entropy");
     let enthalpy = Concept::Named("enthalpy");
     let claim = Claim::About(&entropy, "It is non-decreasing in an isolated system.");
     let assertion = Assertion::By("Callen 1985", &claim, Scope::Named("physical theory").expect("a named scope"));
-    return (entropy, enthalpy, claim, assertion);
+    return Subject
+    {
+        entropy,
+        enthalpy,
+        claim,
+        assertion,
+    };
 }
 
 /// The publications that would have built the corpus, in the order they were made.
@@ -64,15 +90,33 @@ fn Corpus_Graph(entropy: Concept, enthalpy: Concept, claim: Claim, assertion: As
 }
 
 /// A small corpus, and the publications that would have built it.
-fn Corpus() -> (KnowledgeGraph, Vec<String>)
+///
+/// Named rather than returned as a tuple for the same reason as [`Subject`]: both members are
+/// per-file fixtures, and a caller that swapped them would be reading the graph as a log.
+struct Corpus
 {
-    let (entropy, enthalpy, claim, assertion) = Corpus_Subject();
-    let publications = Corpus_Publications(&entropy, &enthalpy, &claim, &assertion);
+    /// The graph the corpus holds directly, which its own publications are expected to rebuild.
+    graph: KnowledgeGraph,
 
-    let graph = Corpus_Graph(entropy, enthalpy, claim, assertion);
+    /// The records a replay of those publications reads back.
+    records: Vec<String>,
+}
+
+/// The corpus the fixture describes, beside the publications that would have built it.
+fn Corpus() -> Corpus
+{
+    let subject = Corpus_Subject();
+    let publications = Corpus_Publications(
+        &subject.entropy,
+        &subject.enthalpy,
+        &subject.claim,
+        &subject.assertion,
+    );
+
+    let graph = Corpus_Graph(subject.entropy, subject.enthalpy, subject.claim, subject.assertion);
 
     let records = publications.iter().map(|publication| return publication.Record(None)).collect();
-    return (graph, records);
+    return Corpus { graph, records };
 }
 
 /// Both graphs hold the same concepts, current and across every version.
@@ -120,22 +164,22 @@ fn Assert_Same_Assertion_Identities(replayed: &KnowledgeGraph, original: &Knowle
 #[test]
 fn Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Held()
 {
-    let (original, records) = Corpus();
+    let corpus = Corpus();
 
-    let replayed = Replay(&records).expect("replays");
+    let replayed = Replay(&corpus.records).expect("the records came from Record, which Replay reads");
 
     // Compared by what both hold, not by trusting the encoder round-tripped.
-    Assert_Same_Concept_Counts(&replayed, &original);
-    Assert_Same_Claim_Identities(&replayed, &original);
-    Assert_Same_Assertion_Identities(&replayed, &original);
+    Assert_Same_Concept_Counts(&replayed, &corpus.graph);
+    Assert_Same_Claim_Identities(&replayed, &corpus.graph);
+    Assert_Same_Assertion_Identities(&replayed, &corpus.graph);
 }
 
 #[test]
 fn Test_A_Retired_Concept_Should_Replay_Retired()
 {
-    let (_, records) = Corpus();
+    let corpus = Corpus();
 
-    let replayed = Replay(&records).expect("replays");
+    let replayed = Replay(&corpus.records).expect("the records came from Record, which Replay reads");
 
     assert_eq!(replayed.Every_Version().Concepts().len(), CONCEPTS_IN_CORPUS);
     assert_eq!(
@@ -184,7 +228,7 @@ fn Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record()
     let keeper = Concept::Named("C++");
     let records = Supersession_Records(&loser, &keeper);
 
-    let replayed = Replay(&records).expect("replays");
+    let replayed = Replay(&records).expect("both records came from Record, which Replay reads");
 
     Assert_Merge_Loser_Names_The_Successor(&replayed, &keeper);
 }
@@ -262,7 +306,7 @@ fn Test_A_Record_Of_An_Unknown_Shape_Should_Be_Refused()
 #[test]
 fn Test_An_Empty_Sequence_Should_Replay_To_An_Empty_Graph()
 {
-    let replayed = Replay(&[]).expect("replays");
+    let replayed = Replay(&[]).expect("an empty sequence holds no record Replay could refuse");
 
     assert_eq!(replayed.Every_Version().Concepts().len(), 0);
 }
