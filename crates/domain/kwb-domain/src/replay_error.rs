@@ -7,6 +7,8 @@
 //!
 //! [`Replay`]: crate::Replay
 
+use kwb_model::IdentityError;
+
 /// Why a record could not be read back.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ReplayError
@@ -29,6 +31,30 @@ pub enum ReplayError
         /// What was named.
         missing: String,
     },
+
+    /// A field that had to name something by address did not.
+    ///
+    /// The record's shape read — the kind, the arity, the standing — so this is not
+    /// [`Malformed`]: a claim names its concept by address and an assertion names its claim by
+    /// one, and text that is not an address names nothing.
+    ///
+    /// [`IdentityError`] is carried rather than replaced, because it is the only thing that says
+    /// *how* the text was wrong — the wrong length, or a character outside the alphabet — and
+    /// whoever is repairing a log is looking at exactly that.
+    ///
+    /// The record itself is not carried. The complaint is about one field and not about the
+    /// record's shape, so the field is what it names and the line is the one that carries that
+    /// field — which [`Malformed`] cannot rely on and carries the whole record for.
+    ///
+    /// [`Malformed`]: ReplayError::Malformed
+    Unaddressed
+    {
+        /// The field, as it was written.
+        field: String,
+
+        /// Why the identity reader refused it.
+        cause: IdentityError,
+    },
 }
 
 impl core::fmt::Display for ReplayError
@@ -43,8 +69,14 @@ impl core::fmt::Display for ReplayError
                 "a record names {missing}, which no earlier record published. Refusing rather \
                  than guessing: a claim about a concept nobody recorded is not a claim"
             ),
+            Self::Unaddressed { field, cause } => write!(
+                formatter,
+                "the record names {field:?} where an address belongs: {cause}"
+            ),
         };
     }
 }
 
-impl core::error::Error for ReplayError {}
+impl core::error::Error for ReplayError
+{
+}

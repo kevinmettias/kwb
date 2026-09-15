@@ -5,7 +5,7 @@ use kwb_model::ContentIdentity;
 
 use crate::Extraction;
 use crate::ExtractionLineage;
-use crate::ExtractionRefused;
+use crate::ExtractionError;
 use crate::ExtractionStrategy;
 use crate::ProposedReading;
 use crate::ReadingKind;
@@ -115,7 +115,7 @@ impl ExtractionStrategy for Stated
         source: ContentIdentity,
         _content: &[u8],
         _needed: ReadingKind,
-    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionError>
     {
         // One reading, because a person supplied one location. `KWB-66` made a read return many
         // so that a reader which splits a source can locate each passage truthfully; this reader

@@ -5,6 +5,21 @@
 //! and a value per named flag. Reading a leading flag is the same act in all of them, and a copy
 //! per verb is a copy that decides differently the day one of them is corrected.
 
+/// A leading flag, read: the value it carried, and what it left behind.
+///
+/// The two are one answer rather than two. A value belongs to the flag that carried it and the
+/// rest is what that flag did not claim, so a caller holding them as a pair has nothing but
+/// position telling it which is which — and swapping them would take the remaining arguments for
+/// the flag's value.
+pub(crate) struct LeadingFlag<'arguments>
+{
+    /// The value the flag carried, when it led the arguments.
+    pub(crate) value: Option<&'arguments str>,
+
+    /// The arguments the flag did not claim.
+    pub(crate) rest: &'arguments [&'arguments str],
+}
+
 /// `--store <dir>`, if it leads the remaining arguments.
 ///
 /// Read before the extractions so that a misplaced `--store` is an unexpected argument rather
@@ -13,12 +28,18 @@
 /// flag through this as well, so all three refuse a misplaced one the same way.
 pub(crate) fn Store_Root_From<'arguments>(
     arguments: &'arguments [&'arguments str],
-) -> (Option<&'arguments str>, &'arguments [&'arguments str])
+) -> LeadingFlag<'arguments>
 {
     return match arguments
     {
-        [flag, root, rest @ ..] if *flag == "--store" => (Some(root), rest),
-        _ => (None, arguments),
+        [flag, root, rest @ ..] if *flag == "--store" => LeadingFlag {
+            value: Some(root),
+            rest,
+        },
+        _ => LeadingFlag {
+            value: None,
+            rest: arguments,
+        },
     };
 }
 
@@ -26,12 +47,18 @@ pub(crate) fn Store_Root_From<'arguments>(
 pub(crate) fn Flag_From<'arguments>(
     arguments: &'arguments [&'arguments str],
     flag: &str,
-) -> (Option<&'arguments str>, &'arguments [&'arguments str])
+) -> LeadingFlag<'arguments>
 {
     return match arguments
     {
-        [found, value, rest @ ..] if *found == flag => (Some(value), rest),
-        _ => (None, arguments),
+        [found, value, rest @ ..] if *found == flag => LeadingFlag {
+            value: Some(value),
+            rest,
+        },
+        _ => LeadingFlag {
+            value: None,
+            rest: arguments,
+        },
     };
 }
 

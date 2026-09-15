@@ -21,7 +21,7 @@ use kwb_domain::Scope;
 use kwb_extract::ReadsText;
 use kwb_extract::Request_For;
 use kwb_ingest::Admit;
-use kwb_ingest::ExtractionRefused;
+use kwb_ingest::ExtractionError;
 use kwb_ingest::ExtractionStrategy;
 use kwb_ingest::ProposedReading;
 use kwb_ingest::ReadingKind;
@@ -173,7 +173,7 @@ fn Test_An_Answer_That_Does_Not_Conform_Should_Refuse_And_Propose_Nothing()
         .expect_err("an answer that does not conform is refused");
 
     assert!(
-        matches!(refusal, ExtractionRefused::ReaderFailed { .. }),
+        matches!(refusal, ExtractionError::ReaderFailed { .. }),
         "a malformed answer must be a reader that did not answer usably, not a source with \
          nothing in it: {refusal:?}"
     );
@@ -193,7 +193,7 @@ fn Test_A_Passage_Nobody_Recorded_Should_Refuse_Rather_Than_Answer_Emptily()
         .Read(source, passage.as_bytes(), ReadingKind::Text)
         .expect_err("an unrecorded passage is refused");
 
-    assert!(matches!(refusal, ExtractionRefused::ReaderFailed { .. }), "{refusal:?}");
+    assert!(matches!(refusal, ExtractionError::ReaderFailed { .. }), "{refusal:?}");
 }
 
 #[test]
@@ -210,7 +210,7 @@ fn Test_A_Source_Needing_A_Look_Should_Be_Refused_By_A_Text_Reader()
     assert!(
         matches!(
             refusal,
-            ExtractionRefused::CannotRead {
+            ExtractionError::CannotRead {
                 needed: ReadingKind::Visual
             }
         ),

@@ -144,25 +144,6 @@ impl DocumentStore
         };
     }
 
-    /// Write the document through to the medium, when the store was given one.
-    ///
-    /// The medium first. A document recorded in memory and not on the medium is a document that
-    /// exists until the process ends, and `D19`'s lesson is that the report must not outrun the
-    /// work -- so a failed durable write refuses the whole call rather than succeeding into
-    /// memory alone.
-    fn Persist(&self, identity: ContentIdentity, document: &Document) -> Result<(), StoreError>
-    {
-        let Some(durable) = self.durable.as_ref()
-        else
-        {
-            return Ok(());
-        };
-
-        return durable
-            .Put(&identity.Render(), document.Content())
-            .map_err(|cause| return StoreError::NotStored { cause });
-    }
-
     /// What a document this store does not hold in memory is, which is not always new.
     ///
     /// # The defect this exists to stop
@@ -200,6 +181,25 @@ impl DocumentStore
             .map_err(|cause| return StoreError::NotStored { cause })?;
 
         return Ok(if held { Admission::AlreadyPresent } else { Admission::Stored });
+    }
+
+    /// Write the document through to the medium, when the store was given one.
+    ///
+    /// The medium first. A document recorded in memory and not on the medium is a document that
+    /// exists until the process ends, and `D19`'s lesson is that the report must not outrun the
+    /// work -- so a failed durable write refuses the whole call rather than succeeding into
+    /// memory alone.
+    fn Persist(&self, identity: ContentIdentity, document: &Document) -> Result<(), StoreError>
+    {
+        let Some(durable) = self.durable.as_ref()
+        else
+        {
+            return Ok(());
+        };
+
+        return durable
+            .Put(&identity.Render(), document.Content())
+            .map_err(|cause| return StoreError::NotStored { cause });
     }
 
     /// The document at an address.

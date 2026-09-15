@@ -13,7 +13,7 @@ use kwb_domain::{Concept, KnowledgeGraph, Publication, Standing, Versioned};
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::FileRecordLog;
 
-use crate::arguments::{Flag_From, Nothing_Left, Store_Root_From};
+use crate::arguments::{Flag_From, LeadingFlag, Nothing_Left, Store_Root_From};
 use crate::keeping::Recorded_At;
 use crate::refusals::{Complained, Wrong_Command_Line};
 use crate::FAILURE_EXIT;
@@ -79,9 +79,9 @@ fn Closing_From<'arguments>(
     merging: Option<()>,
 ) -> Result<Closing<'arguments>, ExitCode>
 {
-    let (successor, rest) = Flag_From(arguments, "--into");
-    let (store_root, rest) = Store_Root_From(rest);
-    let (because, rest) = Flag_From(rest, "--because");
+    let LeadingFlag { value: successor, rest } = Flag_From(arguments, "--into");
+    let LeadingFlag { value: store_root, rest } = Store_Root_From(rest);
+    let LeadingFlag { value: because, rest } = Flag_From(rest, "--because");
 
     let (because, store_root) = Required_Of(because, store_root, rest)?;
 

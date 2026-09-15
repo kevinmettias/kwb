@@ -69,4 +69,6 @@ impl fmt::Display for StoreError
     }
 }
 
-impl core::error::Error for StoreError {}
+impl core::error::Error for StoreError
+{
+}

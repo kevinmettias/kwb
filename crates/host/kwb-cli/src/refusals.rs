@@ -29,10 +29,15 @@ pub(crate) fn Wrong_Command_Line(complaint: &str) -> ExitCode
 
 /// A run that failed, under the name of the command that ran.
 ///
+/// The verb is a `&'static str` because it is a name this binary was compiled with and never
+/// something assembled at runtime: every caller passes a literal. Saying so is what keeps the
+/// verb and the complaint from being swapped, since a complaint read at runtime cannot be given
+/// a `'static` lifetime and the exchange would not build.
+///
 /// The same shape as [`Wrong_Command_Line`] without the usage: a person who typed a well-formed
 /// command has already been shown how to type it, and printing the usage under a store error
 /// would bury the one line that says what actually went wrong.
-pub(crate) fn Complained(verb: &str, complaint: &str, code: u8) -> ExitCode
+pub(crate) fn Complained(verb: &'static str, complaint: &str, code: u8) -> ExitCode
 {
     eprintln!("{verb}: {complaint}");
     return ExitCode::from(code);
@@ -40,13 +45,15 @@ pub(crate) fn Complained(verb: &str, complaint: &str, code: u8) -> ExitCode
 
 /// A command line whose **arguments** were mistyped, under the name of the command that read them.
 ///
+/// The verb is a `&'static str` for the reason [`Complained`] gives.
+///
 /// [`Complained`] answers a run that was well-formed and could not finish, and it is right that
 /// it withholds the usage. This is the other case: what was wrong is the syntax itself, so the
 /// syntax is what the person is shown. The two are told apart by which of them is being
 /// answered — an argument the command does not take, or a run that could not proceed — and not
 /// by the exit code, because a bad `--through` count and an unreadable log both exit `2` and
 /// only the first is a question about how to type the command.
-pub(crate) fn Complained_With_Usage(verb: &str, complaint: &str) -> ExitCode
+pub(crate) fn Complained_With_Usage(verb: &'static str, complaint: &str) -> ExitCode
 {
     eprintln!("{verb}: {complaint}");
     Print_Usage();

@@ -8,6 +8,7 @@
 //! [`ReplayError`]: crate::ReplayError
 
 use kwb_model::ContentIdentity;
+use kwb_model::IdentityError;
 
 use crate::Assertion;
 use crate::Claim;
@@ -17,6 +18,7 @@ use crate::ReplayError;
 use crate::Scope;
 use crate::Standing;
 use crate::Versioned;
+use crate::record_time::Without_Time;
 
 /// Between the fields of a record.
 ///
@@ -32,25 +34,18 @@ use crate::Versioned;
 /// guarantee is now load-bearing in two places: if a type ever kept text without normalizing
 /// it, identities and records would both become forgeable. `tests/publication.rs` asserts the
 /// forgery is impossible rather than assuming it.
-const SEPARATOR: char = '\u{1F}';
+pub(crate) const SEPARATOR: char = '\u{1F}';
 
 /// A concept was published.
-const CONCEPT: &str = "concept";
-/// A claim was published.
-const CLAIM: &str = "claim";
-/// An assertion was published.
-const ASSERTION: &str = "assertion";
-
-/// How many fields a concept record carried before `KWB-64` added a time.
 ///
-/// Named rather than written at the reader, because the count is a property of the record
-/// format and not of the one function that happens to check it. A concept is named, a claim adds
-/// the claim's text, and an assertion adds that claim's source and scope.
-const CONCEPT_FIELDS: usize = 5;
-/// How many fields a claim record carried before `KWB-64` added a time.
-const CLAIM_FIELDS: usize = 6;
-/// How many fields an assertion record carried before `KWB-64` added a time.
-const ASSERTION_FIELDS: usize = 7;
+/// The kind names are `pub(crate)` because `record_time` needs them: how many fields a record of
+/// a kind carried before `KWB-64` appended a time is a fact about that kind, and a copy of the
+/// spelling there would be a second place deciding what a concept record is called.
+pub(crate) const CONCEPT: &str = "concept";
+/// A claim was published.
+pub(crate) const CLAIM: &str = "claim";
+/// An assertion was published.
+pub(crate) const ASSERTION: &str = "assertion";
 
 /// The standing a record carries.
 const ASSERTED: &str = "asserted";
@@ -133,27 +128,19 @@ impl Publication
         {
             Self::Concept { concept, standing } =>
             {
-                let (name, successor, because) = Standing_Fields(standing);
+                let StandingWritten { name, successor, because } = Standing_Fields(standing);
                 Joined(&[CONCEPT, name, &successor, &because, concept.Canonical_Name()])
             }
             Self::Claim { claim, standing } =>
             {
-                let (name, successor, because) = Standing_Fields(standing);
+                let StandingWritten { name, successor, because } = Standing_Fields(standing);
                 Joined(&[
-                    CLAIM,
-                    name,
-                    &successor,
-                    &because,
-                    &claim.Concept().Render(),
-                    claim.Text(),
+                    CLAIM, name, &successor, &because, &claim.Concept().Render(), claim.Text(),
                 ])
             }
-            Self::Assertion {
-                assertion,
-                standing,
-            } =>
+            Self::Assertion { assertion, standing } =>
             {
-                let (name, successor, because) = Standing_Fields(standing);
+                let StandingWritten { name, successor, because } = Standing_Fields(standing);
                 Joined(&[
                     ASSERTION,
                     name,
@@ -181,81 +168,11 @@ pub fn Replay(records: &[String]) -> Result<KnowledgeGraph, ReplayError>
     for record in records
     {
         let fields: Vec<&str> = record.split(SEPARATOR).collect();
-        let (fields, _) = Without_Time(&fields);
-        graph = Applied(&graph, record, fields)?;
+        let untimed = Without_Time(&fields);
+        graph = Applied(&graph, record, untimed.fields)?;
     }
 
     return Ok(graph);
-}
-
-/// How many fields a record of this kind carries before `KWB-64` added a time.
-///
-/// Named per kind rather than inferred, because the alternative is asking whether the last
-/// field *looks like* a number — and an assertion's last field is a scope, which a source is
-/// free to call `1985`. A format that can be misread by content is one that will be.
-fn Untimed_Arity(kind: &str) -> Option<usize>
-{
-    // The constants, not their spellings. A copy of `"concept"` here would be a second place
-    // that decides what a concept record is called, and it would go on agreeing until the day
-    // somebody renamed one of them -- at which point every record of that kind would read as a
-    // kind this reader does not know, and replay would refuse a log it wrote itself.
-    return match kind
-    {
-        _ if kind == CONCEPT => Some(CONCEPT_FIELDS),
-        _ if kind == CLAIM => Some(CLAIM_FIELDS),
-        _ if kind == ASSERTION => Some(ASSERTION_FIELDS),
-        _ => None,
-    };
-}
-
-/// The record's fields without its time, and the time if it carried one.
-fn Without_Time<'fields>(fields: &'fields [&'fields str]) -> (&'fields [&'fields str], Option<i64>)
-{
-    let Some((without, time)) = Timestamped(fields)
-    else
-    {
-        return (fields, None);
-    };
-
-    return (without, Some(time));
-}
-
-/// The record split at its time, when it carries one.
-///
-/// `None` covers every shape that is not a timestamped record of a known kind — an untimed
-/// record, a record this reader does not know, and a record at the timestamped arity whose last
-/// field is not a number. The last of those is deliberately the same answer as the other two: it
-/// is not a timestamped record with a broken time, it is a record this reader does not know, and
-/// `Applied` refuses it as malformed rather than silently dropping a field.
-fn Timestamped<'fields>(
-    fields: &'fields [&'fields str],
-) -> Option<(&'fields [&'fields str], i64)>
-{
-    let kind = fields.first()?;
-    let expected = Untimed_Arity(kind)?;
-    if fields.len() != expected.saturating_add(1)
-    {
-        return None;
-    }
-
-    let time = fields.last().and_then(|last| return last.parse::<i64>().ok())?;
-    let without = fields.get(..expected)?;
-
-    return Some((without, time));
-}
-
-/// When a record was published, if it says.
-///
-/// [`None`] for a publication written before `KWB-64`, which is *unknown* and not a zero. A
-/// caller asking what the graph looked like at a time must decide what to do about records that
-/// cannot answer, rather than being handed an epoch that sorts before everything.
-#[must_use]
-pub fn Published_At(record: &str) -> Option<i64>
-{
-    let fields: Vec<&str> = record.split(SEPARATOR).collect();
-    let (_, at) = Without_Time(&fields);
-
-    return at;
 }
 
 /// One record, applied to the graph so far.
@@ -279,25 +196,6 @@ fn Applied(
     };
 }
 
-/// The refusal for a record this reader cannot read.
-///
-/// The record itself is carried rather than a reconstruction of it, so that a report of a log
-/// that would not replay names the line a reader has to look at.
-fn Malformed(record: &str) -> ReplayError
-{
-    return ReplayError::Malformed {
-        record: record.to_owned(),
-    };
-}
-
-/// The refusal for a record naming something no earlier record published.
-fn Unpublished(missing: &str) -> ReplayError
-{
-    return ReplayError::OutOfOrder {
-        missing: missing.to_owned(),
-    };
-}
-
 /// A concept record, applied. `rest` is its fields after the kind.
 fn Applied_Concept(
     graph: &KnowledgeGraph,
@@ -312,7 +210,7 @@ fn Applied_Concept(
     };
 
     let concept = Concept::Named(name);
-    let standing = Standing_Of(standing, successor, because)
+    let standing = Standing_Of(standing, Successor_Of(successor), because)
         .ok_or_else(|| return Malformed(record))?;
 
     return Ok(graph.With_Concept(Versioned::Asserted(concept).Closed(standing)));
@@ -335,13 +233,29 @@ fn Applied_Claim(
         return Err(Malformed(record));
     };
 
-    let address = ContentIdentity::Parse(concept).map_err(|_| return Malformed(record))?;
+    let address = ContentIdentity::Parse(concept)
+        .map_err(|cause| return Unaddressed(concept, cause))?;
     let held = Concept_At(graph, address).ok_or_else(|| return Unpublished(concept))?;
     let claim = Claim::About(&held, text);
-    let standing = Standing_Of(standing, successor, because)
+    let standing = Standing_Of(standing, Successor_Of(successor), because)
         .ok_or_else(|| return Malformed(record))?;
 
     return Ok(graph.With_Claim(Versioned::Asserted(claim).Closed(standing)));
+}
+
+/// The concept at an address, whatever its standing.
+///
+/// Read from every version rather than the current one: a claim about a concept that was
+/// retired is still a claim that was published, and replay reconstructs what happened rather
+/// than what is currently true.
+fn Concept_At(graph: &KnowledgeGraph, address: ContentIdentity) -> Option<Concept>
+{
+    return graph
+        .Every_Version()
+        .Concepts()
+        .into_iter()
+        .find(|held| return held.Value().Identity() == address)
+        .map(|held| return held.Value().clone());
 }
 
 /// An assertion record, applied. `rest` is its fields after the kind.
@@ -359,7 +273,8 @@ fn Applied_Assertion(
         return Err(Malformed(record));
     };
 
-    let address = ContentIdentity::Parse(claim).map_err(|_| return Malformed(record))?;
+    let address = ContentIdentity::Parse(claim)
+        .map_err(|cause| return Unaddressed(claim, cause))?;
     let held = Claim_At(graph, address).ok_or_else(|| return Unpublished(claim))?;
     // An empty trailing field is an unstated scope, and reading it that way is
     // deliberate rather than the swallow `Scope::Named` now refuses. A record is what
@@ -369,25 +284,10 @@ fn Applied_Assertion(
     // is refused where the input arrives, not here where it is read back.
     let scope = Scope::Named(scope).unwrap_or_else(Scope::Unstated);
     let assertion = Assertion::By(source, &held, scope);
-    let standing = Standing_Of(standing, successor, because)
+    let standing = Standing_Of(standing, Successor_Of(successor), because)
         .ok_or_else(|| return Malformed(record))?;
 
     return Ok(graph.With_Assertion(Versioned::Asserted(assertion).Closed(standing)));
-}
-
-/// The concept at an address, whatever its standing.
-///
-/// Read from every version rather than the current one: a claim about a concept that was
-/// retired is still a claim that was published, and replay reconstructs what happened rather
-/// than what is currently true.
-fn Concept_At(graph: &KnowledgeGraph, address: ContentIdentity) -> Option<Concept>
-{
-    return graph
-        .Every_Version()
-        .Concepts()
-        .into_iter()
-        .find(|held| return held.Value().Identity() == address)
-        .map(|held| return held.Value().clone());
 }
 
 /// The claim at an address, whatever its standing.
@@ -408,36 +308,44 @@ fn Claim_At(graph: &KnowledgeGraph, address: ContentIdentity) -> Option<Claim>
 /// standing. A variable-width standing would have made the field count carry meaning, and a
 /// reader would have had to know the standing before it could finish splitting — which is the
 /// kind of format where a value eventually decides how it is parsed.
-fn Standing_Fields(standing: &Standing) -> (&'static str, String, String)
+///
+/// Named rather than returned as a tuple because the three fields are joined and nothing in
+/// their order says which is the name, which the address and which the reason.
+struct StandingWritten
+{
+    /// The standing, named as a record spells it.
+    name: &'static str,
+
+    /// The successor's address, empty unless there is one.
+    successor: String,
+
+    /// Why it was closed, empty unless there is a reason.
+    because: String,
+}
+
+/// A standing, as the fields a record writes.
+fn Standing_Fields(standing: &Standing) -> StandingWritten
 {
     return match standing
     {
-        Standing::Asserted => (ASSERTED, String::new(), String::new()),
-        Standing::Retired { because } => (RETIRED, String::new(), because.clone()),
-        Standing::Superseded { by, because } => (SUPERSEDED, by.Render(), because.clone()),
-    };
-}
-
-/// A standing, read from its two fields. `None` when they are not one.
-///
-/// A successor that is present where none belongs, or absent where one does, is refused rather
-/// than ignored: both are records this writer could not have produced, so reading them would be
-/// reading something else's file as if it were ours.
-fn Standing_Of(name: &str, successor: &str, because: &str) -> Option<Standing>
-{
-    return match (name, successor.is_empty(), because.is_empty())
-    {
-        (ASSERTED, true, true) => Some(Standing::Asserted),
-        (RETIRED, true, false) => Some(Standing::Retired {
-            because: because.to_owned(),
-        }),
-        (SUPERSEDED, false, false) => ContentIdentity::Parse(successor).ok().map(|by| {
-            return Standing::Superseded {
-                by,
-                because: because.to_owned(),
-            };
-        }),
-        _ => None,
+        Standing::Asserted => StandingWritten
+        {
+            name: ASSERTED,
+            successor: String::new(),
+            because: String::new(),
+        },
+        Standing::Retired { because } => StandingWritten
+        {
+            name: RETIRED,
+            successor: String::new(),
+            because: because.clone(),
+        },
+        Standing::Superseded { by, because } => StandingWritten
+        {
+            name: SUPERSEDED,
+            successor: by.Render(),
+            because: because.clone(),
+        },
     };
 }
 
@@ -445,4 +353,80 @@ fn Standing_Of(name: &str, successor: &str, because: &str) -> Option<Standing>
 fn Joined(fields: &[&str]) -> String
 {
     return fields.join(&SEPARATOR.to_string());
+}
+
+/// The refusal for a record this reader cannot read.
+///
+/// The record itself is carried rather than a reconstruction of it, so that a report of a log
+/// that would not replay names the line a reader has to look at.
+fn Malformed(record: &str) -> ReplayError
+{
+    return ReplayError::Malformed {
+        record: record.to_owned(),
+    };
+}
+
+/// The refusal for a record naming something no earlier record published.
+fn Unpublished(missing: &str) -> ReplayError
+{
+    return ReplayError::OutOfOrder {
+        missing: missing.to_owned(),
+    };
+}
+
+/// The refusal for a record whose address field is not an address.
+///
+/// Not [`Malformed`], because the record's shape read. What did not is the one field that had
+/// to name something by address, and the identity reader's own complaint about it is carried
+/// rather than replaced: it is the only thing that says whether the text was the wrong length
+/// or held a character outside the alphabet.
+///
+/// [`Malformed`]: ReplayError::Malformed
+fn Unaddressed(field: &str, cause: IdentityError) -> ReplayError
+{
+    return ReplayError::Unaddressed {
+        field: field.to_owned(),
+        cause,
+    };
+}
+
+/// The successor field, read. `None` when the field is empty, which is how *no successor* is
+/// written.
+///
+/// The emptiness becomes an absence here rather than inside [`Standing_Of`], so that *no
+/// successor* has a representation of its own at the point the standing is decided. A successor
+/// present where none belongs and one absent where one belongs are both records this writer
+/// could not have produced, and the two are only distinguishable if absence is not also just
+/// another string.
+fn Successor_Of(field: &str) -> Option<&str>
+{
+    if field.is_empty()
+    {
+        return None;
+    }
+
+    return Some(field);
+}
+
+/// A standing, read from its two fields. `None` when they are not one.
+///
+/// A successor that is present where none belongs, or absent where one does, is refused rather
+/// than ignored: both are records this writer could not have produced, so reading them would be
+/// reading something else's file as if it were ours.
+fn Standing_Of(name: &str, successor: Option<&str>, because: &str) -> Option<Standing>
+{
+    return match (name, successor, because.is_empty())
+    {
+        (ASSERTED, None, true) => Some(Standing::Asserted),
+        (RETIRED, None, false) => Some(Standing::Retired {
+            because: because.to_owned(),
+        }),
+        (SUPERSEDED, Some(address), false) => ContentIdentity::Parse(address).ok().map(|by| {
+            return Standing::Superseded {
+                by,
+                because: because.to_owned(),
+            };
+        }),
+        _ => None,
+    };
 }

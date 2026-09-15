@@ -12,7 +12,7 @@ use crate::ReadingKind;
 /// than the extractor: a refusal is what a report is built from when nothing was learned, and
 /// nothing there needs the trait that produced it.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum ExtractionRefused
+pub enum ExtractionError
 {
     /// The source needs a kind of reading this extractor does not do.
     ///
@@ -50,7 +50,7 @@ pub enum ExtractionRefused
     },
 }
 
-impl core::fmt::Display for ExtractionRefused
+impl core::fmt::Display for ExtractionError
 {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
     {
@@ -58,26 +58,33 @@ impl core::fmt::Display for ExtractionRefused
         {
             Self::CannotRead { needed } => write!(
                 formatter,
-                "this source needs {} reading and this extractor does not do it. Refusing \
-                 rather than returning nothing, because a source that cannot be read has not \
-                 been read and found empty",
+                concat!(
+                    "this source needs {} reading and this extractor does not do it. Refusing ",
+                    "rather than returning nothing, because a source that cannot be read has ",
+                    "not been read and found empty"
+                ),
                 needed.Name()
             ),
             Self::NotRead => write!(
                 formatter,
-                "nothing read this source. It is admitted and kept, and nothing is asserted \
-                 about what is in it, because nobody looked"
+                concat!(
+                    "nothing read this source. It is admitted and kept, and nothing is ",
+                    "asserted about what is in it, because nobody looked"
+                )
             ),
             Self::ReaderFailed { cause } => write!(
                 formatter,
-                "the reader did not answer usably: {cause}. Nothing was learned about the \
-                 source, so nothing about the source is recorded"
+                concat!(
+                    "the reader did not answer usably: {cause}. Nothing was learned about the ",
+                    "source, so nothing about the source is recorded"
+                ),
+                cause = cause
             ),
         };
     }
 }
 
-impl ExtractionRefused
+impl ExtractionError
 {
     /// What was needed and absent, as [`Coverage::Unmet`] requires it.
     ///
@@ -100,4 +107,6 @@ impl ExtractionRefused
     }
 }
 
-impl core::error::Error for ExtractionRefused {}
+impl core::error::Error for ExtractionError
+{
+}

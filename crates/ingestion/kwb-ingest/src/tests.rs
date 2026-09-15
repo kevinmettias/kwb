@@ -134,9 +134,9 @@ impl ExtractionStrategy for Silent
         _source: kwb_model::ContentIdentity,
         _content: &[u8],
         _needed: ReadingKind,
-    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionError>
     {
-        return Err(ExtractionRefused::ReaderFailed {
+        return Err(ExtractionError::ReaderFailed {
             cause: "the answer did not parse".to_owned(),
         });
     }

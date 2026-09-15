@@ -7,7 +7,7 @@
 use std::process::ExitCode;
 
 use kwb_domain::KnowledgeGraph;
-use kwb_mcp::{Answer, Corpus_At, Print_Surface};
+use kwb_mcp::{Answer, Corpus_At, Print_Surface, Store};
 
 /// A wrong command line, which is not the same as a run that failed.
 const USAGE_EXIT: u8 = 2;
@@ -30,21 +30,25 @@ fn main() -> ExitCode
         }
     };
 
-    return Serve(&graph, borrowed.get(1..).unwrap_or_default(), borrowed.is_empty());
+    return Serve(
+        &graph,
+        borrowed.get(1..).unwrap_or_default(),
+        Store::Of(borrowed.first().copied()),
+    );
 }
 
 /// Answer the tool the command line named, or list the surface when it named none.
 ///
 /// The store directory is taken off the front before this is called, so the first element here
-/// is the tool and the rest is its argument. `without_a_store` travels separately because it is
-/// a fact about the command line rather than about what is left of it: a run given a store and
+/// is the tool and the rest is its argument. Which store was named travels separately because it
+/// is a fact about the command line rather than about what is left of it: a run given a store and
 /// no tool has named no tool and is still not the empty listing.
-fn Serve(graph: &KnowledgeGraph, arguments: &[&str], without_a_store: bool) -> ExitCode
+fn Serve(graph: &KnowledgeGraph, arguments: &[&str], store: Store) -> ExitCode
 {
     let Some((tool, rest)) = arguments.split_first()
     else
     {
-        Print_Surface(graph, without_a_store);
+        Print_Surface(graph, store);
         return ExitCode::SUCCESS;
     };
 
@@ -53,7 +57,7 @@ fn Serve(graph: &KnowledgeGraph, arguments: &[&str], without_a_store: bool) -> E
     else
     {
         eprintln!("kwb-mcp: no tool named {tool}");
-        Print_Surface(graph, false);
+        Print_Surface(graph, Store::Named);
         return ExitCode::from(USAGE_EXIT);
     };
 

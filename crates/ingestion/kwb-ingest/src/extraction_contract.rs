@@ -1,17 +1,17 @@
 //! The seam an extractor is written against, and the four things it may not do.
 //!
 //! Everything the trait's signatures name is filed under its own name: [`ReadingKind`] is what
-//! a reading needs, [`ProposedReading`] is what comes back, and [`ExtractionRefused`] is why
+//! a reading needs, [`ProposedReading`] is what comes back, and [`ExtractionError`] is why
 //! nothing did. This file is the contract itself.
 //!
 //! [`ReadingKind`]: crate::ReadingKind
 //! [`ProposedReading`]: crate::ProposedReading
-//! [`ExtractionRefused`]: crate::ExtractionRefused
+//! [`ExtractionError`]: crate::ExtractionError
 
 use kwb_domain::Scope;
 use kwb_model::ContentIdentity;
 
-use crate::ExtractionRefused;
+use crate::ExtractionError;
 use crate::ProposedReading;
 use crate::ReadingKind;
 
@@ -39,7 +39,7 @@ pub trait ExtractionStrategy
     /// Read a source and propose what it says, one reading per passage.
     ///
     /// `needed` is what kind of reading this source takes. An implementation that does not do
-    /// that kind refuses with [`ExtractionRefused::CannotRead`] and proposes nothing.
+    /// that kind refuses with [`ExtractionError::CannotRead`] and proposes nothing.
     ///
     /// # Why many readings and not one
     ///
@@ -79,7 +79,7 @@ pub trait ExtractionStrategy
     ///
     /// # Errors
     ///
-    /// [`ExtractionRefused`] when the source cannot be read or the reader did not answer.
+    /// [`ExtractionError`] when the source cannot be read or the reader did not answer.
     /// Never returned for a source that was read and proposed nothing — that is an empty
     /// reading, and it is a success.
     fn Read(
@@ -87,7 +87,7 @@ pub trait ExtractionStrategy
         source: ContentIdentity,
         content: &[u8],
         needed: ReadingKind,
-    ) -> Result<Vec<ProposedReading>, ExtractionRefused>;
+    ) -> Result<Vec<ProposedReading>, ExtractionError>;
 
     /// The scope assertions from this extractor are made at.
     ///

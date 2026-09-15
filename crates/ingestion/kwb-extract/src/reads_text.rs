@@ -3,7 +3,7 @@
 use kwb_domain::Scope;
 use kwb_ingest::Extraction;
 use kwb_ingest::ExtractionLineage;
-use kwb_ingest::ExtractionRefused;
+use kwb_ingest::ExtractionError;
 use kwb_ingest::ExtractionStrategy;
 use kwb_ingest::ProposedReading;
 use kwb_ingest::ReadingKind;
@@ -95,7 +95,7 @@ const MAXIMUM_PROPOSITIONS: u32 = 32;
 ///
 /// # What it refuses, and why each refusal is a different fact
 ///
-/// - A source needing a look rather than a read: [`ExtractionRefused::CannotRead`]. It does not
+/// - A source needing a look rather than a read: [`ExtractionError::CannotRead`]. It does not
 ///   return an empty reading, because a page nobody could read is not a page with nothing on it.
 /// - Bytes that are not text, or an answer that did not conform: `ReaderFailed`. The reader was
 ///   asked and did not answer usably, so **nothing was learned about the source** and admission
@@ -137,7 +137,7 @@ impl<Reader: InferenceStrategy> ExtractionStrategy for ReadsText<Reader>
     ///
     /// # Errors
     ///
-    /// [`ExtractionRefused`] when the source needs a kind of reading this does not do, when its
+    /// [`ExtractionError`] when the source needs a kind of reading this does not do, when its
     /// bytes are not text, or when the reader did not answer usably for **any** passage. The
     /// last is all-or-nothing by the seam's own rule: a source two thirds read that reported the
     /// shape of a source fully read is the prototype's 1,367 rows again.
@@ -146,11 +146,11 @@ impl<Reader: InferenceStrategy> ExtractionStrategy for ReadsText<Reader>
         source: ContentIdentity,
         content: &[u8],
         needed: ReadingKind,
-    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionError>
     {
         if needed != ReadingKind::Text
         {
-            return Err(ExtractionRefused::CannotRead { needed });
+            return Err(ExtractionError::CannotRead { needed });
         }
 
         let text = Text_Of(content)?;
@@ -172,11 +172,11 @@ impl<Reader: InferenceStrategy> ExtractionStrategy for ReadsText<Reader>
 ///
 /// # Errors
 ///
-/// [`ExtractionRefused::ReaderFailed`] when the bytes are not UTF-8.
-fn Text_Of(content: &[u8]) -> Result<&str, ExtractionRefused>
+/// [`ExtractionError::ReaderFailed`] when the bytes are not UTF-8.
+fn Text_Of(content: &[u8]) -> Result<&str, ExtractionError>
 {
     return core::str::from_utf8(content).map_err(|cause| {
-        return ExtractionRefused::ReaderFailed {
+        return ExtractionError::ReaderFailed {
             cause: format!("the source is not text: {cause}"),
         };
     });
@@ -191,13 +191,13 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
     ///
     /// # Errors
     ///
-    /// [`ExtractionRefused::CannotRead`] when a passage is graded as needing a look rather than a
-    /// read, and [`ExtractionRefused::ReaderFailed`] when the reader did not answer usably.
+    /// [`ExtractionError::CannotRead`] when a passage is graded as needing a look rather than a
+    /// read, and [`ExtractionError::ReaderFailed`] when the reader did not answer usably.
     fn Readings_Of(
         &self,
         source: ContentIdentity,
         text: &str,
-    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionError>
     {
         let mut readings = Vec::new();
         for passage in Passages_Of(text)
@@ -208,7 +208,7 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
             // the capability question stays KWB's.
             if passage.Requires_Page_Images()
             {
-                return Err(ExtractionRefused::CannotRead {
+                return Err(ExtractionError::CannotRead {
                     needed: ReadingKind::Visual,
                 });
             }
@@ -225,13 +225,13 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         &self,
         source: ContentIdentity,
         passage: &Passage,
-    ) -> Result<ProposedReading, ExtractionRefused>
+    ) -> Result<ProposedReading, ExtractionError>
     {
         let passage_text = passage.Text();
         let request = Request_For(&self.model, passage_text);
 
         let answered = self.reader.Infer(&request).map_err(|cause| {
-            return ExtractionRefused::ReaderFailed {
+            return ExtractionError::ReaderFailed {
                 cause: format!("{cause}"),
             };
         })?;
@@ -366,19 +366,6 @@ fn Where_In(passage: &Passage) -> String
     );
 }
 
-/// The one refusal a reader that did not answer usably gets.
-///
-/// Written once because the cause is the whole of what differs between the sites that make it,
-/// and spelling the mapping out at each of them made a short check read as a five-line one. Every
-/// reason `Proposed_From` can reject an answer is this same fact about the reader, so the
-/// argument names which part of the answer was wrong and nothing else varies.
-fn Malformed(what: &str) -> ExtractionRefused
-{
-    return ExtractionRefused::ReaderFailed {
-        cause: format!("the answer is not what was asked for: {what}"),
-    };
-}
-
 /// What the answer proposes, or a refusal if it is not an answer of that shape.
 ///
 /// # This was written as a total function and that was wrong
@@ -406,9 +393,9 @@ fn Malformed(what: &str) -> ExtractionRefused
 ///
 /// # Errors
 ///
-/// [`ExtractionRefused::ReaderFailed`] when the answer is not a sequence of records each
+/// [`ExtractionError::ReaderFailed`] when the answer is not a sequence of records each
 /// carrying a textual `concept` and `claim`.
-fn Proposed_From(answer: &AnswerValue) -> Result<Vec<Extraction>, ExtractionRefused>
+fn Proposed_From(answer: &AnswerValue) -> Result<Vec<Extraction>, ExtractionError>
 {
     let Some(propositions) = answer.As_Sequence()
     else
@@ -430,8 +417,8 @@ fn Proposed_From(answer: &AnswerValue) -> Result<Vec<Extraction>, ExtractionRefu
 ///
 /// # Errors
 ///
-/// [`ExtractionRefused::ReaderFailed`] when the record carries no textual `concept` or `claim`.
-fn Proposed_Of(proposition: &AnswerValue) -> Result<Extraction, ExtractionRefused>
+/// [`ExtractionError::ReaderFailed`] when the record carries no textual `concept` or `claim`.
+fn Proposed_Of(proposition: &AnswerValue) -> Result<Extraction, ExtractionError>
 {
     let Some(concept) = proposition.Field("concept").and_then(AnswerValue::As_Text)
     else
@@ -447,4 +434,17 @@ fn Proposed_Of(proposition: &AnswerValue) -> Result<Extraction, ExtractionRefuse
     let extraction = Extraction::New(concept.to_owned(), claim.to_owned());
 
     return Ok(extraction);
+}
+
+/// The one refusal a reader that did not answer usably gets.
+///
+/// Written once because the cause is the whole of what differs between the sites that make it,
+/// and spelling the mapping out at each of them made a short check read as a five-line one. Every
+/// reason `Proposed_From` can reject an answer is this same fact about the reader, so the
+/// argument names which part of the answer was wrong and nothing else varies.
+fn Malformed(what: &str) -> ExtractionError
+{
+    return ExtractionError::ReaderFailed {
+        cause: format!("the answer is not what was asked for: {what}"),
+    };
 }

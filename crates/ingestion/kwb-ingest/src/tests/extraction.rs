@@ -165,11 +165,11 @@ impl ExtractionStrategy for TextOnly
         source: kwb_model::ContentIdentity,
         content: &[u8],
         needed: ReadingKind,
-    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionError>
     {
         if needed != ReadingKind::Text
         {
-            return Err(ExtractionRefused::CannotRead { needed });
+            return Err(ExtractionError::CannotRead { needed });
         }
 
         // Deliberately trivial: what a real reader proposes is not this test's subject. What is
@@ -207,7 +207,7 @@ fn Test_A_Text_Reader_Should_Refuse_A_Source_That_Needs_Looking_At()
     Assert_Unmet_And_Not_Evidence_Of_Absence(&report, "a page nobody could read");
     assert_eq!(
         report.Refusal(),
-        Some(&ExtractionRefused::CannotRead {
+        Some(&ExtractionError::CannotRead {
             needed: ReadingKind::Visual
         }),
         "the refusal must say which kind of reading was needed, or a report cannot say what \
@@ -250,7 +250,7 @@ impl ExtractionStrategy for Confused
         _source: kwb_model::ContentIdentity,
         _content: &[u8],
         _needed: ReadingKind,
-    ) -> Result<Vec<ProposedReading>, ExtractionRefused>
+    ) -> Result<Vec<ProposedReading>, ExtractionError>
     {
         return Ok(vec![ProposedReading::Of(
             Document::Of(b"some other document".to_vec()).Identity(),
@@ -286,7 +286,7 @@ fn Test_A_Reading_About_Another_Document_Should_Not_Be_Cited_As_This_One()
     assert!(
         report
             .Refusal()
-            .is_some_and(|refusal| return matches!(refusal, ExtractionRefused::ReaderFailed { .. })),
+            .is_some_and(|refusal| return matches!(refusal, ExtractionError::ReaderFailed { .. })),
         "a reader that answered about the wrong document was not reported as having failed"
     );
 }

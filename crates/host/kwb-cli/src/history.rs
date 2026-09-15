@@ -15,20 +15,91 @@
 //! `merge_losers`, which says what was merged; this says what the graph looked like before it.
 //! Those two together are the audit that incident could not perform.
 
+use core::num::ParseIntError;
 use std::process::ExitCode;
 
 use kwb_domain::{KnowledgeGraph, Published_At, Replay};
 use kwb_platform_std::FileRecordLog;
 
-use crate::arguments::{Nothing_Left, Store_Root_From};
+use crate::arguments::{LeadingFlag, Nothing_Left, Store_Root_From};
 use crate::keeping::{Log_For, Records_Of};
 use crate::refusals::Complained;
 use crate::{FAILURE_EXIT, USAGE_EXIT};
 
+/// Why a `history` run could not answer what it was asked.
+///
+/// The count a `--through` or `--as-of` flag carries is the one thing this command reads
+/// without wording for itself, and the parser knows something the command does not: whether the
+/// text held a character that is not a digit, or a number too large for the type. Those are
+/// different things for a person to fix, so [`ParseIntError`]'s own words are carried into the
+/// complaint rather than replaced by a sentence that cannot tell them apart.
+#[derive(Debug)]
+enum AskedFailure
+{
+    /// A `--through` value that is not a count.
+    NotACount
+    {
+        /// The value, as it was given.
+        value: String,
+
+        /// Why the parser refused it.
+        cause: ParseIntError,
+    },
+
+    /// An `--as-of` value that is not a time in unix seconds.
+    NotATime
+    {
+        /// The value, as it was given.
+        value: String,
+
+        /// Why the parser refused it.
+        cause: ParseIntError,
+    },
+
+    /// A question this log cannot answer: a count past its end, or a log holding nothing
+    /// timestamped to place an instant against.
+    Unanswerable
+    {
+        /// The complaint, worded where the log's contents are known.
+        said: String,
+    },
+}
+
+impl core::fmt::Display for AskedFailure
+{
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    {
+        return match self
+        {
+            Self::NotACount { value, cause } => write!(
+                formatter,
+                "--through takes a count, and {value:?} is not one: {cause}"
+            ),
+            Self::NotATime { value, cause } => write!(
+                formatter,
+                "--as-of takes a time in unix seconds, and {value:?} is not one: {cause}"
+            ),
+            Self::Unanswerable { said } => write!(formatter, "{said}"),
+        };
+    }
+}
+
+impl core::error::Error for AskedFailure
+{
+}
+
+impl From<String> for AskedFailure
+{
+    fn from(said: String) -> Self
+    {
+        return Self::Unanswerable { said };
+    }
+}
+
 /// `kwb history --store <dir> [--through <count>]`: the graph as of a publication count.
 pub(crate) fn History_Command(arguments: &[&str]) -> ExitCode
 {
-    let (store_root, rest) = Store_Root_From(arguments);
+    let LeadingFlag { value: store_root, rest } = Store_Root_From(arguments);
     let log = match Log_For(store_root)
     {
         Ok(Some(log)) => log,
@@ -66,8 +137,9 @@ fn Reported_History(log: &FileRecordLog, rest: &[&str]) -> Result<(), ExitCode>
     let records = Records_Of(log)
         .map_err(|complaint| return Complained("kwb history", &complaint, FAILURE_EXIT))?;
 
-    let through = Through_From(rest, &records)
-        .map_err(|complaint| return Complained("kwb history", &complaint, USAGE_EXIT))?;
+    let through = Through_From(rest, &records).map_err(|complaint| {
+        return Complained("kwb history", &complaint.to_string(), USAGE_EXIT);
+    })?;
 
     let Some(prefix) = records.get(..through)
     else
@@ -90,22 +162,27 @@ fn Reported_History(log: &FileRecordLog, rest: &[&str]) -> Result<(), ExitCode>
 /// A count past the end of the log. Refused rather than clamped: a run that asked for more
 /// history than exists and was quietly given everything would be told the corpus is older than
 /// it is, and would have no way to tell that from a corpus that really is that old.
-fn Through_From(arguments: &[&str], records: &[String]) -> Result<usize, String>
+fn Through_From(arguments: &[&str], records: &[String]) -> Result<usize, AskedFailure>
 {
     let through = match arguments
     {
         [] => records.len(),
         [flag, value, rest @ ..] if *flag == "--through" => Through_Count(value, rest)?,
         [flag, value, rest @ ..] if *flag == "--as-of" => As_Of_Count(value, rest, records)?,
-        _ => return Err(format!("unexpected argument {:?}", arguments.first())),
+        _ => {
+            return Err(AskedFailure::from(format!(
+                "unexpected argument {:?}",
+                arguments.first()
+            )))
+        }
     };
 
     if through > records.len()
     {
-        return Err(format!(
+        return Err(AskedFailure::from(format!(
             "--through {through} was asked for and the log holds {} publications",
             records.len()
-        ));
+        )));
     }
 
     return Ok(through);
@@ -116,13 +193,16 @@ fn Through_From(arguments: &[&str], records: &[String]) -> Result<usize, String>
 /// # Errors
 ///
 /// A value that is not a count, and anything the flag left behind.
-fn Through_Count(value: &str, rest: &[&str]) -> Result<usize, String>
+fn Through_Count(value: &str, rest: &[&str]) -> Result<usize, AskedFailure>
 {
     Nothing_Left(rest)?;
 
-    return value
-        .parse::<usize>()
-        .map_err(|_| return format!("--through takes a count, and {value:?} is not one"));
+    return value.parse::<usize>().map_err(|cause| {
+        return AskedFailure::NotACount {
+            value: value.to_owned(),
+            cause,
+        };
+    });
 }
 
 /// The count a `--as-of` flag asks for, by way of the time it named.
@@ -131,15 +211,18 @@ fn Through_Count(value: &str, rest: &[&str]) -> Result<usize, String>
 ///
 /// A value that is not unix seconds, anything the flag left behind, and a log in which nothing
 /// carries a time.
-fn As_Of_Count(value: &str, rest: &[&str], records: &[String]) -> Result<usize, String>
+fn As_Of_Count(value: &str, rest: &[&str], records: &[String]) -> Result<usize, AskedFailure>
 {
     Nothing_Left(rest)?;
 
-    let asked = value.parse::<i64>().map_err(|_| {
-        return format!("--as-of takes a time in unix seconds, and {value:?} is not one");
+    let asked = value.parse::<i64>().map_err(|cause| {
+        return AskedFailure::NotATime {
+            value: value.to_owned(),
+            cause,
+        };
     })?;
 
-    return Through_Time(records, asked);
+    return Through_Time(records, asked).map_err(AskedFailure::from);
 }
 
 /// How many publications had happened by a time.

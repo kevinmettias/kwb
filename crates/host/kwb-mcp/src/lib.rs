@@ -36,8 +36,10 @@ use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::FileRecordLog;
 use kwb_retrieval::{CurrentQueries, HeldAssertion, HeldClaim, HistoricalQueries};
 
+mod store;
 mod world;
 
+pub use store::Store;
 pub use world::World;
 
 /// The corpus a host serves: what earlier runs published, replayed.
@@ -164,25 +166,6 @@ pub fn Answer(graph: &KnowledgeGraph, tool: &str, argument: &str) -> Option<Vec<
     };
 }
 
-/// One merge loser: what it was, what it became, and what authorised that.
-///
-/// The reason is rendered because a merge log an audit cannot read the reasons out of is the
-/// log the prototype had before `merge-audit` needed one — `D17`.
-fn Merge_Loser_Line(held: &kwb_domain::Versioned<kwb_domain::Concept>) -> String
-{
-    let into = held
-        .Standing()
-        .Superseded_By()
-        .map_or_else(|| return "?".to_owned(), |by| return by.Render());
-
-    return format!(
-        "{} -> {} ({})",
-        held.Value().Canonical_Name(),
-        into,
-        held.Standing().Because().unwrap_or("no reason recorded")
-    );
-}
-
 /// A concept's neighbourhood, rendered.
 ///
 /// Resolved by name, because a person at a terminal has a name and an agent that called
@@ -242,58 +225,23 @@ fn Citation_Lines(assertions: &[&Assertion]) -> Vec<String>
         .collect();
 }
 
-/// The tool listing, and what the corpus holds.
-pub fn Print_Surface(graph: &KnowledgeGraph, without_a_store: bool)
+/// One merge loser: what it was, what it became, and what authorised that.
+///
+/// The reason is rendered because a merge log an audit cannot read the reasons out of is the
+/// log the prototype had before `merge-audit` needed one — `D17`.
+fn Merge_Loser_Line(held: &kwb_domain::Versioned<kwb_domain::Concept>) -> String
 {
-    let current = CurrentQueries::Over(graph);
-    let historical = HistoricalQueries::Over(graph);
+    let into = held
+        .Standing()
+        .Superseded_By()
+        .map_or_else(|| return "?".to_owned(), |by| return by.Render());
 
-    Print_Tools();
-    Print_Corpus(current, historical, without_a_store);
-    Print_Absences();
-}
-
-/// The header and the tool table itself, in declaration order.
-fn Print_Tools()
-{
-    println!("kwb-mcp: {} read-only tools", TOOLS.len());
-    for tool in TOOLS
-    {
-        println!("  {:<14} [{}]  {}", tool.name, tool.world.Name(), tool.summary);
-    }
-}
-
-/// The corpus line, how to ask a question of it, and what an empty listing means.
-fn Print_Corpus(
-    current: CurrentQueries<'_>,
-    historical: HistoricalQueries<'_>,
-    without_a_store: bool,
-)
-{
-    println!();
-    println!("corpus     {} current, {} held", current.Concept_Count(), historical.Concept_Count());
-    println!();
-    println!("usage: kwb-mcp <store-dir> [<tool> [<argument>]]");
-    println!();
-    if without_a_store
-    {
-        println!("Pass a store directory to serve a real corpus; this listing is over an");
-        println!("empty graph.");
-        println!();
-    }
-}
-
-/// What this surface does not have, said rather than left to be discovered by its absence.
-fn Print_Absences()
-{
-    println!("No transport is wired. Every tool above reads a type with no write path, which");
-    println!("kwb-retrieval's own tests check; mutation is excluded by the types rather than");
-    println!("by this file remembering to exclude it.");
-    println!();
-    println!("Five of the prototype's nine tools are absent on purpose: path and");
-    println!("list_connection_hypotheses need typed relations (D-011 holds them), proofs_for");
-    println!("and code_for need artifact kinds the kernel has not declared, and gaps_in_source");
-    println!("needs coverage stored per source.");
+    return format!(
+        "{} -> {} ({})",
+        held.Value().Canonical_Name(),
+        into,
+        held.Standing().Because().unwrap_or("no reason recorded")
+    );
 }
 
 /// Everything a concept ever carried, each line saying what became of it.
@@ -367,6 +315,60 @@ fn Held_Assertion_Lines(assertions: &[HeldAssertion<'_>]) -> Vec<String>
             return format!("cited    {} [{}]", assertion.held.Value().Source(), standing);
         })
         .collect();
+}
+
+/// The tool listing, and what the corpus holds.
+pub fn Print_Surface(graph: &KnowledgeGraph, store: Store)
+{
+    let current = CurrentQueries::Over(graph);
+    let historical = HistoricalQueries::Over(graph);
+
+    Print_Tools();
+    Print_Corpus(current, historical, store);
+    Print_Absences();
+}
+
+/// The header and the tool table itself, in declaration order.
+fn Print_Tools()
+{
+    println!("kwb-mcp: {} read-only tools", TOOLS.len());
+    for tool in TOOLS
+    {
+        println!("  {:<14} [{}]  {}", tool.name, tool.world.Name(), tool.summary);
+    }
+}
+
+/// The corpus line, how to ask a question of it, and what an empty listing means.
+fn Print_Corpus(
+    current: CurrentQueries<'_>,
+    historical: HistoricalQueries<'_>,
+    store: Store,
+)
+{
+    println!();
+    println!("corpus     {} current, {} held", current.Concept_Count(), historical.Concept_Count());
+    println!();
+    println!("usage: kwb-mcp <store-dir> [<tool> [<argument>]]");
+    println!();
+    if store.Is_Absent()
+    {
+        println!("Pass a store directory to serve a real corpus; this listing is over an");
+        println!("empty graph.");
+        println!();
+    }
+}
+
+/// What this surface does not have, said rather than left to be discovered by its absence.
+fn Print_Absences()
+{
+    println!("No transport is wired. Every tool above reads a type with no write path, which");
+    println!("kwb-retrieval's own tests check; mutation is excluded by the types rather than");
+    println!("by this file remembering to exclude it.");
+    println!();
+    println!("Five of the prototype's nine tools are absent on purpose: path and");
+    println!("list_connection_hypotheses need typed relations (D-011 holds them), proofs_for");
+    println!("and code_for need artifact kinds the kernel has not declared, and gaps_in_source");
+    println!("needs coverage stored per source.");
 }
 
 /// What became of something, with its reason when it has one.

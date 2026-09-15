@@ -46,4 +46,6 @@ impl fmt::Display for StorageError
     }
 }
 
-impl core::error::Error for StorageError {}
+impl core::error::Error for StorageError
+{
+}

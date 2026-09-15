@@ -48,4 +48,6 @@ impl fmt::Display for IdentityError
     }
 }
 
-impl core::error::Error for IdentityError {}
+impl core::error::Error for IdentityError
+{
+}

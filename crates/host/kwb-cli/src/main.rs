@@ -43,7 +43,7 @@ mod usage;
 use std::process::ExitCode;
 
 use kwb_domain::KnowledgeGraph;
-use kwb_ingest::{AdmissionReport, ExtractionRefused};
+use kwb_ingest::{AdmissionReport, ExtractionError};
 
 use crate::admission::Run_Admission;
 use crate::closing::Close_Command;
@@ -166,6 +166,50 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
     return Run_Admission(path, rest);
 }
 
+/// Whether what a run kept outlived it.
+///
+/// The report says this twice about two different things — the bytes a source was kept as, and
+/// the publications recording what was learned — and prints the same words for both. At a call
+/// site a bare `true` says neither which of the two it is nor what it means, and the two
+/// positions swap without the compiler objecting.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Persistence
+{
+    /// On disk, under the store the run was given.
+    Kept,
+
+    /// Built and answered from, and gone when the process ends.
+    InMemoryOnly,
+}
+
+impl Persistence
+{
+    /// Whether a store that reports itself durable kept what it was given.
+    ///
+    /// The conversion sits here rather than at each call site because the two stores report the
+    /// same fact in their own vocabularies — a directory that exists, a log that was opened —
+    /// and the report is where those become the one vocabulary it prints in.
+    pub(crate) fn Of(durable: bool) -> Self
+    {
+        if durable
+        {
+            return Self::Kept;
+        }
+
+        return Self::InMemoryOnly;
+    }
+
+    /// The words the report prints for this state.
+    fn Name(self) -> &'static str
+    {
+        return match self
+        {
+            Self::Kept => "kept",
+            Self::InMemoryOnly => "in memory only",
+        };
+    }
+}
+
 /// What one admission found, in the library's own vocabulary.
 ///
 /// `Name` is the same string a journal would carry, so a person reading a terminal and a report
@@ -173,8 +217,8 @@ fn Admit_Command(arguments: &[&str]) -> ExitCode
 fn Report_Admission(
     report: &AdmissionReport,
     published: &KnowledgeGraph,
-    durable: bool,
-    knowledge_kept: bool,
+    documents: Persistence,
+    knowledge: Persistence,
 )
 {
     println!("source     {}", Address_Of(report));
@@ -183,8 +227,8 @@ fn Report_Admission(
     println!("claims     {}", published.Current().Claims().len());
     println!("citations  {}", published.Current().Assertions().len());
     println!("refused    {}", report.Normalized().Linked().Refused());
-    println!("documents  {}", if durable { "kept" } else { "in memory only" });
-    println!("knowledge  {}", if knowledge_kept { "kept" } else { "in memory only" });
+    println!("documents  {}", documents.Name());
+    println!("knowledge  {}", knowledge.Name());
 
     if let Some(refusal) = report.Refusal()
     {
@@ -197,11 +241,11 @@ fn Report_Admission(
 ///
 /// A person who passed `--says` and still sees this needs to know it was not their omission,
 /// and a single sentence for every cause could not tell them that.
-fn Report_Refusal(refusal: &ExtractionRefused)
+fn Report_Refusal(refusal: &ExtractionError)
 {
     println!();
     println!("{refusal}.");
-    if matches!(refusal, ExtractionRefused::NotRead)
+    if matches!(refusal, ExtractionError::NotRead)
     {
         println!("Pass --says to supply what a passage asserts; this tool does not read");
         println!("the document and decide for itself.");

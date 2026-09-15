@@ -17,7 +17,7 @@ use kwb_store::StoreError;
 use kwb_store::Written;
 
 use crate::Extraction;
-use crate::ExtractionRefused;
+use crate::ExtractionError;
 use crate::ProposedReading;
 use crate::ExtractionStrategy;
 use crate::Link_Concepts;
@@ -58,7 +58,7 @@ pub struct AdmissionReport
     coverage: Coverage,
     normalized: Normalized,
     source: Option<Written>,
-    refusal: Option<ExtractionRefused>,
+    refusal: Option<ExtractionError>,
     assertions: Vec<Assertion>,
 }
 
@@ -110,7 +110,7 @@ impl AdmissionReport
     /// reading happened has [`None`] here, including a reading that proposed nothing, because
     /// that one is not a refusal.
     #[must_use]
-    pub const fn Refusal(&self) -> Option<&ExtractionRefused>
+    pub const fn Refusal(&self) -> Option<&ExtractionError>
     {
         return self.refusal.as_ref();
     }
@@ -238,7 +238,7 @@ impl AdmissionReport
 ///
 /// It also puts the refusal where it can be acted on. A list cannot distinguish *the reader
 /// failed* from *the reader found nothing*; both arrive as an empty slice. A reader returns
-/// [`ExtractionRefused`] for the first, which becomes [`Coverage::Unmet`] below and never
+/// [`ExtractionError`] for the first, which becomes [`Coverage::Unmet`] below and never
 /// [`Coverage::Barren`].
 ///
 /// # What is still true
@@ -296,28 +296,73 @@ pub fn Admit(
 ///
 /// # Errors
 ///
-/// [`ExtractionRefused::NotRead`] when no reader was offered at all, and
-/// [`ExtractionRefused::ReaderFailed`] when the reading turns out to be about another document.
+/// [`ExtractionError::NotRead`] when no reader was offered at all, and
+/// [`ExtractionError::ReaderFailed`] when the reading turns out to be about another document.
 fn Ask_The_Reader(
     reader: Option<&dyn ExtractionStrategy>,
     needed: ReadingKind,
     document: &Document,
-) -> Result<Vec<ProposedReading>, ExtractionRefused>
+) -> Result<Vec<ProposedReading>, ExtractionError>
 {
     return match reader
     {
         Some(reader) => reader
             .Read(document.Identity(), document.Content(), needed)
             .and_then(|readings| return Read_The_Right_Document(readings, document.Identity())),
-        None => Err(ExtractionRefused::NotRead),
+        None => Err(ExtractionError::NotRead),
     };
+}
+
+/// The reading, if it is about the document it was handed.
+///
+/// # Why this is checked rather than assumed
+///
+/// `Admit` cites the document *it* wrote, not the one the reading names, and it did so without
+/// ever comparing them. A reader that returned a reading about a different document therefore
+/// had its proposals attributed to this one, silently and with a citation that resolved
+/// perfectly — to the wrong bytes.
+///
+/// That a citation resolves to the exact bytes a claim was read out of is the strongest thing
+/// this repository claims, and `D-006` is the dependency edge that rests on it. An unchecked
+/// field is not provenance; it is a field.
+///
+/// # Why the disagreement is a refusal and not a panic
+///
+/// It is a fault in the reader, and a fault in a reader is the case [`ExtractionError`]
+/// already describes: it was asked and did not answer usably. Nothing was learned about *this*
+/// source, which is what makes the outcome [`Coverage::Unmet`] rather than anything else — the
+/// same landing every other unanswered reading gets, reached without a variant that would only
+/// ever mean "the reader has a bug".
+///
+/// # Errors
+///
+/// [`ExtractionError::ReaderFailed`] when the reading names another document.
+fn Read_The_Right_Document(
+    readings: Vec<ProposedReading>,
+    handed: ContentIdentity,
+) -> Result<Vec<ProposedReading>, ExtractionError>
+{
+    let Some(reading) = readings.iter().find(|reading| return reading.Source() != handed)
+    else
+    {
+        return Ok(readings);
+    };
+
+    return Err(ExtractionError::ReaderFailed {
+        cause: format!(
+            "the reading is about {}, and the document handed to it was {}. Refusing to cite \
+             the second for what was read out of the first",
+            reading.Source().Render(),
+            handed.Render()
+        ),
+    });
 }
 
 /// What an admission reports when its reading did not happen.
 ///
 /// The source was admitted and only the reading did not, which is why the coverage is
 /// [`Coverage::Unmet`] and the refusal is carried beside it rather than folded into it.
-fn Report_Of_Refusal(source: Written, refusal: ExtractionRefused) -> AdmissionReport
+fn Report_Of_Refusal(source: Written, refusal: ExtractionError) -> AdmissionReport
 {
     return AdmissionReport {
         coverage: Coverage::Unmet {
@@ -328,16 +373,6 @@ fn Report_Of_Refusal(source: Written, refusal: ExtractionRefused) -> AdmissionRe
         refusal: Some(refusal),
         assertions: Vec::new(),
     };
-}
-
-/// The scope a reading's assertions are made at.
-///
-/// A reader that was never asked has no scope to offer, and [`Scope::Unstated`] is what that
-/// is. This spelled it `Scope::Named("")` until `KWB-50`, which is how a blank `--scope`
-/// came to record the same thing as no `--scope` at all.
-fn Scope_Of(reader: Option<&dyn ExtractionStrategy>) -> Scope
-{
-    return reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
 }
 
 /// Every passage's proposals, together.
@@ -374,49 +409,14 @@ fn Assertions_Citing(normalized: &Normalized, source: &Written, scope: &Scope) -
         .collect();
 }
 
-/// The reading, if it is about the document it was handed.
+/// The scope a reading's assertions are made at.
 ///
-/// # Why this is checked rather than assumed
-///
-/// `Admit` cites the document *it* wrote, not the one the reading names, and it did so without
-/// ever comparing them. A reader that returned a reading about a different document therefore
-/// had its proposals attributed to this one, silently and with a citation that resolved
-/// perfectly — to the wrong bytes.
-///
-/// That a citation resolves to the exact bytes a claim was read out of is the strongest thing
-/// this repository claims, and `D-006` is the dependency edge that rests on it. An unchecked
-/// field is not provenance; it is a field.
-///
-/// # Why the disagreement is a refusal and not a panic
-///
-/// It is a fault in the reader, and a fault in a reader is the case [`ExtractionRefused`]
-/// already describes: it was asked and did not answer usably. Nothing was learned about *this*
-/// source, which is what makes the outcome [`Coverage::Unmet`] rather than anything else — the
-/// same landing every other unanswered reading gets, reached without a variant that would only
-/// ever mean "the reader has a bug".
-///
-/// # Errors
-///
-/// [`ExtractionRefused::ReaderFailed`] when the reading names another document.
-fn Read_The_Right_Document(
-    readings: Vec<ProposedReading>,
-    handed: ContentIdentity,
-) -> Result<Vec<ProposedReading>, ExtractionRefused>
+/// A reader that was never asked has no scope to offer, and [`Scope::Unstated`] is what that
+/// is. This spelled it `Scope::Named("")` until `KWB-50`, which is how a blank `--scope`
+/// came to record the same thing as no `--scope` at all.
+fn Scope_Of(reader: Option<&dyn ExtractionStrategy>) -> Scope
 {
-    let Some(reading) = readings.iter().find(|reading| return reading.Source() != handed)
-    else
-    {
-        return Ok(readings);
-    };
-
-    return Err(ExtractionRefused::ReaderFailed {
-        cause: format!(
-            "the reading is about {}, and the document handed to it was {}. Refusing to cite \
-             the second for what was read out of the first",
-            reading.Source().Render(),
-            handed.Render()
-        ),
-    });
+    return reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
 }
 
 /// The outcome of an admission whose reading **happened**, derived from what it found.

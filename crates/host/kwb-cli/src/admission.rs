@@ -13,14 +13,14 @@ use std::process::ExitCode;
 
 use kwb_domain::Scope;
 use kwb_ingest::{
-    Admit, Extraction, ExtractionLineage, ExtractionStrategy, ReadingKind, SourceLocation,
-    Stated,
+    Admit, AdmissionReport, Extraction, ExtractionLineage, ExtractionStrategy, ReadingKind,
+    SourceLocation, Stated,
 };
 
-use crate::arguments::Store_Root_From;
+use crate::arguments::{LeadingFlag, Store_Root_From};
 use crate::keeping::{Kept, Kept_At, Now, Record_Into};
 use crate::refusals::{Complained, Complained_With_Usage};
-use crate::{Report_Admission, FAILURE_EXIT};
+use crate::{Persistence, Report_Admission, FAILURE_EXIT};
 
 /// One admission, from the flags that describe it to the bytes they are about.
 ///
@@ -66,7 +66,7 @@ fn Arguments_Of_Admit<'arguments>(
     arguments: &'arguments [&'arguments str],
 ) -> Result<(Option<&'arguments str>, Scope, Vec<Extraction>), String>
 {
-    let (store_root, rest) = Store_Root_From(arguments);
+    let LeadingFlag { value: store_root, rest } = Store_Root_From(arguments);
     let (scope, rest) = Scope_From(rest)?;
     let extractions = Extractions_From(rest)?;
 
@@ -96,9 +96,12 @@ fn Scope_From<'arguments>(
         {
             Some(scope) => Ok((scope, rest)),
             None => Err(format!(
-                "--scope was given {name:?}, which names nothing. Leave --scope out to record \
-                 that the source did not say how far it reached; that is a real answer and is \
-                 not the same as this"
+                concat!(
+                    "--scope was given {name:?}, which names nothing. Leave --scope out to ",
+                    "record that the source did not say how far it reached; that is a real ",
+                    "answer and is not the same as this"
+                ),
+                name = name
             )),
         },
         _ => Ok((Scope::Unstated(), arguments)),
@@ -195,13 +198,28 @@ fn Admitted(bytes: Vec<u8>, said: Option<&Stated>, kept: &mut Kept) -> ExitCode
         Err(refusal) => return Complained("kwb admit", &refusal.to_string(), FAILURE_EXIT),
     };
 
-    let published = match Record_Into(kept.recorded.log.as_ref(), &report, Some(Now()))
+    return Finished_Admission(&report, kept);
+}
+
+/// What the run published, kept and then reported.
+///
+/// Split from [`Admitted`] because the pipeline call and the run's tail are two things a reader
+/// checks separately: that the bytes went in through the one door, and that what came out was
+/// recorded before the report claimed it.
+fn Finished_Admission(report: &AdmissionReport, kept: &mut Kept) -> ExitCode
+{
+    let published = match Record_Into(kept.recorded.log.as_ref(), report, Some(Now()))
     {
         Ok(()) => report.Published_Into(&kept.recorded.known),
         Err(complaint) => return Complained("kwb admit", &complaint, FAILURE_EXIT),
     };
 
-    Report_Admission(&report, &published, kept.store.Is_Durable(), kept.recorded.log.is_some());
+    Report_Admission(
+        report,
+        &published,
+        Persistence::Of(kept.store.Is_Durable()),
+        Persistence::Of(kept.recorded.log.is_some()),
+    );
 
     return ExitCode::SUCCESS;
 }
