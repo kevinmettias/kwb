@@ -162,7 +162,7 @@ fn Assert_Same_Assertion_Identities(replayed: &KnowledgeGraph, original: &Knowle
 }
 
 #[test]
-fn Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Held()
+fn Test_Replay_Records_Should_Hold_What_The_Original_Held()
 {
     let corpus = Corpus();
 
@@ -283,18 +283,31 @@ fn Test_A_Claim_Whose_Concept_Was_Never_Published_Should_Be_Refused()
     );
 }
 
-#[test]
-fn Test_A_Record_Of_An_Unknown_Shape_Should_Be_Refused()
+/// Records this writer could not have produced, one of each way of not being one.
+///
+/// A table rather than a list inside the test, so that a case added here is seen by every test that
+/// asks the same question of a log -- which is the shape the rest of this file uses for the
+/// fixtures it reuses.
+fn Records_This_Writer_Could_Not_Have_Produced() -> [String; 6]
 {
-    for record in [
+    return [
+        // No record at all, and a record with a kind and nothing else.
         String::new(),
         "concept".to_owned(),
+        // A concept record at the claim's arity, so the kind and the shape disagree.
         format!("concept{SEPARATOR}asserted{SEPARATOR}{SEPARATOR}a{SEPARATOR}b"),
+        // A kind no writer here writes.
         format!("unknown{SEPARATOR}asserted{SEPARATOR}{SEPARATOR}a"),
         // A successor where none belongs, and none where one does.
         format!("concept{SEPARATOR}asserted{SEPARATOR}abcd{SEPARATOR}a"),
         format!("concept{SEPARATOR}superseded{SEPARATOR}{SEPARATOR}a"),
-    ]
+    ];
+}
+
+#[test]
+fn Test_A_Record_Of_An_Unknown_Shape_Should_Be_Refused()
+{
+    for record in Records_This_Writer_Could_Not_Have_Produced()
     {
         assert!(
             Replay_Records(std::slice::from_ref(&record)).is_err(),
@@ -329,6 +342,15 @@ fn Fields_Of_Record(record: &str) -> usize
 
 // ---- KWB-50: a stated scope and an unstated one are two different records ----
 
+/// Text that names nothing, in the four shapes a person or a shell actually supplies.
+///
+/// Named rather than written inside the test, because [`Scope::Named`] answers the same question
+/// about each of them and `tests/scope.rs` asks it of the same four.
+fn Names_That_Say_Nothing() -> [&'static str; 4]
+{
+    return ["", "   ", "\t", "\n  \n"];
+}
+
 #[test]
 fn Test_Text_That_Names_Nothing_Should_Not_Name_A_Scope()
 {
@@ -336,7 +358,7 @@ fn Test_Text_That_Names_Nothing_Should_Not_Name_A_Scope()
     // `kwb admit --scope "   "` came to write the record of a source that said nothing about
     // how far it reached. Closing it here rather than at the command line is what makes it
     // unreachable instead of guarded in one place.
-    for names_nothing in ["", "   ", "\t", "\n  \n"]
+    for names_nothing in Names_That_Say_Nothing()
     {
         assert_eq!(
             Scope::Named(names_nothing),

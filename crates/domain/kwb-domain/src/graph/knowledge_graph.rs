@@ -182,3 +182,179 @@ pub(crate) fn Ordered_Entries<Value: Clone>(held: Option<&Held<Value>>) -> Vec<&
     entries.sort_by_key(|(identity, _)| return *identity);
     return entries.into_iter().map(|(_, value)| return value).collect();
 }
+
+#[cfg(test)]
+mod tests
+{
+    //! The five functions above that no caller outside this crate can reach.
+    //!
+    //! # Why these tests sit here rather than in `tests/knowledge_graph.rs`
+    //!
+    //! [`Held_Concepts`], [`Held_Claims`], [`Held_Assertions`], [`Is_Concept_Current`] and
+    //! [`Ordered_Entries`] are `pub(crate)`, and a file under `tests/` compiles as its own package:
+    //! it can see a crate's public surface and nothing else. The unit a test belongs to is the stem
+    //! of the file it sits in, and this file's stem is `knowledge_graph`, so the module beside the
+    //! functions is where their tests go. The public surface of this file is asserted from outside,
+    //! in `tests/knowledge_graph.rs`; this is the half that cannot be.
+    //!
+    //! # What is worth asserting about the innards
+    //!
+    //! Three of the five are the maps the reads walk, and *absent* is a case rather than an error: a
+    //! graph built by publishing only assertions has never had a concept map, and every read over it
+    //! has to answer that without a branch. [`Is_Concept_Current`] is the rule the claim and
+    //! assertion reads compose with, and it has to answer *not current* about a concept it has never
+    //! been shown -- including one that was published and then closed, which is the case the read
+    //! exists to exclude. [`Ordered_Entries`] is the whole of the ordering guarantee this crate
+    //! makes: the map is a hash trie, so a listing taken in the map's own order is one that changes
+    //! between runs for no reason anybody could account for.
+
+    use super::*;
+    use crate::Standing;
+
+    /// Why the concept the fixtures close was withdrawn.
+    const BECAUSE: &str = "the concept was withdrawn by its author";
+
+    /// A concept published as asserted, which is the ordinary case.
+    fn Asserted_Concept(name: &str) -> Versioned<Concept>
+    {
+        return Versioned::Asserted(Concept::Named(name));
+    }
+
+    #[test]
+    fn Test_Held_Concepts_Should_Be_Absent_Until_Something_Is_Published()
+    {
+        assert!(
+            KnowledgeGraph::Empty().Held_Concepts().is_none(),
+            "a graph that has published nothing hands out a concept map, so `Empty` is not the \
+             zero of the fold the three `With_` functions perform"
+        );
+
+        let concept = Concept::Named("entropy");
+        let graph = KnowledgeGraph::Empty().With_Concept(Versioned::Asserted(concept.clone()));
+
+        let held = graph.Held_Concepts().expect("a published concept has a map to be held in");
+        assert!(
+            held.Get(&concept.Identity()).is_some(),
+            "the concept map does not hold the concept that was published into it"
+        );
+    }
+
+    #[test]
+    fn Test_Held_Claims_Should_Be_Absent_Until_Something_Is_Published()
+    {
+        // Publishing a concept does not create the claim map: the three maps are separate, and a
+        // graph holding one kind of thing hands out `None` for the other two.
+        let concept = Concept::Named("entropy");
+        let graph = KnowledgeGraph::Empty().With_Concept(Versioned::Asserted(concept.clone()));
+
+        assert!(
+            graph.Held_Claims().is_none(),
+            "the claim map exists on a graph that has published no claim"
+        );
+
+        let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
+        let graph = graph.With_Claim(Versioned::Asserted(claim.clone()));
+
+        let held = graph.Held_Claims().expect("a published claim has a map to be held in");
+        assert!(
+            held.Get(&claim.Identity()).is_some(),
+            "the claim map does not hold the claim that was published into it"
+        );
+    }
+
+    #[test]
+    fn Test_Held_Assertions_Should_Be_Absent_Until_Something_Is_Published()
+    {
+        let concept = Concept::Named("entropy");
+        let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
+        let scope = crate::Scope::Named("physical theory").expect("a named scope");
+
+        let graph = KnowledgeGraph::Empty()
+            .With_Concept(Versioned::Asserted(concept))
+            .With_Claim(Versioned::Asserted(claim.clone()));
+
+        assert!(
+            graph.Held_Assertions().is_none(),
+            "the assertion map exists on a graph that has published no assertion"
+        );
+
+        let assertion = Assertion::By("Callen 1985", &claim, scope);
+        let graph = graph.With_Assertion(Versioned::Asserted(assertion.clone()));
+
+        let held = graph.Held_Assertions().expect("a published assertion has a map to be held in");
+        assert!(
+            held.Get(&assertion.Identity()).is_some(),
+            "the assertion map does not hold the assertion that was published into it"
+        );
+    }
+
+    #[test]
+    fn Test_Is_Concept_Current_Should_Be_False_Of_An_Absent_Concept_And_Of_A_Closed_One()
+    {
+        // Absent counts as not current, and so does closed. The alternative for a claim about a
+        // concept nobody ever published is to treat it as current, which is how a claim outlives
+        // the thing it is about.
+        let concept = Concept::Named("entropy");
+
+        assert!(
+            !KnowledgeGraph::Empty().Is_Concept_Current(concept.Identity()),
+            "a concept that was never published is reported as current"
+        );
+
+        let asserted = KnowledgeGraph::Empty().With_Concept(Asserted_Concept("entropy"));
+        assert!(
+            asserted.Is_Concept_Current(concept.Identity()),
+            "an asserted and published concept is not reported as current, so every claim and \
+             assertion about it would drop out of the current read"
+        );
+
+        let closed = KnowledgeGraph::Empty().With_Concept(
+            Asserted_Concept("entropy")
+                .Closed(Standing::Retired { because: BECAUSE.to_owned() }),
+        );
+        assert!(
+            !closed.Is_Concept_Current(concept.Identity()),
+            "a retired concept is still reported as current, so nothing about it can go stale"
+        );
+    }
+
+    #[test]
+    fn Test_Ordered_Entries_Should_Sort_By_Address_Rather_Than_By_The_Order_They_Were_Put_In()
+    {
+        // Which of two addresses is lower is the hasher's business, so the expectation is the lower
+        // of the pair as the identities themselves order them, rather than a spelling that happens
+        // to sort first today.
+        let alpha = Concept::Named("alpha");
+        let zeta = Concept::Named("zeta");
+        let (low, high) = if alpha.Identity() < zeta.Identity()
+        {
+            (alpha.Identity(), zeta.Identity())
+        }
+        else
+        {
+            (zeta.Identity(), alpha.Identity())
+        };
+
+        // Published in the descending order, so an implementation that took the map's own order
+        // rather than sorting would have to disagree with the expectation.
+        let graph = KnowledgeGraph::Empty()
+            .With_Concept(Asserted_Concept("zeta"))
+            .With_Concept(Asserted_Concept("alpha"));
+
+        let ordered: Vec<ContentIdentity> = Ordered_Entries(graph.Held_Concepts())
+            .into_iter()
+            .map(|held| return held.Value().Identity())
+            .collect();
+
+        assert_eq!(
+            ordered,
+            [low, high],
+            "the listing is in the map's own order, so it changes between runs for no reason \
+             anybody could account for"
+        );
+        assert!(
+            Ordered_Entries::<Concept>(None).is_empty(),
+            "a graph holding nothing lists something"
+        );
+    }
+}

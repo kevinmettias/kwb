@@ -69,3 +69,36 @@ impl<'graph> EveryVersion<'graph>
             .collect();
     }
 }
+
+#[cfg(test)]
+mod tests
+{
+    //! [`Of`], which no caller outside this crate can reach.
+    //!
+    //! A file under `tests/` compiles as its own package and can see the public surface only, and
+    //! the unit a test belongs to is the stem of the file it sits in. This file's stem is
+    //! `every_version`, so the reader's constructor is tested here; the four reads it exposes are
+    //! asserted from outside, in `tests/every_version.rs`.
+    //!
+    //! [`Of`]: EveryVersion::Of
+
+    use super::*;
+
+    #[test]
+    fn Test_Of_Should_Take_The_Graph_It_Walks()
+    {
+        let concept = Concept::Named("entropy");
+        let holding = KnowledgeGraph::Empty().With_Concept(Versioned::Asserted(concept));
+
+        assert_eq!(
+            EveryVersion::Of(&holding).Concepts().len(),
+            1,
+            "the reader does not see the graph it was handed"
+        );
+        assert!(
+            EveryVersion::Of(&KnowledgeGraph::Empty()).Merge_Losers().is_empty(),
+            "the reader finds a merge loser in a graph holding nothing, so it is walking a graph \
+             other than the one it was handed"
+        );
+    }
+}

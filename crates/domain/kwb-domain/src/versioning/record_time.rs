@@ -114,3 +114,58 @@ pub fn Published_At(record: &str) -> Option<i64>
 
     return Without_Time(&fields).at;
 }
+
+#[cfg(test)]
+mod tests
+{
+    //! [`Without_Time`], which no caller outside this crate can reach.
+    //!
+    //! A file under `tests/` compiles as its own package and can see the public surface only, and
+    //! the unit a test belongs to is the stem of the file it sits in. This file's stem is
+    //! `record_time`, so the split is tested here against fields directly, which is the only way to
+    //! ask about the two halves separately. `Published_At` is asserted from outside, in
+    //! `tests/record_time.rs`, where a record can only be reached as one line of text.
+    //!
+    //! [`Without_Time`]: Without_Time
+
+    use super::*;
+
+    /// A concept record as it was written before `KWB-64` appended a time: the kind, the standing,
+    /// the two fields the standing always occupies, and the name.
+    const UNTIMED: [&str; 5] = [CONCEPT, "asserted", "", "", "entropy"];
+
+    /// The same record with a time appended, which is the whole of what `KWB-64` changed.
+    const STAMPED: [&str; 6] = [CONCEPT, "asserted", "", "", "entropy", "1730000000"];
+
+    #[test]
+    fn Test_Without_Time_Should_Split_A_Record_At_Its_Trailing_Time()
+    {
+        // Both shapes have to keep reading, because replay dispatches on how many fields a record
+        // has: a log written before the time existed would otherwise stop replaying, and `D-014`
+        // made the graph durable *by* replay.
+        let untimed = Without_Time(&UNTIMED);
+        assert_eq!(
+            untimed.fields,
+            UNTIMED.as_slice(),
+            "a record written before there was a time lost a field it did have"
+        );
+        assert_eq!(
+            untimed.at, None,
+            "a record that does not say when it was published was given a time anyway, and there \
+             is no epoch that can be told apart from a real one"
+        );
+
+        let stamped = Without_Time(&STAMPED);
+        assert_eq!(
+            stamped.fields,
+            UNTIMED.as_slice(),
+            "the time was left on the record, so every field the reader hands back after it is one \
+             position out"
+        );
+        assert_eq!(
+            stamped.at,
+            Some(1_730_000_000),
+            "the time is on the record and was not read back off it"
+        );
+    }
+}

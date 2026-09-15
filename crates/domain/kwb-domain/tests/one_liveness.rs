@@ -282,19 +282,28 @@ fn Test_The_Liveness_Detector_Should_Find_Every_Definition()
     );
 }
 
-#[test]
-fn Test_The_Liveness_Detector_Should_Not_Report_A_Use_As_A_Definition()
+/// Source text that mentions the liveness rule without defining it, one shape per way of mentioning
+/// it: reading a standing, calling it through the graph's question about a concept, naming it in
+/// documentation, and a different function whose name merely begins the same way.
+///
+/// A table rather than a list inside the test, so that a shape added here is seen by every case the
+/// detector is asked about.
+fn Sources_That_Use_Liveness_Without_Defining_It() -> [&'static str; 4]
 {
-    // The distinction that makes this count copies of the rule rather than places that respect
-    // it: calling Is_Current is not defining it.
-    let quiet = [
+    return [
         "if standing.Is_Current() { }",
         "return held.Standing().Is_Current();",
         "/// See Is_Current for the rule.",
         "fn Is_Currently_Held(&self) -> bool { }",
     ];
+}
 
-    for source in quiet
+#[test]
+fn Test_The_Liveness_Detector_Should_Not_Report_A_Use_As_A_Definition()
+{
+    // The distinction that makes this count copies of the rule rather than places that respect
+    // it: calling Is_Current is not defining it.
+    for source in Sources_That_Use_Liveness_Without_Defining_It()
     {
         assert!(
             Liveness_Definitions(source).is_empty(),

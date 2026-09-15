@@ -47,9 +47,6 @@ mod epistemic;
 mod graph;
 mod versioning;
 
-#[cfg(test)]
-mod tests;
-
 pub use epistemic::assertion::Assertion;
 pub use epistemic::claim::Claim;
 pub use epistemic::concept::Concept;

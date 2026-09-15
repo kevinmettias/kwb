@@ -89,3 +89,40 @@ impl<'graph> CurrentKnowledge<'graph>
             .collect();
     }
 }
+
+#[cfg(test)]
+mod tests
+{
+    //! [`Of`], which no caller outside this crate can reach.
+    //!
+    //! A file under `tests/` compiles as its own package and can see the public surface only, and
+    //! the unit a test belongs to is the stem of the file it sits in. This file's stem is
+    //! `current_knowledge`, so the reader's constructor is tested here; the three reads it exposes
+    //! are asserted from outside, in `tests/current_knowledge.rs`.
+    //!
+    //! [`Of`]: CurrentKnowledge::Of
+
+    use super::*;
+
+    #[test]
+    fn Test_Of_Should_Take_The_Graph_It_Reads()
+    {
+        // The reader is handed out by `KnowledgeGraph::Current` rather than assembled by a caller:
+        // a reader built against a different graph would be a second answer to a question the
+        // graph has already answered. What that costs when it goes wrong is that a query
+        // silently reads a world other than the one it named.
+        let concept = Concept::Named("entropy");
+        let holding = KnowledgeGraph::Empty().With_Concept(Versioned::Asserted(concept));
+
+        assert_eq!(
+            CurrentKnowledge::Of(&holding).Concepts().len(),
+            1,
+            "the reader does not see the graph it was handed"
+        );
+        assert!(
+            CurrentKnowledge::Of(&KnowledgeGraph::Empty()).Concepts().is_empty(),
+            "the reader sees something in a graph holding nothing, so it is reading a graph other \
+             than the one it was handed"
+        );
+    }
+}
