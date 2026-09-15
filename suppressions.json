@@ -232,6 +232,14 @@
       "reason": "This is the exemption the workspace own records already write down, not a convenience. The provider adapter that constructs a ReadsText lives outside this repository by design: README.md:135-152 records that there is no `kwb admit --read` flag because the flag arrives with the provider adapter which lives outside this repository by design, and docs/observations/OD-LEDGER-002-a-typed-blocker-that-nothing-can-set.md records the same fact as the blocker gating the volume work. Its caller therefore cannot appear in any call graph over this tree, and no narrow is available: measured, making it pub(crate) makes the crate entire product unreachable and rustc reports the whole module dead. PROTOCOL is public for the same reason. The two items beside it, Request_For and Propositions_Schema, were narrowed to pub(crate) in the same change, because their only reader is a test in this crate.",
       "owner": "@kevinmettias",
       "expires": "2026-12-13"
+    },
+    {
+      "check": "check-flaky-tests",
+      "path": "crates/host/kwb-cli/tests/history.rs",
+      "message": "`std::thread::sleep(APART)`",
+      "reason": "The elapsed second IS this test's subject, which is the exception the check names. `--as-of` is asked for a time between two publications, and a publication time is the wall clock's, read at second resolution through `kwb_platform_xvpe::SystemClock` by the admitted process -- so the boundary the assertion asks about does not exist until a real second has passed. It is not standing in for `wait until the second admission is visible`: the second admission's own instant is what `between` must be earlier than, and a barrier, a channel or a latch cannot supply it, because the two admissions are two runs of the built binary and nothing crosses between them. The other way to remove the sleep is worse than the sleep. A hand-written log with fabricated instants is deterministic, but it stops testing what KWB-64 added, namely that `admit` stamps a real, ADVANCING time: a constant or a mis-ordered trailing field would stop being caught. Loading the machine widens the gap and cannot make the assertion fail, so the bet's direction is safe, and APART is a second and a tenth against a one-second resolution.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
     }
   ]
 }
