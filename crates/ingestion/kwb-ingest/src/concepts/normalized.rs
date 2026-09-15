@@ -91,7 +91,7 @@ impl Normalized
 /// The prototype reached the same place after the incident: its post-2026-07-12 normaliser
 /// buckets on canonical names with no model and no alias in the path.
 #[must_use]
-pub fn Normalize_Concepts(linked: Linked) -> Normalized
+pub(crate) fn Normalize_Concepts(linked: Linked) -> Normalized
 {
     let mut concepts: Vec<Concept> = Vec::new();
     let mut seen: Vec<ContentIdentity> = Vec::new();

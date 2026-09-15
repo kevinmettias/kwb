@@ -4,6 +4,8 @@ use kwb_domain::{
     Assertion, Claim, Concept, KnowledgeGraph, Scope, Standing, Versioned,
 };
 use kwb_retrieval::{CurrentQueries, HistoricalQueries};
+use kwb_source_guards::Crate_Sources;
+use kwb_source_guards::Mutating_Public_Methods;
 
 /// A graph holding one concept, one claim about it, and one assertion of that claim.
 ///
@@ -62,7 +64,7 @@ fn Test_The_Query_Surface_Should_Have_No_Write_Path()
 {
     let mut mutators: Vec<String> = Vec::new();
 
-    for source in Crate_Sources()
+    for source in Crate_Sources(env!("CARGO_MANIFEST_DIR"))
     {
         for name in Mutating_Public_Methods(&source)
         {
@@ -75,52 +77,6 @@ fn Test_The_Query_Surface_Should_Have_No_Write_Path()
         "retrieval answers questions and admission is the only writer. These can change \
          something: {mutators:?}"
     );
-}
-
-/// Every `.rs` file in this crate's `src`.
-fn Crate_Sources() -> Vec<String>
-{
-    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-    let entries = std::fs::read_dir(&directory).expect("the crate has a src directory");
-
-    let mut sources = Vec::new();
-    for entry in entries
-    {
-        let path = entry.expect("a readable directory entry").path();
-        if path.extension().is_some_and(|extension| return extension == "rs")
-        {
-            sources.push(std::fs::read_to_string(&path).expect("a readable source file"));
-        }
-    }
-
-    assert!(!sources.is_empty(), "no sources were scanned, so this test proves nothing");
-    return sources;
-}
-
-/// The name of every `pub fn` whose parameter list takes `&mut self`.
-///
-/// Whitespace is collapsed first, so a signature broken across lines cannot slip past, and the
-/// parameter list is what is inspected, so a doc comment mentioning `&mut self` is not a
-/// finding.
-fn Mutating_Public_Methods(source: &str) -> Vec<String>
-{
-    let collapsed = source.split_whitespace().collect::<Vec<&str>>().join(" ");
-
-    let mut found = Vec::new();
-    for declaration in collapsed.split("pub fn ").skip(1)
-    {
-        let Some(signature) = declaration.split(')').next()
-        else
-        {
-            continue;
-        };
-        if signature.contains("&mut self")
-        {
-            found.push(signature.split('(').next().unwrap_or_default().trim().to_owned());
-        }
-    }
-
-    return found;
 }
 
 // ---- keyword ----

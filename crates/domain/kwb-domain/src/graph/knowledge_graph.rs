@@ -63,7 +63,7 @@ impl KnowledgeGraph
     {
         let identity = held.Value().Identity();
         return Self {
-            concepts: Some(Inserted(self.concepts.as_ref(), identity, held)),
+            concepts: Some(Inserted_Value(self.concepts.as_ref(), identity, held)),
             claims: self.claims.clone(),
             assertions: self.assertions.clone(),
         };
@@ -76,7 +76,7 @@ impl KnowledgeGraph
         let identity = held.Value().Identity();
         return Self {
             concepts: self.concepts.clone(),
-            claims: Some(Inserted(self.claims.as_ref(), identity, held)),
+            claims: Some(Inserted_Value(self.claims.as_ref(), identity, held)),
             assertions: self.assertions.clone(),
         };
     }
@@ -89,7 +89,7 @@ impl KnowledgeGraph
         return Self {
             concepts: self.concepts.clone(),
             claims: self.claims.clone(),
-            assertions: Some(Inserted(self.assertions.as_ref(), identity, held)),
+            assertions: Some(Inserted_Value(self.assertions.as_ref(), identity, held)),
         };
     }
 
@@ -133,7 +133,7 @@ impl KnowledgeGraph
     }
 
     /// Whether a concept's standing is current. Absent counts as not current.
-    pub(crate) fn Concept_Is_Current(&self, identity: ContentIdentity) -> bool
+    pub(crate) fn Is_Concept_Current(&self, identity: ContentIdentity) -> bool
     {
         return self
             .concepts
@@ -144,7 +144,7 @@ impl KnowledgeGraph
 }
 
 /// One insertion into a map that may not exist yet.
-fn Inserted<Value: Clone>(
+fn Inserted_Value<Value: Clone>(
     held: Option<&Held<Value>>,
     identity: ContentIdentity,
     value: Versioned<Value>,
@@ -167,7 +167,7 @@ fn Inserted<Value: Clone>(
 ///
 /// Crate-visible because both reads over a graph are sorted by it, and one sorting rule is
 /// what keeps them from disagreeing about the order two addresses come in.
-pub(crate) fn Ordered<Value: Clone>(held: Option<&Held<Value>>) -> Vec<&Versioned<Value>>
+pub(crate) fn Ordered_Entries<Value: Clone>(held: Option<&Held<Value>>) -> Vec<&Versioned<Value>>
 {
     let Some(held) = held
     else

@@ -1,6 +1,6 @@
 //! How far an assertion is claimed to reach.
 
-use kwb_model::Normalize;
+use kwb_model::Normalize_Text;
 
 /// The domain over which a source asserts a claim.
 ///
@@ -21,7 +21,7 @@ use kwb_model::Normalize;
 ///
 /// # Why it is normalized but not folded
 ///
-/// Through `kwb-model`'s [`Normalize`], for the reason every other text field goes through
+/// Through `kwb-model`'s [`Normalize_Text`], for the reason every other text field goes through
 /// it: a reflow is not an edit. Case is deliberately preserved, so `Thermodynamics` and
 /// `thermodynamics` are two scopes — consistent with `Concept`, and wrong to decide
 /// differently here without a reason that applies only here.
@@ -34,7 +34,7 @@ impl Scope
     ///
     /// # Why this refuses rather than returning the unstated scope
     ///
-    /// It used to return `Self(Normalize(name))`, so `Named("")` and `Named("   ")` *were* the
+    /// It used to return `Self(Normalize_Text(name))`, so `Named("")` and `Named("   ")` *were* the
     /// unstated scope. Measured on 2026-09-12 against a rebuilt binary: `kwb admit --scope "   "`
     /// and `kwb admit` with no `--scope` at all wrote byte-identical assertion records. A person
     /// who typed a scope and had it swallowed was told nothing, and the record said they had
@@ -55,7 +55,7 @@ impl Scope
     #[must_use]
     pub fn Named(name: &str) -> Option<Self>
     {
-        let normalized = Normalize(name);
+        let normalized = Normalize_Text(name);
         if normalized.is_empty()
         {
             return None;

@@ -95,7 +95,7 @@ impl ContentIdentity
             return Err(IdentityError::WrongLength { found: text.len() });
         }
 
-        return Decode(text).map(Self);
+        return Decode_Text(text).map(Self);
     }
 
     /// The raw bytes, for a caller writing the identity somewhere that is not text.
@@ -111,7 +111,7 @@ impl ContentIdentity
 /// The length is already known to be right, so the only way this fails is a digit that is not
 /// lowercase hexadecimal — and the `else` arm exists because a total match costs nothing and an
 /// argument that a branch is unreachable costs a reader something every time they check it.
-fn Decode(text: &str) -> Result<[u8; IDENTITY_BYTES], IdentityError>
+fn Decode_Text(text: &str) -> Result<[u8; IDENTITY_BYTES], IdentityError>
 {
     let mut digest = [0_u8; IDENTITY_BYTES];
     let mut digits = text.bytes();

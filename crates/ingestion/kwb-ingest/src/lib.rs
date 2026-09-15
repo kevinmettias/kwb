@@ -10,14 +10,16 @@
 //!
 //! # The three stages, and what each refuses
 //!
-//! [`Link_Concepts`] attaches a claim to the concept its own extraction named and infers
-//! nothing, so it produces no relation whose algebra anything would have to check.
+//! `Link_Concepts` attaches a claim to the concept its own extraction named and infers
+//! nothing, so it produces no relation whose algebra anything would have to check. It is
+//! crate-private, and a stage nothing outside can call is a stage nothing outside can
+//! bypass: the two stages below run only as [`Admit_Source`] runs them.
 //!
-//! [`Normalize_Concepts`] groups on content identity and **takes no predicate**, so a caller
+//! `Normalize_Concepts` groups on content identity and **takes no predicate**, so a caller
 //! cannot hand it a relation that is not transitive. That is the `D18` door, closed by not
 //! existing rather than by being guarded.
 //!
-//! [`Admit`] writes the source through `kwb-store`'s one write door, hands its claims back to
+//! [`Admit_Source`] writes the source through `kwb-store`'s one write door, hands its claims back to
 //! its caller in the same call, and derives its [`Coverage`] from what it examined and found.
 //! It queues nothing, because `D19` is what happens when a producer outruns its consumer, and
 //! `D-008` measured that the store claims and concepts belong in does not exist yet.
@@ -33,32 +35,29 @@
 
 #![forbid(unsafe_code)]
 
-mod admission;
-mod concept_linking;
-mod concept_normalization;
-mod extraction;
-mod extraction_contract;
-mod extraction_lineage;
-mod extraction_error;
-mod proposed_reading;
-mod reading_kind;
-mod source_location;
-mod stated;
+mod admission_report;
+mod concepts;
+mod extractor;
+mod readings;
 
 #[cfg(test)]
 mod tests;
 
-pub use admission::Admit;
-pub use admission::AdmissionReport;
-pub use concept_linking::Link_Concepts;
-pub use concept_linking::Linked;
-pub use concept_normalization::Normalize_Concepts;
-pub use concept_normalization::Normalized;
-pub use extraction::Extraction;
-pub use extraction_contract::ExtractionStrategy;
-pub use extraction_lineage::ExtractionLineage;
-pub use extraction_error::ExtractionError;
-pub use proposed_reading::ProposedReading;
-pub use reading_kind::ReadingKind;
-pub use source_location::SourceLocation;
-pub use stated::Stated;
+pub use admission_report::Admit_Source;
+pub use admission_report::AdmissionReport;
+pub use concepts::concept_name::ConceptName;
+pub use concepts::linked::Linked;
+pub(crate) use concepts::linked::Link_Concepts;
+pub(crate) use concepts::normalized::Normalize_Concepts;
+pub use concepts::normalized::Normalized;
+pub use extractor::extraction::Extraction;
+pub use extractor::extraction_error::ExtractionError;
+pub use extractor::extraction_lineage::ExtractionLineage;
+pub use extractor::extraction_strategy::ExtractionStrategy;
+pub use extractor::proposed_reading::ProposedReading;
+pub use extractor::stated::Stated;
+pub use readings::claim_text::ClaimText;
+pub use readings::reader_name::ReaderName;
+pub use readings::reading_kind::ReadingKind;
+pub use readings::reading_protocol::ReadingProtocol;
+pub use readings::source_location::SourceLocation;

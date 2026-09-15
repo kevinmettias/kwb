@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "waivers": [
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/domain/kwb-domain/src/graph/knowledge_graph.rs",
+      "message": "`kwb_platform_xvpe`",
+      "reason": "D-012 adopts XVPE's persistent map as the mechanism versioned state is built on, and D-007 quarantines the naming of XVPE to kwb-platform-xvpe. KnowledgeGraph is the one type built on it -- `Held\u003cValue\u003e` is the graph's own storage -- so the edge is the graph's, not one file's convenience, and moving knowledge_graph.rs into kwb-platform-xvpe would move the domain's graph out of the domain.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/host/kwb-cli/src/keeping.rs",
+      "message": "`kwb_platform_xvpe`",
+      "reason": "SystemClock is the clock a publication is stamped with. keeping.rs is the composition root's one place for choosing implementations, which is what a composition root is for; D-014 decided the store and the log are chosen together and named together, so the clock beside them is picked in the same file rather than in a second one.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/host/kwb-cli/src/keeping.rs",
+      "message": "`kwb_store`",
+      "reason": "kwb-store names the ContentStoreStrategy port and never an implementation of it, so somebody has to choose one. That choice is keeping.rs's whole subject, and D-014 decided it is made in one visible place rather than spread through the code that writes -- a store edge spread across the crate would be the arrangement that decision rejected.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/host/kwb-mcp/src/lib.rs",
+      "message": "`kwb_platform_std`",
+      "reason": "kwb-mcp is a composition root, and Corpus_At is the one function in it that composes: it chooses FileRecordLog for the port kwb-platform declares and folds the records into a graph. A composition root that named no implementation would not be one, so this edge is the crate's reason to exist rather than one file's convenience.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/host/kwb-mcp/src/lib.rs",
+      "message": "`kwb_platform`",
+      "reason": "RecordLogStrategy is the port Corpus_At reads the publication log through, and it is the same composition as the implementation chosen beside it: a root names the port and the implementation together or it names half an arrangement. kwb-platform is depended on by kwb-cli and kwb-mcp for exactly this and nothing else.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/host/kwb-mcp/src/lib.rs",
+      "message": "`kwb_retrieval`",
+      "reason": "The read-only tool surface IS lib.rs: every handler in it is built against CurrentQueries and HistoricalQueries, and kwb-retrieval's own tests/read_only.rs is what makes that surface unable to write. The edge is the host's -- a handler that could not name the query types could not answer a question -- not a stray import.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/ingestion/kwb-extract/src/reads_text.rs",
+      "message": "`kwb_domain`",
+      "reason": "Scope appears in ExtractionStrategy's own signature, in both fn Read's return and fn Scope, so every implementation of the seam must name it. This crate is that implementation with a model behind it, and its charter keeps it outside the knowledge engine -- so the edge is the seam's, not a file's.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-dependency-placement",
+      "path": "crates/ingestion/kwb-extract/src/reads_text.rs",
+      "message": "`kwb_model`",
+      "reason": "ContentIdentity is a parameter of ExtractionStrategy::Read, so an implementation cannot avoid naming it however the crate is laid out. reads_text.rs is the whole of this crate's code -- the second source file is the facade -- so a single file carrying the edge is arithmetic here, which is the shape the check's own exemption for one-file units exists to recognise.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-facade-surface",
+      "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
+      "message": "renamed facade re-export `VersionedMap`",
+      "reason": "`HamtMap` is the persistent map D-012 adopts, and the crate's own header says why the boundary renames it: callers in this workspace want *a map whose previous versions stay valid*, and that it is a hash array mapped trie is xvpe-collections-persistent's business. The check's other branch -- rename the item at its declaration -- is unavailable, because the declaration is another repository's; and taking it here would put the mechanism's name into every caller, which is the coupling D-007 quarantines this crate to prevent. kwb-domain's knowledge_graph.rs binds `VersionedMap` and names no xvpe_ crate at all, which is what the alias buys.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-facade-surface",
+      "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
+      "message": "renamed facade re-export `PublicationClock`",
+      "reason": "D-014 said kwb-platform is owed a clock for a record's own timestamps, and D-135 puts a clock in XVPE because its definition never mentions a claim, a concept or a source. What this workspace asks for is the wall time a publication happened; that XVPE spells the type `WallClockStrategy` and can also hand out a monotonic clock is xvpe-clock's business, so the boundary name is where `which clock` is stated and is the only place it can be.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-facade-surface",
+      "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
+      "message": "renamed facade re-export `PublicationTime`",
+      "reason": "`Timestamp` is xvpe-clock's name for an instant of whatever kind a clock reports, and this crate publishes the one a record is stamped with. The alias is what makes the workspace's role for it sayable beside `PublicationClock`, exactly as the doc comment on each says; the declaration lives in xvpe-clock and cannot be renamed from here, and a wrapper type would be the behaviour this crate's charter forbids it to add.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-facade-surface",
+      "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
+      "message": "renamed facade re-export `SystemClock`",
+      "reason": "`HostedWallClock` is xvpe-clock's name for the implementation a host composes in, and this crate publishes it as the clock a process with an operating system uses. That is the same judgement `PublicationClock` carries one line above -- the boundary names the role -- and it is also where the crate's choice to take xvpe-clock with default features on is visible: kwb-cli composes `SystemClock` in keeping.rs and would otherwise have a port with nothing to pass.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-facade-surface",
+      "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
+      "message": "renamed facade re-export `Passage`",
+      "reason": "D-012's split is that XVPE owns the mechanism and this product owns the catalogue. What this workspace wants is a passage a reader can be asked about; that XVPE calls it a chunk and measures a page fidelity onto it is xvpe-corpus-text's business, so the boundary name is what keeps a change of that mechanism a change to this crate. kwb-extract reads `reading::Passage` and names no xvpe_ crate, which is the quarantine doing its work.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-facade-surface",
+      "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
+      "message": "renamed facade re-export `PassageBudget`",
+      "reason": "Sits beside `Passage` under the same D-012 split and for the same reason: the budget is the limit a passage is cut to, and `ChunkBudget` is the mechanism's name for it. The declaration in xvpe-corpus-text is not this repository's to rename, and leaving the alias out would put the mechanism's vocabulary into kwb-extract, which is where `Passage` and `PassageSplitter` are bound together and would then be bound to two names for one idea.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-facade-surface",
+      "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
+      "message": "renamed facade re-export `PassageSplitter`",
+      "reason": "`ChunkingStrategy` names the mechanism; what this workspace composes is a splitter, and the `reading` module publishes it under that name for the reason the crate states once for all seven of these: the re-export is named for what this repository uses it for rather than for what XVPE calls it, so that a later change of mechanism is a change here and not everywhere. That is the quarantine itself -- one crate names XVPE -- and it holds only while the other crates read this crate's vocabulary.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/host/kwb-mcp/src/lib.rs",
+      "fingerprint": "e6ec9c558541503e",
+      "reason": "crates/host/kwb-mcp/src/main.rs is this package own bin target, and rustc compiles a package bin target as a separate crate from the library beside it. It opens with `use kwb_mcp::{Answer_Tool_Call, Corpus_At, Print_Surface, Store, ToolName};` and calls every one of them: Corpus_At at :23, Print_Surface at :51 and :60, Answer_Tool_Call at :56, ToolName::Named at :56, Store at :36, :46 and :60. A separate crate reaches a sibling library only through its public surface, so narrowing any of these stops the binary compiling. The check judges the library target alone, which is why it sees no caller here.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/host/kwb-mcp/src/lib.rs",
+      "fingerprint": "5c365f2a553ec8fe",
+      "reason": "crates/host/kwb-mcp/src/main.rs is this package own bin target, and rustc compiles a package bin target as a separate crate from the library beside it. It opens with `use kwb_mcp::{Answer_Tool_Call, Corpus_At, Print_Surface, Store, ToolName};` and calls every one of them: Corpus_At at :23, Print_Surface at :51 and :60, Answer_Tool_Call at :56, ToolName::Named at :56, Store at :36, :46 and :60. A separate crate reaches a sibling library only through its public surface, so narrowing any of these stops the binary compiling. The check judges the library target alone, which is why it sees no caller here.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/host/kwb-mcp/src/lib.rs",
+      "fingerprint": "a028e67d0ac79f6b",
+      "reason": "crates/host/kwb-mcp/src/main.rs is this package own bin target, and rustc compiles a package bin target as a separate crate from the library beside it. It opens with `use kwb_mcp::{Answer_Tool_Call, Corpus_At, Print_Surface, Store, ToolName};` and calls every one of them: Corpus_At at :23, Print_Surface at :51 and :60, Answer_Tool_Call at :56, ToolName::Named at :56, Store at :36, :46 and :60. A separate crate reaches a sibling library only through its public surface, so narrowing any of these stops the binary compiling. The check judges the library target alone, which is why it sees no caller here.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/host/kwb-mcp/src/store.rs",
+      "fingerprint": "42c686a0dfbfc90e",
+      "reason": "crates/host/kwb-mcp/src/main.rs is this package own bin target, and rustc compiles a package bin target as a separate crate from the library beside it. It opens with `use kwb_mcp::{Answer_Tool_Call, Corpus_At, Print_Surface, Store, ToolName};` and calls every one of them: Corpus_At at :23, Print_Surface at :51 and :60, Answer_Tool_Call at :56, ToolName::Named at :56, Store at :36, :46 and :60. A separate crate reaches a sibling library only through its public surface, so narrowing any of these stops the binary compiling. The check judges the library target alone, which is why it sees no caller here.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/host/kwb-mcp/src/tool_name.rs",
+      "fingerprint": "b7bbee3c6a3dad91",
+      "reason": "crates/host/kwb-mcp/src/main.rs is this package own bin target, and rustc compiles a package bin target as a separate crate from the library beside it. It opens with `use kwb_mcp::{Answer_Tool_Call, Corpus_At, Print_Surface, Store, ToolName};` and calls every one of them: Corpus_At at :23, Print_Surface at :51 and :60, Answer_Tool_Call at :56, ToolName::Named at :56, Store at :36, :46 and :60. A separate crate reaches a sibling library only through its public surface, so narrowing any of these stops the binary compiling. The check judges the library target alone, which is why it sees no caller here.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/host/kwb-mcp/src/tool.rs",
+      "fingerprint": "7a6e7ee75eaae11c",
+      "reason": "pub const TOOLS: [Tool; 5] (lib.rs:79) is the tool registry, and its only reader outside kwb-mcp is tests/contract/tests/projections.rs:47, which does `use kwb_mcp::TOOLS;` and then reads `tool.name`, `tool.world.Name()` and `tool.summary` at :81, :127 and :132 to project the registry against the README band table. tests/contract is a separate workspace member with a real [dependencies] edge on kwb-mcp, so it is a different crate and cannot reach anything narrower than public. Tool is forced by the TOOLS element type and World by the public `world` field on Tool, which private_interfaces (deny, Cargo.toml:93) makes a hard error to narrow. The check does not flag TOOLS itself, which is the const gap that hides this chain from its output.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/host/kwb-mcp/src/world.rs",
+      "fingerprint": "ac21dac1c1fa145f",
+      "reason": "pub const TOOLS: [Tool; 5] (lib.rs:79) is the tool registry, and its only reader outside kwb-mcp is tests/contract/tests/projections.rs:47, which does `use kwb_mcp::TOOLS;` and then reads `tool.name`, `tool.world.Name()` and `tool.summary` at :81, :127 and :132 to project the registry against the README band table. tests/contract is a separate workspace member with a real [dependencies] edge on kwb-mcp, so it is a different crate and cannot reach anything narrower than public. Tool is forced by the TOOLS element type and World by the public `world` field on Tool, which private_interfaces (deny, Cargo.toml:93) makes a hard error to narrow. The check does not flag TOOLS itself, which is the const gap that hides this chain from its output.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/domain/kwb-domain/src/graph/replay_error.rs",
+      "fingerprint": "6fbf93a25bb57f76",
+      "reason": "`kwb_domain::Replay` is public and called cross-crate -- crates/host/kwb-cli/src/history.rs:150 and crates/host/kwb-cli/src/keeping.rs:143 -- and its signature returns `Result\u003cKnowledgeGraph, ReplayError\u003e` (publication.rs:164), so private_interfaces (deny, Cargo.toml:93) makes narrowing ReplayError a hard error while Replay stays public. Neither caller names the type: both consume it through `?` or `map_err`, so no site outside kwb-domain spells `ReplayError`, which is why the check sees no caller. It looks for a naming site, not for a public function whose signature requires the type.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/kernel/kwb-model/src/sealed.rs",
+      "fingerprint": "bc3ec25a28823c97",
+      "reason": "`kwb_model::Derivation::Seal()` is public and called cross-crate -- crates/domain/kwb-domain/src/epistemic/assertion.rs:86, claim.rs:70 and concept.rs:50 -- and it returns `Sealed` (derivation.rs:177), so private_interfaces (deny, Cargo.toml:93) makes narrowing Sealed a hard error while Seal stays public. All three call sites chain `.Seal()` onto a builder and never spell the type, which is why the check sees no caller.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/kernel/kwb-model/src/exclusion.rs",
+      "fingerprint": "7987ba51d5cfeae1",
+      "reason": "Narrowed and measured before waiving. Making Exclusion and `Sealed::Excluded()` pub(crate) compiles, but produces two dead_code warnings: `field excluded is never read` (sealed.rs:18) and `method Excluded is never used` (sealed.rs:60). The cause is that the exclusion record is written from other crates -- `Derivation::Excluding` at crates/kernel/kwb-store/src/document.rs:51 and :55, and crates/domain/kwb-domain/src/epistemic/assertion.rs:82, claim.rs:62 and :66, concept.rs:46 -- but read only inside kwb-model itself, by src/tests.rs:55. Sealed stays public because Seal is called cross-crate, so the public method returning this type forces it public under private_interfaces. Waived rather than narrowed because narrowing trades one finding for two warnings; the fact it exposes, that no production code reads an exclusion, is a design question for the design phase and not something to edit in silently.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/kernel/kwb-store/src/admission.rs",
+      "fingerprint": "0af94e06d8fdd52f",
+      "reason": "`Written::Admission()` (crates/kernel/kwb-store/src/written.rs:66) is a public method on the public `Written`, which `DocumentStore::Write` returns and crates/ingestion/kwb-ingest/src/admission.rs:268 calls cross-crate, so the method returning Admission forces the type public under private_interfaces (deny, Cargo.toml:93). Every other reader of the type is a test that spells its variants -- kwb-store tests/one_door.rs:88, :134, :363 and :402, and kwb-ingest src/tests/admission.rs:99 through `Was_Stored()` -- so narrowing would mean rewriting an integration test and re-deciding whether the write door verdict belongs on the public surface, which is a design question rather than a mechanical narrow.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/retrieval/kwb-retrieval/src/held_neighbourhood.rs",
+      "fingerprint": "e6f22323374ac57d",
+      "reason": "Both are the return types of public query methods that are called cross-crate. `CurrentQueries::Neighbourhood_Of` (current_queries.rs:102) is called at crates/host/kwb-mcp/src/lib.rs:186, and `HistoricalQueries::Neighbourhood_Of` (historical_queries.rs:80) at crates/host/kwb-mcp/src/lib.rs:264; they return `Option\u003cNeighbourhood\u003e` and `Option\u003cHeldNeighbourhood\u003e` respectively. private_interfaces (deny, Cargo.toml:93) makes narrowing either type a hard error while the method stays public. kwb-mcp binds the result and reads fields off it, which is not a naming site, so the check sees no caller.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/retrieval/kwb-retrieval/src/neighbourhood.rs",
+      "fingerprint": "0f6f227467ced3f5",
+      "reason": "Both are the return types of public query methods that are called cross-crate. `CurrentQueries::Neighbourhood_Of` (current_queries.rs:102) is called at crates/host/kwb-mcp/src/lib.rs:186, and `HistoricalQueries::Neighbourhood_Of` (historical_queries.rs:80) at crates/host/kwb-mcp/src/lib.rs:264; they return `Option\u003cNeighbourhood\u003e` and `Option\u003cHeldNeighbourhood\u003e` respectively. private_interfaces (deny, Cargo.toml:93) makes narrowing either type a hard error while the method stays public. kwb-mcp binds the result and reads fields off it, which is not a naming site, so the check sees no caller.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    },
+    {
+      "check": "check-visibility-scope",
+      "path": "crates/ingestion/kwb-extract/src/reads_text.rs",
+      "fingerprint": "a8104f8bd128c7b1",
+      "reason": "This is the exemption the workspace own records already write down, not a convenience. The provider adapter that constructs a ReadsText lives outside this repository by design: README.md:135-152 records that there is no `kwb admit --read` flag because the flag arrives with the provider adapter which lives outside this repository by design, and docs/observations/OD-LEDGER-002-a-typed-blocker-that-nothing-can-set.md records the same fact as the blocker gating the volume work. Its caller therefore cannot appear in any call graph over this tree, and no narrow is available: measured, making it pub(crate) makes the crate entire product unreachable and rustc reports the whole module dead. PROTOCOL is public for the same reason. The two items beside it, Request_For and Propositions_Schema, were narrowed to pub(crate) in the same change, because their only reader is a test in this crate.",
+      "owner": "@kevinmettias",
+      "expires": "2026-12-13"
+    }
+  ]
+}

@@ -47,7 +47,7 @@ fn Unstated() -> Scope
 /// nesting the readability rule asks to be named.
 fn A_Reading_Under(protocol: &str, reader: &str) -> ExtractionLineage
 {
-    return ExtractionLineage::Of(protocol, reader);
+    return ExtractionLineage::Of(ReadingProtocol::Named(protocol), ReaderName::Named(reader));
 }
 
 /// A reading taken by a person, which is the one protocol a `Stated` places its statements under.
@@ -58,7 +58,7 @@ fn A_Reading(reader: &str) -> ExtractionLineage
 
 fn Offered(concept: &str, claim: &str) -> Extraction
 {
-    return Extraction::New(concept.to_owned(), claim.to_owned());
+    return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
 }
 
 /// A person stating what a source says, which is what `--says` is and what `Stated` names.
@@ -87,7 +87,7 @@ fn Admitted_By(
     store: &mut DocumentStore,
 ) -> AdmissionReport
 {
-    return Admit(bytes.to_vec(), Some(reader), needed, store)
+    return Admit_Source(bytes.to_vec(), Some(reader), needed, store)
         .expect("a source is admitted even when its reading does not happen");
 }
 

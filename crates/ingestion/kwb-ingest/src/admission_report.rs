@@ -186,9 +186,9 @@ impl AdmissionReport
 
     /// Publish what was admitted into a graph, returning the new graph.
     ///
-    /// # Why this is a separate call rather than something `Admit` does
+    /// # Why this is a separate call rather than something `Admit_Source` does
     ///
-    /// `Admit` writes the source document and decides what is admissible. Publishing decides
+    /// `Admit_Source` writes the source document and decides what is admissible. Publishing decides
     /// *where the result goes*, and those are different decisions with different failure
     /// modes — the first can refuse a source, the second cannot refuse anything, because by
     /// then the work is done and dropping it would be the loss `D19` is about.
@@ -223,7 +223,7 @@ impl AdmissionReport
     }
 }
 
-/// Admit a source, read by a reader.
+/// Admit a source, read by a reader, and report what was admitted.
 ///
 /// The source document goes through `kwb-store`'s one write door. The reader is asked what it
 /// says, and whatever it proposes is linked, normalized, and returned.
@@ -256,7 +256,7 @@ impl AdmissionReport
 ///
 /// **A reader that refuses is not an error here.** It is a report whose coverage is
 /// [`Coverage::Unmet`], because the source was admitted and only the reading did not happen.
-pub fn Admit(
+pub fn Admit_Source(
     source: Vec<u8>,
     reader: Option<&dyn ExtractionStrategy>,
     needed: ReadingKind,
@@ -317,7 +317,7 @@ fn Ask_The_Reader(
 ///
 /// # Why this is checked rather than assumed
 ///
-/// `Admit` cites the document *it* wrote, not the one the reading names, and it did so without
+/// `Admit_Source` cites the document *it* wrote, not the one the reading names, and it did so without
 /// ever comparing them. A reader that returned a reading about a different document therefore
 /// had its proposals attributed to this one, silently and with a citation that resolved
 /// perfectly — to the wrong bytes.
@@ -433,7 +433,7 @@ fn Scope_Of(reader: Option<&dyn ExtractionStrategy>) -> Scope
 /// So the units are now consistent. `examined` is material, the material is the source, and one
 /// source was read. `found` is what survived linking and normalization.
 ///
-/// A reading that did *not* happen never reaches here: [`Admit`] returns [`Coverage::Unmet`]
+/// A reading that did *not* happen never reaches here: [`Admit_Source`] returns [`Coverage::Unmet`]
 /// directly for a refusal, which is what keeps a reader's failure from ever being recorded as
 /// the source having nothing in it. The prototype recorded 1,367 rows of exactly that confusion
 /// and foreclosed two thirds of a book while reporting full coverage.

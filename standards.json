@@ -1,0 +1,12 @@
+{
+  "words": {
+    "approved_abbreviations": ["kwb", "std", "fmt"]
+  },
+  "naming": {
+    "function": "upper-snake",
+    "method": "upper-snake"
+  },
+  "telemetry": {
+    "none": "kwb carries no instrumentation: no crate depends on a logger, tracer, profiler or metrics library, and the only output the product produces is the text the CLI and the MCP host write to stdout and stderr. A sink adopted by a crate that needs one belongs here, under telemetry.sinks, rather than invented ahead of it."
+  }
+}

@@ -6,7 +6,7 @@
 //!
 //! [`CurrentKnowledge`]: crate::CurrentKnowledge
 
-use crate::knowledge_graph::Ordered;
+use crate::graph::knowledge_graph::Ordered_Entries;
 use crate::Assertion;
 use crate::Claim;
 use crate::Concept;
@@ -38,21 +38,21 @@ impl<'graph> EveryVersion<'graph>
     #[must_use]
     pub fn Concepts(&self) -> Vec<&'graph Versioned<Concept>>
     {
-        return Ordered(self.graph.Held_Concepts());
+        return Ordered_Entries(self.graph.Held_Concepts());
     }
 
     /// Every claim held, whatever its standing and whatever its concept's.
     #[must_use]
     pub fn Claims(&self) -> Vec<&'graph Versioned<Claim>>
     {
-        return Ordered(self.graph.Held_Claims());
+        return Ordered_Entries(self.graph.Held_Claims());
     }
 
     /// Every assertion held.
     #[must_use]
     pub fn Assertions(&self) -> Vec<&'graph Versioned<Assertion>>
     {
-        return Ordered(self.graph.Held_Assertions());
+        return Ordered_Entries(self.graph.Held_Assertions());
     }
 
     /// Every concept closed against a successor.

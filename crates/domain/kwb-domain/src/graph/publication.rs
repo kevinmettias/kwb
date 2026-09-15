@@ -1,10 +1,10 @@
 //! What was published, written down so a graph can be rebuilt from it.
 //!
-//! [`Replay`] is the reader over these records and [`ReplayError`] is what it refuses with,
+//! [`Replay_Records`] is the reader over these records and [`ReplayError`] is what it refuses with,
 //! which is filed in its own module because a caller reporting a log that would not replay
 //! has no reason to carry the record format to reach it.
 //!
-//! [`Replay`]: crate::Replay
+//! [`Replay_Records`]: crate::Replay_Records
 //! [`ReplayError`]: crate::ReplayError
 
 use kwb_model::ContentIdentity;
@@ -18,14 +18,14 @@ use crate::ReplayError;
 use crate::Scope;
 use crate::Standing;
 use crate::Versioned;
-use crate::record_time::Without_Time;
+use crate::versioning::record_time::Without_Time;
 
 /// Between the fields of a record.
 ///
 /// # Why this needs no escaping, and what that rests on
 ///
 /// ASCII unit separator, which is a control character. Every text a domain type keeps is
-/// normalized through `kwb-model`'s `Normalize`, which **strips every C0 and C1 control
+/// normalized through `kwb-model`'s `Normalize_Text`, which **strips every C0 and C1 control
 /// character**, so no field a record can carry contains this byte or a newline. The framing is
 /// unambiguous because the domain guarantees it, not because an encoder escapes it.
 ///
@@ -96,7 +96,7 @@ impl Publication
     ///
     /// # Why the time is a trailing field and why it is optional
     ///
-    /// `Replay` dispatches on how many fields a record has, so a field added anywhere changes
+    /// `Replay_Records` dispatches on how many fields a record has, so a field added anywhere changes
     /// the arity of every record and a log written before this item would stop replaying. That
     /// is not an acceptable cost for gaining a column: `D-014` made the graph durable *by*
     /// replay, so a format change that orphans existing logs loses the thing it was built for.
@@ -115,7 +115,7 @@ impl Publication
 
         return match at
         {
-            Some(at) => Joined(&[&line, &at.to_string()]),
+            Some(at) => Joined_Fields(&[&line, &at.to_string()]),
             None => line,
         };
     }
@@ -129,19 +129,19 @@ impl Publication
             Self::Concept { concept, standing } =>
             {
                 let StandingWritten { name, successor, because } = Standing_Fields(standing);
-                Joined(&[CONCEPT, name, &successor, &because, concept.Canonical_Name()])
+                Joined_Fields(&[CONCEPT, name, &successor, &because, concept.Canonical_Name()])
             }
             Self::Claim { claim, standing } =>
             {
                 let StandingWritten { name, successor, because } = Standing_Fields(standing);
-                Joined(&[
+                Joined_Fields(&[
                     CLAIM, name, &successor, &because, &claim.Concept().Render(), claim.Text(),
                 ])
             }
             Self::Assertion { assertion, standing } =>
             {
                 let StandingWritten { name, successor, because } = Standing_Fields(standing);
-                Joined(&[
+                Joined_Fields(&[
                     ASSERTION,
                     name,
                     &successor,
@@ -161,7 +161,7 @@ impl Publication
 ///
 /// [`ReplayError`] if a record is not one this reader knows, or names something no earlier
 /// record published.
-pub fn Replay(records: &[String]) -> Result<KnowledgeGraph, ReplayError>
+pub fn Replay_Records(records: &[String]) -> Result<KnowledgeGraph, ReplayError>
 {
     let mut graph = KnowledgeGraph::Empty();
 
@@ -169,7 +169,7 @@ pub fn Replay(records: &[String]) -> Result<KnowledgeGraph, ReplayError>
     {
         let fields: Vec<&str> = record.split(SEPARATOR).collect();
         let untimed = Without_Time(&fields);
-        graph = Applied(&graph, record, untimed.fields)?;
+        graph = Applied_Record(&graph, record, untimed.fields)?;
     }
 
     return Ok(graph);
@@ -181,7 +181,7 @@ pub fn Replay(records: &[String]) -> Result<KnowledgeGraph, ReplayError>
 /// answers a record claiming none. Reading each shape is its own function because the three
 /// differ in what they must already find published: a concept is named, where a claim and an
 /// assertion are named by the address of something an earlier record put in the graph.
-fn Applied(
+fn Applied_Record(
     graph: &KnowledgeGraph,
     record: &str,
     fields: &[&str],
@@ -192,7 +192,7 @@ fn Applied(
         [kind, rest @ ..] if *kind == CONCEPT => Applied_Concept(graph, record, rest),
         [kind, rest @ ..] if *kind == CLAIM => Applied_Claim(graph, record, rest),
         [kind, rest @ ..] if *kind == ASSERTION => Applied_Assertion(graph, record, rest),
-        _ => Err(Malformed(record)),
+        _ => Err(Malformed_Record(record)),
     };
 }
 
@@ -206,12 +206,12 @@ fn Applied_Concept(
     let [standing, successor, because, name] = rest
     else
     {
-        return Err(Malformed(record));
+        return Err(Malformed_Record(record));
     };
 
     let concept = Concept::Named(name);
     let standing = Standing_Of(standing, Successor_Of(successor), because)
-        .ok_or_else(|| return Malformed(record))?;
+        .ok_or_else(|| return Malformed_Record(record))?;
 
     return Ok(graph.With_Concept(Versioned::Asserted(concept).Closed(standing)));
 }
@@ -230,15 +230,15 @@ fn Applied_Claim(
     let [standing, successor, because, concept, text] = rest
     else
     {
-        return Err(Malformed(record));
+        return Err(Malformed_Record(record));
     };
 
     let address = ContentIdentity::Parse(concept)
-        .map_err(|cause| return Unaddressed(concept, cause))?;
-    let held = Concept_At(graph, address).ok_or_else(|| return Unpublished(concept))?;
+        .map_err(|cause| return Unaddressed_Field(concept, cause))?;
+    let held = Concept_At(graph, address).ok_or_else(|| return Unpublished_Address(concept))?;
     let claim = Claim::About(&held, text);
     let standing = Standing_Of(standing, Successor_Of(successor), because)
-        .ok_or_else(|| return Malformed(record))?;
+        .ok_or_else(|| return Malformed_Record(record))?;
 
     return Ok(graph.With_Claim(Versioned::Asserted(claim).Closed(standing)));
 }
@@ -270,12 +270,12 @@ fn Applied_Assertion(
     let [standing, successor, because, claim, source, scope] = rest
     else
     {
-        return Err(Malformed(record));
+        return Err(Malformed_Record(record));
     };
 
     let address = ContentIdentity::Parse(claim)
-        .map_err(|cause| return Unaddressed(claim, cause))?;
-    let held = Claim_At(graph, address).ok_or_else(|| return Unpublished(claim))?;
+        .map_err(|cause| return Unaddressed_Field(claim, cause))?;
+    let held = Claim_At(graph, address).ok_or_else(|| return Unpublished_Address(claim))?;
     // An empty trailing field is an unstated scope, and reading it that way is
     // deliberate rather than the swallow `Scope::Named` now refuses. A record is what
     // was already written: logs on disk carry the empty field for every assertion whose
@@ -285,7 +285,7 @@ fn Applied_Assertion(
     let scope = Scope::Named(scope).unwrap_or_else(Scope::Unstated);
     let assertion = Assertion::By(source, &held, scope);
     let standing = Standing_Of(standing, Successor_Of(successor), because)
-        .ok_or_else(|| return Malformed(record))?;
+        .ok_or_else(|| return Malformed_Record(record))?;
 
     return Ok(graph.With_Assertion(Versioned::Asserted(assertion).Closed(standing)));
 }
@@ -350,7 +350,7 @@ fn Standing_Fields(standing: &Standing) -> StandingWritten
 }
 
 /// Fields, separated.
-fn Joined(fields: &[&str]) -> String
+fn Joined_Fields(fields: &[&str]) -> String
 {
     return fields.join(&SEPARATOR.to_string());
 }
@@ -359,7 +359,7 @@ fn Joined(fields: &[&str]) -> String
 ///
 /// The record itself is carried rather than a reconstruction of it, so that a report of a log
 /// that would not replay names the line a reader has to look at.
-fn Malformed(record: &str) -> ReplayError
+fn Malformed_Record(record: &str) -> ReplayError
 {
     return ReplayError::Malformed {
         record: record.to_owned(),
@@ -367,7 +367,7 @@ fn Malformed(record: &str) -> ReplayError
 }
 
 /// The refusal for a record naming something no earlier record published.
-fn Unpublished(missing: &str) -> ReplayError
+fn Unpublished_Address(missing: &str) -> ReplayError
 {
     return ReplayError::OutOfOrder {
         missing: missing.to_owned(),
@@ -376,13 +376,13 @@ fn Unpublished(missing: &str) -> ReplayError
 
 /// The refusal for a record whose address field is not an address.
 ///
-/// Not [`Malformed`], because the record's shape read. What did not is the one field that had
+/// Not [`Malformed_Record`], because the record's shape read. What did not is the one field that had
 /// to name something by address, and the identity reader's own complaint about it is carried
 /// rather than replaced: it is the only thing that says whether the text was the wrong length
 /// or held a character outside the alphabet.
 ///
-/// [`Malformed`]: ReplayError::Malformed
-fn Unaddressed(field: &str, cause: IdentityError) -> ReplayError
+/// [`Malformed_Record`]: ReplayError::Malformed
+fn Unaddressed_Field(field: &str, cause: IdentityError) -> ReplayError
 {
     return ReplayError::Unaddressed {
         field: field.to_owned(),

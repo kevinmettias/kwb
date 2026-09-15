@@ -23,6 +23,9 @@ kwb-platform.workspace = true
 # never an implementation -- choosing one is a composition root's job.
 [dev-dependencies]
 kwb-platform-std.workspace = true
+# Reading this crate's own source, for the one-write-door guard. A dev-dependency, so the crate
+# itself still declares no edge it does not use.
+kwb-source-guards.workspace = true
 
 [lints]
 workspace = true

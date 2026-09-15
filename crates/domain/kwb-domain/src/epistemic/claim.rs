@@ -2,7 +2,7 @@
 
 use kwb_model::ContentIdentity;
 use kwb_model::Derivation;
-use kwb_model::Normalize;
+use kwb_model::Normalize_Text;
 
 use crate::Concept;
 
@@ -73,7 +73,7 @@ impl Claim
         return Self {
             identity,
             concept: concept.Identity(),
-            text: Normalize(text),
+            text: Normalize_Text(text),
         };
     }
 

@@ -31,15 +31,19 @@
 //! Naming them is deliberate. A surface that quietly shipped four tools where a reader
 //! expected nine would leave them to discover the gap by its absence.
 
-use kwb_domain::{Assertion, Claim, KnowledgeGraph, Replay};
+use kwb_domain::{Assertion, Claim, KnowledgeGraph, Replay_Records};
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::FileRecordLog;
 use kwb_retrieval::{CurrentQueries, HeldAssertion, HeldClaim, HistoricalQueries};
 
 mod store;
+mod tool;
+mod tool_name;
 mod world;
 
 pub use store::Store;
+pub use tool::Tool;
+pub use tool_name::ToolName;
 pub use world::World;
 
 /// The corpus a host serves: what earlier runs published, replayed.
@@ -67,30 +71,8 @@ pub fn Corpus_At(root: Option<&str>) -> Result<KnowledgeGraph, String>
     let records = log
         .Records()
         .map_err(|cause| return format!("cannot read the publication log: {cause}"))?;
-    return Replay(&records)
+    return Replay_Records(&records)
         .map_err(|cause| return format!("the publication log cannot be replayed: {cause}"));
-}
-
-/// One tool an agent may call, and the world it reads.
-///
-/// # Why the world is part of the tool rather than a parameter
-///
-/// `D19-B`. A single `search` tool with a `include_retired` flag is the shape that let
-/// `merge-audit` ask the current world a question about merge losers, resolve none, print
-/// *"nothing has been merged away"* and exit `0`. Here the world a tool reads is fixed when
-/// the tool is declared, so an agent choosing a tool has chosen a world, and there is no
-/// argument it can omit to land in the wrong one.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Tool
-{
-    /// The name an agent calls.
-    pub name: &'static str,
-
-    /// Which world it answers from.
-    pub world: World,
-
-    /// What it does, in one line, for a tool listing.
-    pub summary: &'static str,
 }
 
 /// The read-only tool surface, in declaration order.
@@ -132,12 +114,12 @@ pub const TOOLS: [Tool; 5] = [
 /// so no caller can ask the historical question of the current graph. `D19-B` is the incident
 /// where exactly that happened and the answer was "nothing has been merged away".
 #[must_use]
-pub fn Answer(graph: &KnowledgeGraph, tool: &str, argument: &str) -> Option<Vec<String>>
+pub fn Answer_Tool_Call(graph: &KnowledgeGraph, tool: ToolName<'_>, argument: &str) -> Option<Vec<String>>
 {
     let current = CurrentQueries::Over(graph);
     let historical = HistoricalQueries::Over(graph);
 
-    return match tool
+    return match tool.Text()
     {
         "search" => Some(
             current
@@ -334,7 +316,12 @@ fn Print_Tools()
     println!("kwb-mcp: {} read-only tools", TOOLS.len());
     for tool in TOOLS
     {
-        println!("  {:<14} [{}]  {}", tool.name, tool.world.Name(), tool.summary);
+        println!(
+            "  {:<14} [{}]  {}",
+            tool.name,
+            tool.world.Name(),
+            tool.summary
+        );
     }
 }
 

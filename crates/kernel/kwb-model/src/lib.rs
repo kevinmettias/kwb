@@ -40,7 +40,7 @@
 //!   narrower collision margin.
 //! - **The separator's safety is enforced rather than inherited.** The prototype's argument
 //!   for `0x1F` depends on .NET treating it as whitespace; Rust does not. The guarantee is
-//!   restored explicitly by stripping control characters in [`Normalize`], which is what
+//!   restored explicitly by stripping control characters in [`Normalize_Text`], which is what
 //!   reading for the mechanism rather than the type is supposed to catch.
 //!
 //! # Construction requires the content
@@ -68,7 +68,7 @@ pub use content_identity::ContentIdentity;
 pub use content_identity::IDENTITY_BYTES;
 pub use content_identity::IDENTITY_CHARACTERS;
 pub use derivation::Derivation;
-pub use derivation::Normalize;
+pub use derivation::Normalize_Text;
 pub use exclusion::Exclusion;
 pub use identity_error::IdentityError;
 pub use sealed::Sealed;

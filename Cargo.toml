@@ -42,6 +42,10 @@ members = [
 
     # Assertions about the workspace itself.
     "tests/contract",
+
+    # The source-reading its guards share. A test crate, reached only through `dev-dependencies`,
+    # so it is linked into no shipped binary and appears in no band.
+    "tests/guards",
 ]
 
 resolver = "3"
@@ -74,6 +78,7 @@ kwb-retrieval = { path = "crates/retrieval/kwb-retrieval" }
 # deliberate. Why that edge exists is stated in `tests/contract/Cargo.toml`, beside the edge,
 # rather than a second time here.
 kwb-mcp = { path = "crates/host/kwb-mcp" }
+kwb-source-guards = { path = "tests/guards" }
 
 serde = { version = "1", default-features = false, features = ["derive", "std"] }
 serde_json = "1"

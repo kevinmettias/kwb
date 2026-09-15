@@ -82,7 +82,25 @@ struct Verb
     usage: &'static str,
 
     /// What runs.
-    run: fn(&[&str]) -> ExitCode,
+    run: &'static dyn Command,
+}
+
+/// What a verb does when it runs: the one operation the verb table holds.
+///
+/// # Why the table holds a strategy and not a `fn` pointer
+///
+/// A stored `fn(&[&str]) -> ExitCode` is a collaborator with no name. It is invoked later, at a
+/// time the caller cannot see, and nothing in the table said what it may do while it runs —
+/// whether it reads the filesystem, writes to the store, or ends the process outright. A named
+/// operation is where that is said, and it is what lets a verb be answered by a test double
+/// that reads as an implementation rather than as a lambda.
+///
+/// Holding a `&'static dyn Command` rather than a closure loses nothing here: no verb captures
+/// anything, because everything each one needs arrives in `arguments`.
+trait Command
+{
+    /// Run this verb over the arguments that followed its name.
+    fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode;
 }
 
 /// Every verb this binary answers, in the order a reader is shown them.
@@ -93,39 +111,59 @@ const VERBS: [Verb; 4] = [
     Verb {
         name: "admit",
         usage: "admit <file> [--store <dir>] [--scope <name>] [--says <concept> <claim>]...",
-        run: Admit_Command,
+        run: &Admit,
     },
     Verb {
         name: "retire",
         usage: "retire <concept> --store <dir> --because <reason>",
-        run: Retire_Command,
+        run: &Retire,
     },
     Verb {
         name: "supersede",
         usage: "supersede <concept> --into <concept> --store <dir> --because <reason>",
-        run: Supersede_Command,
+        run: &Supersede,
     },
     Verb {
         name: "history",
         usage: "history --store <dir> [--through <count> | --as-of <unix seconds>]",
-        run: History_Command,
+        run: &History,
     },
 ];
 
-/// `kwb retire <concept> ...`, as a function the table can hold.
+/// `kwb retire <concept> ...`.
 ///
-/// A named wrapper rather than a closure, because a `fn` pointer cannot capture and a table of
-/// closures would need boxing for no gain. What each wrapper says is which of the two closings
-/// it is, which is the whole difference between them.
-fn Retire_Command(arguments: &[&str]) -> ExitCode
+/// What separates it from [`Supersede`] is the whole of what differs between the two closings,
+/// and it is said by which of them a run names rather than by an argument.
+struct Retire;
+
+impl Command for Retire
 {
-    return Close_Command(arguments, None);
+    fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
+    {
+        return Close_Command(arguments, None);
+    }
 }
 
 /// `kwb supersede <concept> --into <concept> ...`
-fn Supersede_Command(arguments: &[&str]) -> ExitCode
+struct Supersede;
+
+impl Command for Supersede
 {
-    return Close_Command(arguments, Some(()));
+    fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
+    {
+        return Close_Command(arguments, Some(()));
+    }
+}
+
+/// `kwb history --store <dir> ...`
+struct History;
+
+impl Command for History
+{
+    fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
+    {
+        return History_Command(arguments);
+    }
 }
 
 fn main() -> ExitCode
@@ -151,19 +189,24 @@ fn main() -> ExitCode
         return Wrong_Command_Line("expected a verb");
     };
 
-    return (known.run)(rest);
+    return known.run.Run_Command_Line(rest);
 }
 
 /// `kwb admit <file> [--says <concept> <claim>]...`
-fn Admit_Command(arguments: &[&str]) -> ExitCode
-{
-    let Some((path, rest)) = arguments.split_first()
-    else
-    {
-        return Complained_With_Usage("kwb admit", "expected a file to admit");
-    };
+struct Admit;
 
-    return Run_Admission(path, rest);
+impl Command for Admit
+{
+    fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
+    {
+        let Some((path, rest)) = arguments.split_first()
+        else
+        {
+            return Complained_With_Usage("kwb admit", "expected a file to admit");
+        };
+
+        return Run_Admission(path, rest);
+    }
 }
 
 /// Whether what a run kept outlived it.

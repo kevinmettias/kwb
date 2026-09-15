@@ -89,7 +89,7 @@ impl Assertion
         return Self {
             identity,
             claim: claim.Identity(),
-            source: kwb_model::Normalize(source),
+            source: kwb_model::Normalize_Text(source),
             scope,
         };
     }

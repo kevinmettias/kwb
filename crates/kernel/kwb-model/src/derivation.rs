@@ -30,7 +30,7 @@ use crate::IDENTITY_BYTES;
 /// through whitespace normalization and a value containing one could forge a field
 /// boundary.
 ///
-/// So the guarantee is restored explicitly rather than inherited: [`Normalize`] strips
+/// So the guarantee is restored explicitly rather than inherited: [`Normalize_Text`] strips
 /// every C0 and C1 control character, which includes this one, and it does so because
 /// identity integrity requires it rather than as a side effect of something else.
 const SEPARATOR: u8 = 0x1F;
@@ -92,13 +92,13 @@ impl Derivation
 
     /// A text field that participates, normalized.
     ///
-    /// See [`Normalize`] for exactly what normalization does and, more importantly, what it
+    /// See [`Normalize_Text`] for exactly what normalization does and, more importantly, what it
     /// deliberately does not do.
     pub fn With_Text(mut self, field: &'static str, value: &str) -> Self
     {
         self.included.push(field);
         self.Write(field.as_bytes());
-        self.Write(Normalize(value).as_bytes());
+        self.Write(Normalize_Text(value).as_bytes());
         return self;
     }
 
@@ -127,7 +127,7 @@ impl Derivation
     /// # Why the value is hashed before it participates
     ///
     /// The outer layout separates its parts with [`SEPARATOR`] and relies on no part being
-    /// able to contain one. [`With_Text`] earns that by construction — [`Normalize`] strips
+    /// able to contain one. [`With_Text`] earns that by construction — [`Normalize_Text`] strips
     /// every control character — and arbitrary bytes cannot. Written raw, a value of
     /// `b"ayz"` in field `x` produces the identical byte stream to field `x` holding
     /// `b"a"` followed by a field `y` holding `z`, which is precisely the field-boundary
@@ -219,7 +219,7 @@ fn Digest_Of(value: &[u8]) -> [u8; IDENTITY_BYTES]
 /// looks obviously helpful and is not: folding case would make `Polish notation` and
 /// `polish notation` one claim.
 #[must_use]
-pub fn Normalize(text: &str) -> String
+pub fn Normalize_Text(text: &str) -> String
 {
     let mut normalized = String::with_capacity(text.len());
     let mut pending_space = false;

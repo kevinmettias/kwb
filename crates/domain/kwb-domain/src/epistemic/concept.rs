@@ -2,7 +2,7 @@
 
 use kwb_model::ContentIdentity;
 use kwb_model::Derivation;
-use kwb_model::Normalize;
+use kwb_model::Normalize_Text;
 
 /// The kind a concept's identity is derived under.
 const CONCEPT: &str = "concept";
@@ -16,7 +16,7 @@ const CANONICAL_NAME: &str = "canonical_name";
 ///
 /// A divergence, recorded where it happens as `D-001` requires. The prototype arbitrated
 /// name collisions with a partial unique index over `LOWER("CanonicalName")`, so `Polish
-/// notation` and `polish notation` were one concept. `kwb-model`'s [`Normalize`] deliberately
+/// notation` and `polish notation` were one concept. `kwb-model`'s [`Normalize_Text`] deliberately
 /// does not fold case — a reflow is not an edit and a changed capitalisation is — so here
 /// they are two.
 ///
@@ -25,7 +25,7 @@ const CANONICAL_NAME: &str = "canonical_name";
 /// to decide whether they should. That is preferred to the alternative, which is folding
 /// `BVH` into `bvh` and having no way back.
 ///
-/// [`Normalize`]: kwb_model::Normalize
+/// [`Normalize_Text`]: kwb_model::Normalize_Text
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Concept
 {
@@ -52,7 +52,7 @@ impl Concept
 
         return Self {
             identity,
-            canonical_name: Normalize(canonical_name),
+            canonical_name: Normalize_Text(canonical_name),
         };
     }
 

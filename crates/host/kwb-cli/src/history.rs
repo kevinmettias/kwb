@@ -18,12 +18,12 @@
 use core::num::ParseIntError;
 use std::process::ExitCode;
 
-use kwb_domain::{KnowledgeGraph, Published_At, Replay};
+use kwb_domain::{KnowledgeGraph, Published_At, Replay_Records};
 use kwb_platform_std::FileRecordLog;
 
-use crate::arguments::{LeadingFlag, Nothing_Left, Store_Root_From};
+use crate::arguments::{LeadingFlag, Nothing_Left, Store_Root_From_Arguments};
 use crate::keeping::{Log_For, Records_Of};
-use crate::refusals::Complained;
+use crate::refusals::Complained_Without_Usage;
 use crate::{FAILURE_EXIT, USAGE_EXIT};
 
 /// Why a `history` run could not answer what it was asked.
@@ -99,12 +99,12 @@ impl From<String> for AskedFailure
 /// `kwb history --store <dir> [--through <count>]`: the graph as of a publication count.
 pub(crate) fn History_Command(arguments: &[&str]) -> ExitCode
 {
-    let LeadingFlag { value: store_root, rest } = Store_Root_From(arguments);
+    let LeadingFlag { value: store_root, rest } = Store_Root_From_Arguments(arguments);
     let log = match Log_For(store_root)
     {
         Ok(Some(log)) => log,
         Ok(None) => return No_Log_To_Replay(),
-        Err(complaint) => return Complained("kwb history", &complaint, FAILURE_EXIT),
+        Err(complaint) => return Complained_Without_Usage("kwb history", &complaint, FAILURE_EXIT),
     };
 
     return match Reported_History(&log, rest)
@@ -135,10 +135,10 @@ fn No_Log_To_Replay() -> ExitCode
 fn Reported_History(log: &FileRecordLog, rest: &[&str]) -> Result<(), ExitCode>
 {
     let records = Records_Of(log)
-        .map_err(|complaint| return Complained("kwb history", &complaint, FAILURE_EXIT))?;
+        .map_err(|complaint| return Complained_Without_Usage("kwb history", &complaint, FAILURE_EXIT))?;
 
-    let through = Through_From(rest, &records).map_err(|complaint| {
-        return Complained("kwb history", &complaint.to_string(), USAGE_EXIT);
+    let through = Through_From_Arguments(rest, &records).map_err(|complaint| {
+        return Complained_Without_Usage("kwb history", &complaint.to_string(), USAGE_EXIT);
     })?;
 
     let Some(prefix) = records.get(..through)
@@ -147,8 +147,8 @@ fn Reported_History(log: &FileRecordLog, rest: &[&str]) -> Result<(), ExitCode>
         return Err(Over_Asked(through, records.len()));
     };
 
-    let graph = Replay(prefix)
-        .map_err(|cause| return Complained("kwb history", &cause.to_string(), FAILURE_EXIT))?;
+    let graph = Replay_Records(prefix)
+        .map_err(|cause| return Complained_Without_Usage("kwb history", &cause.to_string(), FAILURE_EXIT))?;
 
     Print_History(through, records.len(), &graph);
 
@@ -162,7 +162,7 @@ fn Reported_History(log: &FileRecordLog, rest: &[&str]) -> Result<(), ExitCode>
 /// A count past the end of the log. Refused rather than clamped: a run that asked for more
 /// history than exists and was quietly given everything would be told the corpus is older than
 /// it is, and would have no way to tell that from a corpus that really is that old.
-fn Through_From(arguments: &[&str], records: &[String]) -> Result<usize, AskedFailure>
+fn Through_From_Arguments(arguments: &[&str], records: &[String]) -> Result<usize, AskedFailure>
 {
     let through = match arguments
     {
@@ -255,7 +255,7 @@ fn Through_Time(records: &[String], asked: i64) -> Result<usize, String>
     }
 
     // The log is append-only and written in order, so the publications that had happened by a
-    // time are a prefix. Counting them rather than filtering keeps that true: `Replay` refuses a
+    // time are a prefix. Counting them rather than filtering keeps that true: `Replay_Records` refuses a
     // record naming something no earlier record published, and a filter could drop a concept
     // while keeping the claim about it.
     let through = records

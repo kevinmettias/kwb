@@ -16,7 +16,7 @@
 //! somebody has to choose one, and the choice belongs in one visible place rather than spread
 //! through the code that writes.
 
-use kwb_domain::{KnowledgeGraph, Replay};
+use kwb_domain::{KnowledgeGraph, Replay_Records};
 use kwb_ingest::AdmissionReport;
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::{DirectoryContentStore, FileRecordLog};
@@ -140,7 +140,7 @@ pub(crate) fn Known_So_Far(log: Option<&FileRecordLog>) -> Result<KnowledgeGraph
     };
 
     let records = Records_Of(log)?;
-    return Replay(&records)
+    return Replay_Records(&records)
         .map_err(|cause| return format!("the publication log cannot be replayed: {cause}"));
 }
 

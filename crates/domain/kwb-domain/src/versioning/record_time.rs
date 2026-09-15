@@ -12,10 +12,10 @@
 //!
 //! [`publication`]: crate::publication
 
-use crate::publication::ASSERTION;
-use crate::publication::CLAIM;
-use crate::publication::CONCEPT;
-use crate::publication::SEPARATOR;
+use crate::graph::publication::ASSERTION;
+use crate::graph::publication::CLAIM;
+use crate::graph::publication::CONCEPT;
+use crate::graph::publication::SEPARATOR;
 
 /// How many fields a concept record carried before `KWB-64` added a time.
 ///
@@ -46,7 +46,7 @@ pub(crate) struct UntimedRecord<'fields>
 /// The record's fields without its time, and the time if it carried one.
 pub(crate) fn Without_Time<'fields>(fields: &'fields [&'fields str]) -> UntimedRecord<'fields>
 {
-    let Some((without, time)) = Timestamped(fields)
+    let Some((without, time)) = Timestamped_Fields(fields)
     else
     {
         return UntimedRecord { fields, at: None };
@@ -64,8 +64,8 @@ pub(crate) fn Without_Time<'fields>(fields: &'fields [&'fields str]) -> UntimedR
 /// record, a record this reader does not know, and a record at the timestamped arity whose last
 /// field is not a number. The last of those is deliberately the same answer as the other two: it
 /// is not a timestamped record with a broken time, it is a record this reader does not know, and
-/// `Applied` refuses it as malformed rather than silently dropping a field.
-fn Timestamped<'fields>(
+/// `Applied_Record` refuses it as malformed rather than silently dropping a field.
+fn Timestamped_Fields<'fields>(
     fields: &'fields [&'fields str],
 ) -> Option<(&'fields [&'fields str], i64)>
 {

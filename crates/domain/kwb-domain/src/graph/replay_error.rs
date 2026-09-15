@@ -1,11 +1,11 @@
 //! Why a publication record could not be read back.
 //!
-//! It is filed apart from [`Replay`] because it is the refusal half of the reader rather than
+//! It is filed apart from [`Replay_Records`] because it is the refusal half of the reader rather than
 //! part of what a record is: a caller that reports a log which would not replay carries one of
 //! these, and has no reason to carry the record format — the separator, the arities, the field
 //! order — across that boundary to reach it.
 //!
-//! [`Replay`]: crate::Replay
+//! [`Replay_Records`]: crate::Replay_Records
 
 use kwb_model::IdentityError;
 

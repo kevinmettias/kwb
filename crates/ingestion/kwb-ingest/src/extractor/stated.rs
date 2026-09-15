@@ -31,7 +31,7 @@ use crate::SourceLocation;
 /// forces both to be *said* — a person is a reader with a protocol, and this is where the
 /// protocol and the person get named instead of being implied by somebody having typed them.
 ///
-/// **They are said and not yet recorded.** `Admit` carries a reading's location and lineage as
+/// **They are said and not yet recorded.** `Admit_Source` carries a reading's location and lineage as
 /// far as the door and then drops both: an `Assertion` holds a source, a claim and a scope, so
 /// what survives into the graph is the source address and nothing about the reading. The
 /// invariant that every admitted claim identifies its source *occurrence* and its extraction

@@ -2,8 +2,8 @@
 //! that produced them.
 
 use kwb_domain::{
-    Assertion, Claim, Concept, KnowledgeGraph, Publication, Replay, ReplayError, Scope, Standing,
-    Versioned,
+    Assertion, Claim, Concept, KnowledgeGraph, Publication, Replay_Records, ReplayError, Scope,
+    Standing, Versioned,
 };
 
 /// Between the fields of a record. Named here rather than imported, because a test that took
@@ -166,7 +166,7 @@ fn Test_A_Graph_Replayed_From_Its_Publications_Should_Hold_What_The_Original_Hel
 {
     let corpus = Corpus();
 
-    let replayed = Replay(&corpus.records).expect("the records came from Record, which Replay reads");
+    let replayed = Replay_Records(&corpus.records).expect("the records came from Record, which Replay_Records reads");
 
     // Compared by what both hold, not by trusting the encoder round-tripped.
     Assert_Same_Concept_Counts(&replayed, &corpus.graph);
@@ -179,7 +179,7 @@ fn Test_A_Retired_Concept_Should_Replay_Retired()
 {
     let corpus = Corpus();
 
-    let replayed = Replay(&corpus.records).expect("the records came from Record, which Replay reads");
+    let replayed = Replay_Records(&corpus.records).expect("the records came from Record, which Replay_Records reads");
 
     assert_eq!(replayed.Every_Version().Concepts().len(), CONCEPTS_IN_CORPUS);
     assert_eq!(
@@ -228,7 +228,7 @@ fn Test_A_Superseded_Standing_Should_Carry_Its_Successor_Through_A_Record()
     let keeper = Concept::Named("C++");
     let records = Supersession_Records(&loser, &keeper);
 
-    let replayed = Replay(&records).expect("both records came from Record, which Replay reads");
+    let replayed = Replay_Records(&records).expect("both records came from Record, which Replay_Records reads");
 
     Assert_Merge_Loser_Names_The_Successor(&replayed, &keeper);
 }
@@ -274,7 +274,7 @@ fn Test_A_Claim_Whose_Concept_Was_Never_Published_Should_Be_Refused()
         .Record(None),
     ];
 
-    let refusal = Replay(&records).expect_err("must refuse");
+    let refusal = Replay_Records(&records).expect_err("must refuse");
 
     assert!(matches!(refusal, ReplayError::OutOfOrder { .. }), "{refusal}");
     assert!(
@@ -297,7 +297,7 @@ fn Test_A_Record_Of_An_Unknown_Shape_Should_Be_Refused()
     ]
     {
         assert!(
-            Replay(std::slice::from_ref(&record)).is_err(),
+            Replay_Records(std::slice::from_ref(&record)).is_err(),
             "a record this writer could not have produced was accepted: {record:?}"
         );
     }
@@ -306,7 +306,7 @@ fn Test_A_Record_Of_An_Unknown_Shape_Should_Be_Refused()
 #[test]
 fn Test_An_Empty_Sequence_Should_Replay_To_An_Empty_Graph()
 {
-    let replayed = Replay(&[]).expect("an empty sequence holds no record Replay could refuse");
+    let replayed = Replay_Records(&[]).expect("an empty sequence holds no record Replay_Records could refuse");
 
     assert_eq!(replayed.Every_Version().Concepts().len(), 0);
 }
@@ -427,7 +427,7 @@ fn Test_An_Unstated_Scope_Should_Survive_A_Replay_As_Unstated()
 
     let records = Unstated_Scope_Records(&concept, &claim);
 
-    let replayed = Replay(&records).expect("a run's own publications must replay");
+    let replayed = Replay_Records(&records).expect("a run's own publications must replay");
     let assertions = replayed.Current().Assertions();
 
     assert_eq!(assertions.len(), 1);

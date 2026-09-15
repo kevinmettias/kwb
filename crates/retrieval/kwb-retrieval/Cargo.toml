@@ -21,5 +21,10 @@ band = "3"
 kwb-model = { workspace = true }
 kwb-domain = { workspace = true }
 
+[dev-dependencies]
+# Reading this crate's own source, for the no-write-path guard. A dev-dependency, so the crate
+# itself still declares no edge it does not use.
+kwb-source-guards = { workspace = true }
+
 [lints]
 workspace = true

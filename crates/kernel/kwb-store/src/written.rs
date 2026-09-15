@@ -71,7 +71,7 @@ impl Written
     ///
     /// Derived from [`Admission`] rather than stored beside it, so the two cannot disagree.
     #[must_use]
-    pub const fn Was_Stored(&self) -> bool
+    pub const fn Has_Stored(&self) -> bool
     {
         return matches!(self.admission, Admission::Stored);
     }

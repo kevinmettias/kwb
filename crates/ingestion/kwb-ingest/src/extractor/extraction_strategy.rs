@@ -21,7 +21,7 @@ use crate::ReadingKind;
 ///
 /// It may not mint an identity, may not write anything, may not decide what is admitted, and
 /// may not return an empty reading in place of a refusal. Everything it produces is a proposal
-/// that `Admit` lowers through the identity, admission and provenance rules that already exist.
+/// that `Admit_Source` lowers through the identity, admission and provenance rules that already exist.
 ///
 /// # The implementations this repository has and expects
 ///

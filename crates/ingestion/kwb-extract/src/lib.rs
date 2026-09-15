@@ -17,7 +17,7 @@
 //! It mints no identity — nothing here can, because `ContentIdentity` is derived in `kwb-model`
 //! from content and this crate never constructs one. It writes nothing — it has no dependency on
 //! `kwb-store`, so the one write door is not reachable from here even by mistake. It decides no
-//! admission — it returns [`ProposedReading`]s and `Admit` decides what becomes a concept, a
+//! admission — it returns [`ProposedReading`]s and `Admit_Source` decides what becomes a concept, a
 //! claim and an assertion.
 //!
 //! **No provider is here either.** `xvpe-ai-inference` carries none, and this crate takes an
@@ -33,7 +33,8 @@
 
 mod reads_text;
 
+#[cfg(test)]
+mod tests;
+
 pub use reads_text::PROTOCOL;
-pub use reads_text::Request_For;
-pub use reads_text::Propositions_Schema;
 pub use reads_text::ReadsText;

@@ -9,7 +9,7 @@
 
 use kwb_model::ContentIdentity;
 
-use crate::knowledge_graph::Ordered;
+use crate::graph::knowledge_graph::Ordered_Entries;
 use crate::Assertion;
 use crate::Claim;
 use crate::Concept;
@@ -41,7 +41,7 @@ impl<'graph> CurrentKnowledge<'graph>
     #[must_use]
     pub fn Concepts(&self) -> Vec<&'graph Concept>
     {
-        return Ordered(self.graph.Held_Concepts())
+        return Ordered_Entries(self.graph.Held_Concepts())
             .into_iter()
             .filter(|held| return held.Standing().Is_Current())
             .map(Versioned::Value)
@@ -56,11 +56,11 @@ impl<'graph> CurrentKnowledge<'graph>
     #[must_use]
     pub fn Claims(&self) -> Vec<&'graph Claim>
     {
-        return Ordered(self.graph.Held_Claims())
+        return Ordered_Entries(self.graph.Held_Claims())
             .into_iter()
             .filter(|held| {
                 return held.Standing().Is_Current()
-                    && self.graph.Concept_Is_Current(held.Value().Concept());
+                    && self.graph.Is_Concept_Current(held.Value().Concept());
             })
             .map(Versioned::Value)
             .collect();
@@ -80,7 +80,7 @@ impl<'graph> CurrentKnowledge<'graph>
             .map(|claim| return claim.Identity())
             .collect();
 
-        return Ordered(self.graph.Held_Assertions())
+        return Ordered_Entries(self.graph.Held_Assertions())
             .into_iter()
             .filter(|held| {
                 return held.Standing().Is_Current() && current.contains(&held.Value().Claim());

@@ -37,7 +37,7 @@ pub(crate) fn Wrong_Command_Line(complaint: &str) -> ExitCode
 /// The same shape as [`Wrong_Command_Line`] without the usage: a person who typed a well-formed
 /// command has already been shown how to type it, and printing the usage under a store error
 /// would bury the one line that says what actually went wrong.
-pub(crate) fn Complained(verb: &'static str, complaint: &str, code: u8) -> ExitCode
+pub(crate) fn Complained_Without_Usage(verb: &'static str, complaint: &str, code: u8) -> ExitCode
 {
     eprintln!("{verb}: {complaint}");
     return ExitCode::from(code);
@@ -45,9 +45,9 @@ pub(crate) fn Complained(verb: &'static str, complaint: &str, code: u8) -> ExitC
 
 /// A command line whose **arguments** were mistyped, under the name of the command that read them.
 ///
-/// The verb is a `&'static str` for the reason [`Complained`] gives.
+/// The verb is a `&'static str` for the reason [`Complained_Without_Usage`] gives.
 ///
-/// [`Complained`] answers a run that was well-formed and could not finish, and it is right that
+/// [`Complained_Without_Usage`] answers a run that was well-formed and could not finish, and it is right that
 /// it withholds the usage. This is the other case: what was wrong is the syntax itself, so the
 /// syntax is what the person is shown. The two are told apart by which of them is being
 /// answered — an argument the command does not take, or a run that could not proceed — and not

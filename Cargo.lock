@@ -201,7 +201,12 @@ version = "0.1.0"
 dependencies = [
  "kwb-domain",
  "kwb-model",
+ "kwb-source-guards",
 ]
+
+[[package]]
+name = "kwb-source-guards"
+version = "0.1.0"
 
 [[package]]
 name = "kwb-store"
@@ -210,6 +215,7 @@ dependencies = [
  "kwb-model",
  "kwb-platform",
  "kwb-platform-std",
+ "kwb-source-guards",
 ]
 
 [[package]]

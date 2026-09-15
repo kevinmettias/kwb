@@ -48,8 +48,8 @@ fn Test_Barren_And_Unmet_Should_Not_Be_Interchangeable()
     let never_ran = Coverage::Unmet { prerequisite: "the linking stage" };
 
     assert_ne!(ran_and_found_nothing, never_ran);
-    assert!(ran_and_found_nothing.Was_Run());
-    assert!(!never_ran.Was_Run());
+    assert!(ran_and_found_nothing.Has_Run());
+    assert!(!never_ran.Has_Run());
     assert!(
         ran_and_found_nothing.Is_Evidence_Of_Absence() && !never_ran.Is_Evidence_Of_Absence(),
         "the prototype wrote 1,367 Barren rows meaning the prerequisite had not run, and \

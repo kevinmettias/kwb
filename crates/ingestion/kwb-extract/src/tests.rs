@@ -1,5 +1,13 @@
 //! A model reading a source, exercised offline against recorded answers.
 //!
+//! # Why these tests are in the crate and not beside it
+//!
+//! A test under `tests/` is a **separate crate**, which reaches only `pub` names — so the
+//! request the reader asks and the schema it asks under would have to be exported for the
+//! suite's sake, and an export made for a test outlives the test. Here the same code reaches
+//! the same names at the rung that admits it, and `ReadsText` keeps the `pub` its real caller
+//! needs rather than borrowing one from a test.
+//!
 //! # Why every test here replays
 //!
 //! No provider is in this workspace and none is going to be: `xvpe-ai-inference` carries none,
@@ -16,11 +24,12 @@
 //! recording is keyed by `Request_For`, the same function the reader asks through, so a fixture
 //! cannot answer a question the reader does not ask.
 
+use crate::PROTOCOL;
+use crate::ReadsText;
+use crate::reads_text::Request_For;
 use kwb_domain::KnowledgeGraph;
 use kwb_domain::Scope;
-use kwb_extract::ReadsText;
-use kwb_extract::Request_For;
-use kwb_ingest::Admit;
+use kwb_ingest::Admit_Source;
 use kwb_ingest::ExtractionError;
 use kwb_ingest::ExtractionStrategy;
 use kwb_ingest::ProposedReading;
@@ -107,11 +116,11 @@ fn Assert_One_Reading_About(readings: &[ProposedReading], source: ContentIdentit
     assert_eq!(readings.len(), 1, "one passage, one reading");
     let reading = readings.first().expect("the count was asserted to be one on the line above");
     assert_eq!(reading.Proposed().len(), 1);
-    assert_eq!(reading.Proposed().first().expect("one").concept_name, concept);
+    assert_eq!(reading.Proposed().first().expect("one").concept_name.Text(), concept);
     assert_eq!(reading.Source(), source, "a reading must be about the document it was handed");
     assert_eq!(
         reading.Lineage().Protocol(),
-        kwb_extract::PROTOCOL,
+        PROTOCOL,
         "the protocol travels with the reading, so a re-read under a new one is distinguishable"
     );
 }
@@ -131,10 +140,10 @@ fn Corroborated(callen: &str, kittel: &str) -> KnowledgeGraph
     let mut store = DocumentStore::Empty();
     let graph = KnowledgeGraph::Empty();
 
-    let first = Admit(callen.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
+    let first = Admit_Source(callen.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
         .expect("the Callen passage is non-empty, so admission runs");
     let after_first = first.Published_Into(&graph);
-    let second = Admit(kittel.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
+    let second = Admit_Source(kittel.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
         .expect("the Kittel passage is non-empty, so admission runs");
 
     return second.Published_Into(&after_first);
@@ -226,7 +235,7 @@ fn Test_A_Refused_Reading_Should_Reach_Admission_As_Unmet_And_Never_As_Barren()
     let mut store = DocumentStore::Empty();
     let reader = Reader(Vec::new());
 
-    let report = Admit(
+    let report = Admit_Source(
         passage.as_bytes().to_vec(),
         Some(&reader),
         ReadingKind::Text,
@@ -278,7 +287,7 @@ fn Test_A_Malformed_Answer_Should_Reach_Admission_As_Unmet_And_Never_As_Barren()
     let mut store = DocumentStore::Empty();
     let reader = Reader_Answering_Malformed(PASSAGE, "entropy", "It does not decrease.");
 
-    let report = Admit(PASSAGE.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
+    let report = Admit_Source(PASSAGE.as_bytes().to_vec(), Some(&reader), ReadingKind::Text, &mut store)
         .expect("the source is admitted even though the answer was not usable");
 
     assert_eq!(report.Coverage().Name(), "unmet");
@@ -300,7 +309,7 @@ fn Test_A_Passage_That_Asserts_Nothing_Should_Be_Barren_And_Not_A_Refusal()
     let mut store = DocumentStore::Empty();
     let reader = Reader(vec![Recorded(passage, AnswerValue::Sequence(Vec::new()))]);
 
-    let report = Admit(
+    let report = Admit_Source(
         passage.as_bytes().to_vec(),
         Some(&reader),
         ReadingKind::Text,

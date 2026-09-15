@@ -107,7 +107,7 @@ fn Test_A_Refusal_Should_Not_Be_Readable_As_A_Reading_That_Found_Nothing()
 {
     // `Coverage`'s 1,367-row incident, one stage earlier. A refusal carries no proposals at
     // all — not an empty list of them — so there is no value a caller can take out of a failed
-    // reading and hand to `Admit` that would make it look examined-and-empty. The failure is
+    // reading and hand to `Admit_Source` that would make it look examined-and-empty. The failure is
     // in the return type, which is why it cannot be got wrong by a caller who forgets.
     let source = Document::Of(b"a source".to_vec()).Identity();
     let refusal = Silent
@@ -183,7 +183,10 @@ impl ExtractionStrategy for TextOnly
             source,
             SourceLocation::Named("throughout"),
             proposed,
-            ExtractionLineage::Of("read-the-text-v1", "a text extractor"),
+            ExtractionLineage::Of(
+                ReadingProtocol::Named("read-the-text-v1"),
+                ReaderName::Named("a text extractor"),
+            ),
         )]);
     }
 
@@ -201,7 +204,7 @@ fn Test_A_Text_Reader_Should_Refuse_A_Source_That_Needs_Looking_At()
     // the reader to say it cannot do this kind of reading.
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(b"a scan".to_vec(), Some(&TextOnly), ReadingKind::Visual, &mut store)
+    let report = Admit_Source(b"a scan".to_vec(), Some(&TextOnly), ReadingKind::Visual, &mut store)
         .expect("the source is admitted even though it could not be read");
 
     Assert_Unmet_And_Not_Evidence_Of_Absence(&report, "a page nobody could read");
@@ -223,7 +226,7 @@ fn Test_The_Same_Reader_Should_Read_A_Source_That_Is_Already_Text()
     // reader that never works.
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(
+    let report = Admit_Source(
         b"a passage".to_vec(),
         Some(&TextOnly),
         ReadingKind::Text,
@@ -238,7 +241,7 @@ fn Test_The_Same_Reader_Should_Read_A_Source_That_Is_Already_Text()
 
 /// A reader that answers about a document it was not given.
 ///
-/// Not a hypothetical. `Admit` cites the document *it* wrote and never compared it with the one
+/// Not a hypothetical. `Admit_Source` cites the document *it* wrote and never compared it with the one
 /// the reading names, so this reader's proposals were attributed to whatever source happened to
 /// be passed in, with a citation that resolved perfectly to the wrong bytes.
 struct Confused;
@@ -274,7 +277,7 @@ fn Test_A_Reading_About_Another_Document_Should_Not_Be_Cited_As_This_One()
     // field is not provenance; it is a field.
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(b"a source".to_vec(), Some(&Confused), ReadingKind::Text, &mut store)
+    let report = Admit_Source(b"a source".to_vec(), Some(&Confused), ReadingKind::Text, &mut store)
         .expect("the source is admitted; only the reading is refused");
 
     Assert_Unmet_And_Not_Evidence_Of_Absence(&report, "a reader with the wrong book open");
@@ -299,7 +302,7 @@ fn Test_A_Reading_About_The_Right_Document_Should_Still_Be_Admitted()
     // nothing at all.
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(
+    let report = Admit_Source(
         b"a source".to_vec(),
         Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Unstated())),
         ReadingKind::Text,

@@ -43,34 +43,24 @@
 
 #![forbid(unsafe_code)]
 
-mod assertion;
-mod claim;
-mod concept;
-mod current_knowledge;
-mod every_version;
-mod knowledge_graph;
-mod publication;
-mod record_time;
-mod replay_error;
-mod versioned;
-mod coverage;
-mod scope;
-mod standing;
+mod epistemic;
+mod graph;
+mod versioning;
 
 #[cfg(test)]
 mod tests;
 
-pub use assertion::Assertion;
-pub use claim::Claim;
-pub use concept::Concept;
-pub use current_knowledge::CurrentKnowledge;
-pub use every_version::EveryVersion;
-pub use knowledge_graph::KnowledgeGraph;
-pub use versioned::Versioned;
-pub use coverage::Coverage;
-pub use publication::Publication;
-pub use publication::Replay;
-pub use record_time::Published_At;
-pub use replay_error::ReplayError;
-pub use scope::Scope;
-pub use standing::Standing;
+pub use epistemic::assertion::Assertion;
+pub use epistemic::claim::Claim;
+pub use epistemic::concept::Concept;
+pub use epistemic::coverage::Coverage;
+pub use epistemic::scope::Scope;
+pub use epistemic::standing::Standing;
+pub use graph::knowledge_graph::KnowledgeGraph;
+pub use graph::publication::Publication;
+pub use graph::publication::Replay_Records;
+pub use graph::replay_error::ReplayError;
+pub use versioning::current_knowledge::CurrentKnowledge;
+pub use versioning::every_version::EveryVersion;
+pub use versioning::record_time::Published_At;
+pub use versioning::versioned::Versioned;

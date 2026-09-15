@@ -3,6 +3,8 @@
 //! From outside deliberately. A door is only one door if it is the only one a caller can
 //! reach, and a test living inside the crate can reach what a caller cannot.
 
+use kwb_source_guards::Crate_Sources;
+use kwb_source_guards::Mutating_Public_Methods;
 use kwb_store::Admission;
 use kwb_store::Document;
 use kwb_store::DocumentStore;
@@ -53,7 +55,7 @@ fn Test_The_Crate_Should_Expose_Exactly_One_Mutating_Method()
 {
     let mut doors: Vec<String> = Vec::new();
 
-    for source in Crate_Sources()
+    for source in Crate_Sources(env!("CARGO_MANIFEST_DIR"))
     {
         for name in Mutating_Public_Methods(&source)
         {
@@ -70,50 +72,6 @@ fn Test_The_Crate_Should_Expose_Exactly_One_Mutating_Method()
     );
 }
 
-/// Every `.rs` file in this crate's `src`, read as text.
-fn Crate_Sources() -> Vec<String>
-{
-    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-    let entries = std::fs::read_dir(&directory).expect("the crate has a src directory");
-
-    let mut sources = Vec::new();
-    for entry in entries
-    {
-        let path = entry.expect("a readable directory entry").path();
-        if path.extension().is_some_and(|extension| return extension == "rs")
-        {
-            sources.push(std::fs::read_to_string(&path).expect("a readable source file"));
-        }
-    }
-
-    assert!(!sources.is_empty(), "no sources were scanned, so this test proves nothing");
-    return sources;
-}
-
-/// The name of every `pub fn` in `source` whose parameter list takes `&mut self`.
-fn Mutating_Public_Methods(source: &str) -> Vec<String>
-{
-    let collapsed = source.split_whitespace().collect::<Vec<&str>>().join(" ");
-
-    let mut found = Vec::new();
-    for declaration in collapsed.split("pub fn ").skip(1)
-    {
-        let Some(signature) = declaration.split(')').next()
-        else
-        {
-            continue;
-        };
-
-        if signature.contains("&mut self")
-        {
-            let name = signature.split('(').next().unwrap_or_default().trim();
-            found.push(name.to_owned());
-        }
-    }
-
-    return found;
-}
-
 // ---- D19: a success value cannot be produced on a path that did no work ----
 
 #[test]
@@ -128,7 +86,7 @@ fn Test_A_Write_Should_Return_The_Address_Its_Content_Has()
 
     assert_eq!(written.Identity(), identity);
     assert_eq!(written.Admission(), Admission::Stored);
-    assert!(written.Was_Stored());
+    assert!(written.Has_Stored());
     assert_eq!(written.Length(), text.len());
 }
 
@@ -180,7 +138,7 @@ fn Test_Writing_The_Same_Document_Twice_Should_Say_So_Rather_Than_Report_Two_Adm
         "a re-offered document reported as newly stored is a count of admissions that \
          over-reports, which is the reporting half of D19"
     );
-    assert!(!second.Was_Stored());
+    assert!(!second.Has_Stored());
     assert_eq!(store.Length(), 1, "the second write duplicated the document");
 }
 
@@ -225,7 +183,7 @@ fn Test_A_Held_Document_Should_Not_Change_When_Another_Is_Written()
     let before = store.Read(held.Identity()).expect("the identity came from a write this store accepted").clone();
 
     let unrelated = store.Write(Passage("an unrelated passage")).expect("the document carries bytes, which is all an unbacked store requires");
-    assert!(unrelated.Was_Stored());
+    assert!(unrelated.Has_Stored());
 
     assert_eq!(&before, store.Read(held.Identity()).expect("the identity came from a write this store accepted"));
     assert_eq!(store.Length(), [held, unrelated].len());
@@ -238,7 +196,7 @@ fn Test_Every_Address_The_Store_Reports_Should_Read_Back()
     let passages = ["one", "two", "three"];
     for passage in passages
     {
-        assert!(store.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Was_Stored());
+        assert!(store.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Has_Stored());
     }
 
     let identities: Vec<_> = store.Identities().collect();
@@ -246,7 +204,7 @@ fn Test_Every_Address_The_Store_Reports_Should_Read_Back()
     assert_eq!(identities.len(), passages.len());
     for identity in identities
     {
-        assert!(store.Holds(identity));
+        assert!(store.Has_Document(identity));
         store.Read(identity).expect("an address the store reports must read back");
     }
 }
@@ -258,11 +216,11 @@ fn Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In()
     let mut backwards = DocumentStore::Empty();
     for passage in ["one", "two", "three"]
     {
-        assert!(forwards.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Was_Stored());
+        assert!(forwards.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Has_Stored());
     }
     for passage in ["three", "two", "one"]
     {
-        assert!(backwards.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Was_Stored());
+        assert!(backwards.Write(Passage(passage)).expect("the document carries bytes, which is all an unbacked store requires").Has_Stored());
     }
 
     assert_eq!(
@@ -393,13 +351,13 @@ fn Test_Re_Admitting_A_Durably_Held_Document_Should_Report_It_As_Already_Present
     let content = b"a passage".to_vec();
 
     let first = Write_And_Drop_The_Store(&root, &content);
-    assert!(first.Was_Stored(), "the first write is what put the bytes there");
+    assert!(first.Has_Stored(), "the first write is what put the bytes there");
 
     // A second store over the same directory: a new process, as far as memory is concerned.
     let second = Write_And_Drop_The_Store(&root, &content);
 
     assert!(
-        !second.Was_Stored(),
+        !second.Has_Stored(),
         "the bytes were already on the medium, so this write is not what put them there"
     );
     assert_eq!(second.Admission(), Admission::AlreadyPresent);
@@ -425,7 +383,7 @@ fn Test_A_Document_Held_Only_On_The_Medium_Should_Still_Read_Back()
     let mut store = DocumentStore::Backed_By(Box::new(backing));
     let written = store.Write(Document::Of(content.clone())).expect("the root exists and the document is not empty");
 
-    assert!(!written.Was_Stored());
+    assert!(!written.Has_Stored());
     assert_eq!(
         store.Read(identity).expect("a document the store holds must read back").Content(),
         content
@@ -440,7 +398,7 @@ fn Test_An_Unbacked_Store_Should_Decide_Its_Admissions_Exactly_As_Before()
     let first = store.Write(Passage("a passage")).expect("the document carries bytes, which is all an unbacked store requires");
     let second = store.Write(Passage("a passage")).expect("a re-offered document is answered, never refused");
 
-    assert!(first.Was_Stored());
+    assert!(first.Has_Stored());
     assert_eq!(second.Admission(), Admission::AlreadyPresent);
     assert_eq!(store.Length(), 1);
 }

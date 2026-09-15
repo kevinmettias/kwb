@@ -2,7 +2,7 @@
 
 use kwb_domain::{Claim, Concept, KnowledgeGraph, Standing, Versioned};
 use kwb_domain::{Assertion, Scope};
-use kwb_mcp::{Answer, TOOLS};
+use kwb_mcp::{Answer_Tool_Call, ToolName, TOOLS};
 
 /// A corpus with something to find and something merged away.
 fn Corpus() -> KnowledgeGraph
@@ -31,7 +31,7 @@ fn Corpus() -> KnowledgeGraph
 /// byte-identical node types, of which **six reached no consumer at all** — a surface naming
 /// capabilities nothing behind it had, discoverable only by calling one and finding nothing.
 ///
-/// So every declared tool must dispatch. Adding a row to `TOOLS` without an arm in `Answer`
+/// So every declared tool must dispatch. Adding a row to `TOOLS` without an arm in `Answer_Tool_Call`
 /// fails here rather than at whatever asks for it later.
 #[test]
 fn Test_Every_Declared_Tool_Should_Be_Answerable()
@@ -40,7 +40,7 @@ fn Test_Every_Declared_Tool_Should_Be_Answerable()
 
     let undispatched: Vec<&str> = TOOLS
         .iter()
-        .filter(|tool| return Answer(&graph, tool.name, "entropy").is_none())
+        .filter(|tool| return Answer_Tool_Call(&graph, ToolName::Named(tool.name), "entropy").is_none())
         .map(|tool| return tool.name)
         .collect();
 
@@ -57,9 +57,9 @@ fn Test_A_Tool_Nobody_Declared_Should_Be_Refused_Rather_Than_Answered_Emptily()
     // found nothing, or an agent cannot tell a typo from an empty corpus.
     let graph = Corpus();
 
-    assert!(Answer(&graph, "delete_everything", "").is_none());
+    assert!(Answer_Tool_Call(&graph, ToolName::Named("delete_everything"), "").is_none());
     assert_eq!(
-        Answer(&graph, "search", "unicorn"),
+        Answer_Tool_Call(&graph, ToolName::Named("search"), "unicorn"),
         Some(Vec::new()),
         "a known tool that found nothing answers with nothing, which is not the same as \
          having no such tool"
@@ -69,7 +69,7 @@ fn Test_A_Tool_Nobody_Declared_Should_Be_Refused_Rather_Than_Answered_Emptily()
 #[test]
 fn Test_Search_Should_Find_A_Claim_By_Its_Words()
 {
-    let answers = Answer(&Corpus(), "search", "isolated system").expect("a declared tool");
+    let answers = Answer_Tool_Call(&Corpus(), ToolName::Named("search"), "isolated system").expect("a declared tool");
 
     assert_eq!(answers, ["It is non-decreasing in an isolated system."]);
 }
@@ -77,7 +77,7 @@ fn Test_Search_Should_Find_A_Claim_By_Its_Words()
 #[test]
 fn Test_Neighbours_Should_Reach_The_Claims_And_Their_Citations()
 {
-    let answers = Answer(&Corpus(), "neighbours", "entropy").expect("a declared tool");
+    let answers = Answer_Tool_Call(&Corpus(), ToolName::Named("neighbours"), "entropy").expect("a declared tool");
 
     assert!(answers.iter().any(|line| return line.starts_with("concept  entropy")));
     assert!(answers.iter().any(|line| return line.starts_with("claim")));
@@ -91,7 +91,7 @@ fn Test_Neighbours_Should_Reach_The_Claims_And_Their_Citations()
 fn Test_Merge_Losers_Should_Report_What_Authorised_Each_Merge()
 {
     // D17: an audit needs something to re-read, and a successor alone is not it.
-    let answers = Answer(&Corpus(), "merge_losers", "").expect("a declared tool");
+    let answers = Answer_Tool_Call(&Corpus(), ToolName::Named("merge_losers"), "").expect("a declared tool");
 
     assert_eq!(answers.len(), 1);
     assert!(
@@ -108,8 +108,8 @@ fn Test_A_Merge_Loser_Should_Be_Invisible_To_The_Current_Tools()
     // wrong by passing a flag -- there is no flag.
     let graph = Corpus();
 
-    assert_eq!(Answer(&graph, "get_concept", "C").expect("declared"), ["C++"]);
-    assert_eq!(Answer(&graph, "merge_losers", "").expect("declared").len(), 1);
+    assert_eq!(Answer_Tool_Call(&graph, ToolName::Named("get_concept"), "C").expect("declared"), ["C++"]);
+    assert_eq!(Answer_Tool_Call(&graph, ToolName::Named("merge_losers"), "").expect("declared").len(), 1);
 }
 
 // ---- KWB-65: what a merge loser carried ----
@@ -144,7 +144,7 @@ fn Test_A_Merge_Loser_Should_Say_What_It_Carried()
     // reader cannot reach is an obligation that looks handled because nothing complains.
     let graph = After_A_Merge();
 
-    let answered = Answer(&graph, "held_neighbours", "phlogiston").expect("a declared tool");
+    let answered = Answer_Tool_Call(&graph, ToolName::Named("held_neighbours"), "phlogiston").expect("a declared tool");
     let joined = answered.join("\n");
 
     assert!(
@@ -176,7 +176,7 @@ fn Test_Nothing_Under_A_Merged_Concept_Should_Be_Reported_As_Current()
     // -- and both times it rendered a claim under a superseded concept as live, which is
     // `D19-B`'s confusion inside the tool built to end it.
     let graph = After_A_Merge();
-    let answered = Answer(&graph, "held_neighbours", "phlogiston").expect("a declared tool");
+    let answered = Answer_Tool_Call(&graph, ToolName::Named("held_neighbours"), "phlogiston").expect("a declared tool");
 
     let lost = answered
         .iter()
@@ -199,7 +199,7 @@ fn Test_A_Concept_That_Is_Current_Should_Still_Read_As_Current()
     // answers carefully.
     let graph = After_A_Merge();
 
-    let answered = Answer(&graph, "held_neighbours", "oxidation").expect("a declared tool");
+    let answered = Answer_Tool_Call(&graph, ToolName::Named("held_neighbours"), "oxidation").expect("a declared tool");
     let joined = answered.join("\n");
 
     assert!(

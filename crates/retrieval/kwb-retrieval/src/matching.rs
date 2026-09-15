@@ -8,20 +8,20 @@
 //! Crate-private, so this is a rule about how a question is asked rather than a surface a caller
 //! may build against.
 
-use kwb_model::Normalize;
+use kwb_model::Normalize_Text;
 
 /// The query's words, normalized the way a claim's own text was.
 pub(crate) fn Words_Of(query: &str) -> Vec<String>
 {
-    return Normalize(query)
+    return Normalize_Text(query)
         .split_whitespace()
         .map(str::to_owned)
         .collect();
 }
 
 /// Whether `text` contains every word, compared after the same normalization.
-pub(crate) fn Contains_All(text: &str, words: &[String]) -> bool
+pub(crate) fn Has_All_Words(text: &str, words: &[String]) -> bool
 {
-    let normalized = Normalize(text);
+    let normalized = Normalize_Text(text);
     return words.iter().all(|word| return normalized.contains(word.as_str()));
 }

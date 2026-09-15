@@ -26,7 +26,7 @@ pub(crate) struct LeadingFlag<'arguments>
 /// than a concept named `--store`, which is the kind of quiet misreading a hand-written command
 /// line invites. For `admit` that ordering is the whole point; the other two verbs read the same
 /// flag through this as well, so all three refuse a misplaced one the same way.
-pub(crate) fn Store_Root_From<'arguments>(
+pub(crate) fn Store_Root_From_Arguments<'arguments>(
     arguments: &'arguments [&'arguments str],
 ) -> LeadingFlag<'arguments>
 {
@@ -44,7 +44,7 @@ pub(crate) fn Store_Root_From<'arguments>(
 }
 
 /// A named flag's value, if the flag leads the remaining arguments.
-pub(crate) fn Flag_From<'arguments>(
+pub(crate) fn Flag_From_Arguments<'arguments>(
     arguments: &'arguments [&'arguments str],
     flag: &str,
 ) -> LeadingFlag<'arguments>

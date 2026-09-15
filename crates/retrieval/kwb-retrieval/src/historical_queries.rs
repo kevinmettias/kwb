@@ -8,7 +8,7 @@ use kwb_domain::KnowledgeGraph;
 use kwb_domain::Versioned;
 use kwb_model::ContentIdentity;
 
-use crate::matching::Contains_All;
+use crate::matching::Has_All_Words;
 use crate::matching::Words_Of;
 use crate::HeldAssertion;
 use crate::HeldClaim;
@@ -50,7 +50,7 @@ impl<'graph> HistoricalQueries<'graph>
             .Every_Version()
             .Claims()
             .into_iter()
-            .filter(|held| return Contains_All(held.Value().Text(), &words))
+            .filter(|held| return Has_All_Words(held.Value().Text(), &words))
             .collect();
     }
 

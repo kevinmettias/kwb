@@ -11,18 +11,18 @@ use super::*;
 #[test]
 fn Test_Admitting_Nothing_Should_Be_Unmet_Rather_Than_Barren()
 {
-    // The route to this outcome changed when `Admit` began taking a reader. It used to be
+    // The route to this outcome changed when `Admit_Source` began taking a reader. It used to be
     // reached by handing in an empty list of extractions; that state is now unconstructible,
     // because a reader who said nothing is not a reader at all -- see the seam's own test. What
     // is left is the case that matters and always did: the reader was asked and did not answer.
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(b"a source".to_vec(), Some(&Silent), ReadingKind::Text, &mut store)
+    let report = Admit_Source(b"a source".to_vec(), Some(&Silent), ReadingKind::Text, &mut store)
         .expect("the source is admitted even though the reading of it did not happen");
 
     Assert_Unmet_And_Not_Evidence_Of_Absence(&report, "a reading that never happened");
     assert!(
-        !report.Coverage().Was_Run(),
+        !report.Coverage().Has_Run(),
         "a reading that never happened was recorded as having run"
     );
     assert!(
@@ -36,7 +36,7 @@ fn Test_Examining_Extractions_And_Finding_None_Admissible_Should_Be_Barren()
 {
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(
+    let report = Admit_Source(
         b"a source".to_vec(),
         Some(&Said(&[Offered("entropy", "  "), Offered("", "orphaned")], &Unstated())),
         ReadingKind::Text,
@@ -55,7 +55,7 @@ fn Test_The_Report_Should_Not_Count_More_Than_It_Holds()
 {
     let mut store = DocumentStore::Empty();
 
-    let report = Admit(
+    let report = Admit_Source(
         b"a source".to_vec(),
         Some(&Said(&[Offered("entropy", "one"), Offered("enthalpy", "two")], &Unstated())),
         ReadingKind::Text,
@@ -77,7 +77,7 @@ fn Test_An_Admitted_Source_Should_Be_Readable_Back_From_The_Store()
     let mut store = DocumentStore::Empty();
     let bytes = b"a source document".to_vec();
 
-    let report = Admit(bytes.clone(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
+    let report = Admit_Source(bytes.clone(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
 
     let written = report.Source().expect("a source was written");
     assert_eq!(store.Read(written.Identity()).expect("the address came from the write just above").Content(), bytes);
@@ -89,14 +89,14 @@ fn Test_Admitting_The_Same_Source_Twice_Should_Not_Duplicate_It()
     let mut store = DocumentStore::Empty();
     let extractions = [Offered("entropy", "one")];
 
-    let first = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
-    let second = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits again");
+    let first = Admit_Source(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
+    let second = Admit_Source(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits again");
 
     assert_eq!(
         first.Source().expect("the source went through the write door, so it is present").Identity(),
         second.Source().expect("the source went through the write door, so it is present").Identity()
     );
-    assert!(!second.Source().expect("the source went through the write door, so it is present").Was_Stored());
+    assert!(!second.Source().expect("the source went through the write door, so it is present").Has_Stored());
     assert_eq!(store.Length(), 1);
 }
 
@@ -105,7 +105,7 @@ fn Test_A_Source_Of_No_Bytes_Should_Be_Refused_Before_Anything_Is_Admitted()
 {
     let mut store = DocumentStore::Empty();
 
-    let refusal = Admit(Vec::new(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
+    let refusal = Admit_Source(Vec::new(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
         .expect_err("must refuse");
 
     assert_eq!(refusal, StoreError::Vacuous);
@@ -150,7 +150,7 @@ fn Test_What_Admission_Reports_Should_Be_What_The_Graph_Holds()
 fn Test_Publishing_Should_Leave_The_Graph_It_Was_Given_Unchanged()
 {
     let mut store = DocumentStore::Empty();
-    let report = Admit(b"a source".to_vec(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
+    let report = Admit_Source(b"a source".to_vec(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
         .expect("the source is non-empty, so admission runs");
     let before = KnowledgeGraph::Empty();
 
@@ -170,9 +170,9 @@ fn Test_Re_Admitting_A_Source_Should_Not_Duplicate_Its_Concepts()
     let mut store = DocumentStore::Empty();
     let extractions = [Offered("entropy", "one"), Offered("entropy", "two")];
 
-    let first = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
+    let first = Admit_Source(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("the source is non-empty, so admission runs");
     let graph = first.Published_Into(&KnowledgeGraph::Empty());
-    let second = Admit(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits again");
+    let second = Admit_Source(b"a source".to_vec(), Some(&Said(&extractions, &Unstated())), ReadingKind::Text, &mut store).expect("admits again");
     let graph = second.Published_Into(&graph);
 
     assert_eq!(
@@ -189,7 +189,7 @@ fn Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current()
     // One liveness rule applied twice rather than two rules. Nothing else in this workspace
     // would have said that a claim about a retired concept is not current knowledge.
     let mut store = DocumentStore::Empty();
-    let report = Admit(b"a source".to_vec(), Some(&Said(&[Offered("phlogiston", "It is released in combustion.")], &Unstated())), ReadingKind::Text, &mut store)
+    let report = Admit_Source(b"a source".to_vec(), Some(&Said(&[Offered("phlogiston", "It is released in combustion.")], &Unstated())), ReadingKind::Text, &mut store)
         .expect("the source is non-empty, so admission runs");
     let graph = report.Published_Into(&KnowledgeGraph::Empty());
     let held = graph.Every_Version().Concepts();
@@ -212,7 +212,7 @@ fn Test_A_Claim_About_A_Retired_Concept_Should_Not_Be_Current()
 fn Test_A_Published_Concept_Should_Be_Addressed_By_Its_Content()
 {
     let mut store = DocumentStore::Empty();
-    let report = Admit(b"a source".to_vec(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
+    let report = Admit_Source(b"a source".to_vec(), Some(&Said(&[Offered("entropy", "one")], &Unstated())), ReadingKind::Text, &mut store)
         .expect("the source is non-empty, so admission runs");
 
     let graph = report.Published_Into(&KnowledgeGraph::Empty());
@@ -289,7 +289,7 @@ fn Test_A_Citation_Should_Resolve_To_The_Bytes_The_Claim_Was_Read_Out_Of()
     // content, or fails loudly because it is gone.
     let mut store = DocumentStore::Empty();
     let bytes = b"Entropy is non-decreasing in an isolated system.".to_vec();
-    let report = Admit(
+    let report = Admit_Source(
         bytes.clone(),
         Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Unstated())),
         ReadingKind::Text,
@@ -306,7 +306,7 @@ fn Test_A_Citation_Should_Resolve_To_The_Bytes_The_Claim_Was_Read_Out_Of()
 fn Test_An_Unstated_Scope_Should_Stay_Unstated_Rather_Than_Become_The_Narrowest()
 {
     let mut store = DocumentStore::Empty();
-    let report = Admit(
+    let report = Admit_Source(
         b"a source".to_vec(),
         Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Unstated())),
         ReadingKind::Text,
@@ -323,7 +323,7 @@ fn Test_An_Unstated_Scope_Should_Stay_Unstated_Rather_Than_Become_The_Narrowest(
 fn Test_A_Stated_Scope_Should_Reach_The_Assertion()
 {
     let mut store = DocumentStore::Empty();
-    let report = Admit(
+    let report = Admit_Source(
         b"a source".to_vec(),
         Some(&Said(&[Offered("entropy", "It is non-decreasing.")], &Scope::Named("physical theory").expect("a named scope"))),
         ReadingKind::Text,
@@ -348,7 +348,7 @@ fn Test_Publications_Should_Order_Assertions_After_The_Claims_They_Name()
         .map(|publication| return publication.Record(None))
         .collect();
 
-    let replayed = kwb_domain::Replay(&records).expect("a run's own publications must replay");
+    let replayed = kwb_domain::Replay_Records(&records).expect("a run's own publications must replay");
     assert_eq!(replayed.Current().Assertions().len(), says.len());
     assert_eq!(replayed.Current().Claims().len(), says.len());
 }

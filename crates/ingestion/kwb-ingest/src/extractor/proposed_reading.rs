@@ -29,7 +29,7 @@ use crate::Extraction;
 /// # Proposed, not asserted
 ///
 /// Nothing here is a KWB entity and nothing here has an identity. The extractor returns text
-/// and where it found it; `Admit` decides what becomes a concept, a claim and an assertion, and
+/// and where it found it; `Admit_Source` decides what becomes a concept, a claim and an assertion, and
 /// `kwb-model` derives every address from content. An extractor that minted an identity would
 /// be a second authority for the thing `D-002` owns — and the reference miner is the worked
 /// example of why that matters, because its own claim identity absorbs the source path and page
@@ -87,7 +87,7 @@ impl ProposedReading
     ///
     /// # This reaches the door and stops there
     ///
-    /// `Admit` reads [`Proposed`] and [`Source`] and discards this and [`Location`]. An
+    /// `Admit_Source` reads [`Proposed`] and [`Source`] and discards this and [`Location`]. An
     /// `Assertion` holds a source, a claim and a scope, so nothing about the *reading* survives
     /// into the graph. Recorded here rather than left for a reader to discover, because a field
     /// nothing consumes reads exactly like a field something does.

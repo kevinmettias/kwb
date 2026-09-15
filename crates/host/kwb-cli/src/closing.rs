@@ -13,9 +13,9 @@ use kwb_domain::{Concept, KnowledgeGraph, Publication, Standing, Versioned};
 use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::FileRecordLog;
 
-use crate::arguments::{Flag_From, LeadingFlag, Nothing_Left, Store_Root_From};
+use crate::arguments::{Flag_From_Arguments, LeadingFlag, Nothing_Left, Store_Root_From_Arguments};
 use crate::keeping::Recorded_At;
-use crate::refusals::{Complained, Wrong_Command_Line};
+use crate::refusals::{Complained_Without_Usage, Wrong_Command_Line};
 use crate::FAILURE_EXIT;
 
 /// `kwb retire <concept> --store <dir> --because <reason>`
@@ -35,16 +35,16 @@ pub(crate) fn Close_Command(arguments: &[&str], merging: Option<()>) -> ExitCode
         return Wrong_Command_Line("expected a concept");
     };
 
-    let closing = match Closing_From(name, rest, merging)
+    let closing = match Closing_From_Arguments(name, rest, merging)
     {
         Ok(closing) => closing,
         Err(usage) => return usage,
     };
 
-    return match Closed(&closing)
+    return match Closed_Concept(&closing)
     {
         Ok(()) => ExitCode::SUCCESS,
-        Err(complaint) => Complained("kwb", &complaint, FAILURE_EXIT),
+        Err(complaint) => Complained_Without_Usage("kwb", &complaint, FAILURE_EXIT),
     };
 }
 
@@ -73,15 +73,15 @@ struct Closing<'arguments>
 /// # Errors
 ///
 /// The usage for one that asks for too little, which is what [`Required_Of`] answers.
-fn Closing_From<'arguments>(
+fn Closing_From_Arguments<'arguments>(
     name: &'arguments str,
     arguments: &'arguments [&'arguments str],
     merging: Option<()>,
 ) -> Result<Closing<'arguments>, ExitCode>
 {
-    let LeadingFlag { value: successor, rest } = Flag_From(arguments, "--into");
-    let LeadingFlag { value: store_root, rest } = Store_Root_From(rest);
-    let LeadingFlag { value: because, rest } = Flag_From(rest, "--because");
+    let LeadingFlag { value: successor, rest } = Flag_From_Arguments(arguments, "--into");
+    let LeadingFlag { value: store_root, rest } = Store_Root_From_Arguments(rest);
+    let LeadingFlag { value: because, rest } = Flag_From_Arguments(rest, "--because");
 
     let (because, store_root) = Required_Of(because, store_root, rest)?;
 
@@ -139,7 +139,7 @@ fn Required_Of<'arguments>(
 ///
 /// The first complaint of the three steps that can make one, in their order: a log that cannot
 /// be opened or replayed, a closure `D17` refuses, and a record the medium would not take.
-fn Closed(closing: &Closing) -> Result<(), String>
+fn Closed_Concept(closing: &Closing) -> Result<(), String>
 {
     let recorded = Recorded_At(Some(closing.store_root))?;
     let applied = Applied_To(closing, &recorded.known)?;
@@ -181,33 +181,6 @@ fn Applied_To(closing: &Closing, known: &KnowledgeGraph) -> Result<Applied, Stri
     let publication = Publication::Concept { concept, standing };
 
     return Ok(Applied { publication, after });
-}
-
-/// Record the closure, when there is a log to record it in.
-///
-/// # Errors
-///
-/// A log the medium refused to append to. `D19`: a report must not outrun the work, and a
-/// closure announced but not recorded is one the next run will not know about.
-fn Record_Closure(log: Option<&FileRecordLog>, publication: &Publication) -> Result<(), String>
-{
-    let Some(log) = log
-    else
-    {
-        return Ok(());
-    };
-
-    return log
-        .Append(&publication.Record(None))
-        .map_err(|cause| return format!("cannot record the closure: {cause}"));
-}
-
-/// What a closure left behind, in the library's own vocabulary.
-fn Print_Closure(name: &str, after: &KnowledgeGraph)
-{
-    println!("closed     {name}");
-    println!("current    {}", after.Current().Concepts().len());
-    println!("held       {}", after.Every_Version().Concepts().len());
 }
 
 /// The standing a closure produces, refusing the merges `D17` would not authorise.
@@ -256,7 +229,7 @@ fn Merged_Into(
         return Err("a concept cannot supersede itself".to_owned());
     }
 
-    if !Held_By(known, &into)
+    if !Is_Held_By(known, &into)
     {
         return Err(format!("nothing published a concept named {successor} to merge into"));
     }
@@ -272,11 +245,38 @@ fn Merged_Into(
 /// The successor has to be one the graph holds. A merge into something nobody published is a
 /// merge whose successor cannot be resolved, which is how `merge-audit` came to resolve none of
 /// the merge log and report that nothing had been merged away.
-fn Held_By(known: &KnowledgeGraph, into: &Concept) -> bool
+fn Is_Held_By(known: &KnowledgeGraph, into: &Concept) -> bool
 {
     return known
         .Every_Version()
         .Concepts()
         .iter()
         .any(|candidate| return candidate.Value().Identity() == into.Identity());
+}
+
+/// Record the closure, when there is a log to record it in.
+///
+/// # Errors
+///
+/// A log the medium refused to append to. `D19`: a report must not outrun the work, and a
+/// closure announced but not recorded is one the next run will not know about.
+fn Record_Closure(log: Option<&FileRecordLog>, publication: &Publication) -> Result<(), String>
+{
+    let Some(log) = log
+    else
+    {
+        return Ok(());
+    };
+
+    return log
+        .Append(&publication.Record(None))
+        .map_err(|cause| return format!("cannot record the closure: {cause}"));
+}
+
+/// What a closure left behind, in the library's own vocabulary.
+fn Print_Closure(name: &str, after: &KnowledgeGraph)
+{
+    println!("closed     {name}");
+    println!("current    {}", after.Current().Concepts().len());
+    println!("held       {}", after.Every_Version().Concepts().len());
 }

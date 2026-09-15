@@ -44,10 +44,10 @@
 
 #![forbid(unsafe_code)]
 
-mod content_store_port;
-mod record_log_port;
+mod content_store_strategy;
+mod record_log_strategy;
 mod storage_error;
 
-pub use content_store_port::ContentStoreStrategy;
-pub use record_log_port::RecordLogStrategy;
+pub use content_store_strategy::ContentStoreStrategy;
+pub use record_log_strategy::RecordLogStrategy;
 pub use storage_error::StorageError;

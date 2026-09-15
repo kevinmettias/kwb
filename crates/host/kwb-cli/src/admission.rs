@@ -13,13 +13,13 @@ use std::process::ExitCode;
 
 use kwb_domain::Scope;
 use kwb_ingest::{
-    Admit, AdmissionReport, Extraction, ExtractionLineage, ExtractionStrategy, ReadingKind,
-    SourceLocation, Stated,
+    Admit_Source, AdmissionReport, ClaimText, ConceptName, Extraction, ExtractionLineage,
+    ExtractionStrategy, ReaderName, ReadingKind, ReadingProtocol, SourceLocation, Stated,
 };
 
-use crate::arguments::{LeadingFlag, Store_Root_From};
+use crate::arguments::{LeadingFlag, Store_Root_From_Arguments};
 use crate::keeping::{Kept, Kept_At, Now, Record_Into};
-use crate::refusals::{Complained, Complained_With_Usage};
+use crate::refusals::{Complained_Without_Usage, Complained_With_Usage};
 use crate::{Persistence, Report_Admission, FAILURE_EXIT};
 
 /// One admission, from the flags that describe it to the bytes they are about.
@@ -38,17 +38,17 @@ pub(crate) fn Run_Admission(path: &str, rest: &[&str]) -> ExitCode
     let bytes = match Bytes_Of(path)
     {
         Ok(bytes) => bytes,
-        Err(complaint) => return Complained("kwb admit", &complaint, FAILURE_EXIT),
+        Err(complaint) => return Complained_Without_Usage("kwb admit", &complaint, FAILURE_EXIT),
     };
 
     let mut kept = match Kept_At(store_root)
     {
         Ok(kept) => kept,
-        Err(complaint) => return Complained("kwb admit", &complaint, FAILURE_EXIT),
+        Err(complaint) => return Complained_Without_Usage("kwb admit", &complaint, FAILURE_EXIT),
     };
 
     let said = Reader_For(extractions, scope);
-    return Admitted(bytes, said.as_ref(), &mut kept);
+    return Ran_Admission(bytes, said.as_ref(), &mut kept);
 }
 
 /// Everything `kwb admit` reads off its command line, in the order a misplaced flag is caught.
@@ -66,9 +66,9 @@ fn Arguments_Of_Admit<'arguments>(
     arguments: &'arguments [&'arguments str],
 ) -> Result<(Option<&'arguments str>, Scope, Vec<Extraction>), String>
 {
-    let LeadingFlag { value: store_root, rest } = Store_Root_From(arguments);
-    let (scope, rest) = Scope_From(rest)?;
-    let extractions = Extractions_From(rest)?;
+    let LeadingFlag { value: store_root, rest } = Store_Root_From_Arguments(arguments);
+    let (scope, rest) = Scope_From_Arguments(rest)?;
+    let extractions = Extractions_From_Arguments(rest)?;
 
     return Ok((store_root, scope, extractions));
 }
@@ -86,7 +86,7 @@ fn Arguments_Of_Admit<'arguments>(
 /// scope and had it swallowed was told nothing, and the record said they had said nothing.
 /// Refusing here is the fix, because this is where a person's input arrives; `Scope::Named`
 /// refusing to return the unstated scope is what makes it impossible to get wrong elsewhere.
-fn Scope_From<'arguments>(
+fn Scope_From_Arguments<'arguments>(
     arguments: &'arguments [&'arguments str],
 ) -> Result<(Scope, &'arguments [&'arguments str]), String>
 {
@@ -113,7 +113,7 @@ fn Scope_From<'arguments>(
 /// # Errors
 ///
 /// An argument that is not `--says`, and a `--says` group carrying fewer than two values.
-fn Extractions_From(arguments: &[&str]) -> Result<Vec<Extraction>, String>
+fn Extractions_From_Arguments(arguments: &[&str]) -> Result<Vec<Extraction>, String>
 {
     let mut extractions = Vec::new();
     let mut remaining = arguments;
@@ -125,7 +125,7 @@ fn Extractions_From(arguments: &[&str]) -> Result<Vec<Extraction>, String>
             return Err(format!("unexpected argument {flag}"));
         }
 
-        let Some((extraction, rest)) = Said_From(rest)
+        let Some((extraction, rest)) = Said_From_Arguments(rest)
         else
         {
             return Err("--says takes a concept and a claim".to_owned());
@@ -145,14 +145,17 @@ fn Extractions_From(arguments: &[&str]) -> Result<Vec<Extraction>, String>
 /// Nothing rather than a complaint, because both halves fail the same way and the caller words
 /// that once: a `--says` missing its claim and a `--says` missing both are one thing a reader
 /// has to fix, and two copies of the sentence would be two places for it to drift.
-fn Said_From<'arguments>(
+fn Said_From_Arguments<'arguments>(
     arguments: &'arguments [&'arguments str],
 ) -> Option<(Extraction, &'arguments [&'arguments str])>
 {
     let (concept, rest) = arguments.split_first()?;
     let (claim, rest) = rest.split_first()?;
 
-    return Some((Extraction::New((*concept).to_owned(), (*claim).to_owned()), rest));
+    return Some((
+        Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim)),
+        rest,
+    ));
 }
 
 /// The bytes of the file a run was pointed at.
@@ -169,13 +172,16 @@ fn Bytes_Of(path: &str) -> Result<Vec<u8>, String>
 /// The reading a command line supplies, or nothing when it supplied nothing to read.
 ///
 /// `--says` is a person stating what a passage asserts, which is exactly what `Stated` is.
-/// Routing it through the extraction seam rather than handing `Admit` a list means the command
+/// Routing it through the extraction seam rather than handing `Admit_Source` a list means the command
 /// line uses the same door a reading adapter will, and that the protocol and the reader are
 /// recorded instead of being implied by the fact that somebody typed them.
 fn Reader_For(extractions: Vec<Extraction>, scope: Scope) -> Option<Stated>
 {
     let location = SourceLocation::Named("as stated on the command line");
-    let lineage = ExtractionLineage::Of("stated-by-a-person", "the operator of kwb admit");
+    let lineage = ExtractionLineage::Of(
+        ReadingProtocol::Named("stated-by-a-person"),
+        ReaderName::Named("the operator of kwb admit"),
+    );
 
     return Stated::Of(extractions, location, lineage, scope);
 }
@@ -184,7 +190,7 @@ fn Reader_For(extractions: Vec<Extraction>, scope: Scope) -> Option<Stated>
 ///
 /// The reading is borrowed rather than taken because it is only read here: the pipeline is
 /// handed a trait object derived from it and never the value itself.
-fn Admitted(bytes: Vec<u8>, said: Option<&Stated>, kept: &mut Kept) -> ExitCode
+fn Ran_Admission(bytes: Vec<u8>, said: Option<&Stated>, kept: &mut Kept) -> ExitCode
 {
     let reader = said.map(|said| return said as &dyn ExtractionStrategy);
 
@@ -192,10 +198,10 @@ fn Admitted(bytes: Vec<u8>, said: Option<&Stated>, kept: &mut Kept) -> ExitCode
     // needing visual reading is a judgement no part of this command can make, and saying `Text`
     // here does not assert otherwise -- `Stated` refuses no kind, so the value reaches nothing
     // that acts on it. It becomes load-bearing when a reader that can refuse arrives.
-    let report = match Admit(bytes, reader, ReadingKind::Text, &mut kept.store)
+    let report = match Admit_Source(bytes, reader, ReadingKind::Text, &mut kept.store)
     {
         Ok(report) => report,
-        Err(refusal) => return Complained("kwb admit", &refusal.to_string(), FAILURE_EXIT),
+        Err(refusal) => return Complained_Without_Usage("kwb admit", &refusal.to_string(), FAILURE_EXIT),
     };
 
     return Finished_Admission(&report, kept);
@@ -203,7 +209,7 @@ fn Admitted(bytes: Vec<u8>, said: Option<&Stated>, kept: &mut Kept) -> ExitCode
 
 /// What the run published, kept and then reported.
 ///
-/// Split from [`Admitted`] because the pipeline call and the run's tail are two things a reader
+/// Split from [`Ran_Admission`] because the pipeline call and the run's tail are two things a reader
 /// checks separately: that the bytes went in through the one door, and that what came out was
 /// recorded before the report claimed it.
 fn Finished_Admission(report: &AdmissionReport, kept: &mut Kept) -> ExitCode
@@ -211,7 +217,7 @@ fn Finished_Admission(report: &AdmissionReport, kept: &mut Kept) -> ExitCode
     let published = match Record_Into(kept.recorded.log.as_ref(), report, Some(Now()))
     {
         Ok(()) => report.Published_Into(&kept.recorded.known),
-        Err(complaint) => return Complained("kwb admit", &complaint, FAILURE_EXIT),
+        Err(complaint) => return Complained_Without_Usage("kwb admit", &complaint, FAILURE_EXIT),
     };
 
     Report_Admission(

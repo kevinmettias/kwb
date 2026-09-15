@@ -7,7 +7,7 @@
 use std::process::ExitCode;
 
 use kwb_domain::KnowledgeGraph;
-use kwb_mcp::{Answer, Corpus_At, Print_Surface, Store};
+use kwb_mcp::{Answer_Tool_Call, Corpus_At, Print_Surface, Store, ToolName};
 
 /// A wrong command line, which is not the same as a run that failed.
 const USAGE_EXIT: u8 = 2;
@@ -30,7 +30,7 @@ fn main() -> ExitCode
         }
     };
 
-    return Serve(
+    return Serve_Command_Line(
         &graph,
         borrowed.get(1..).unwrap_or_default(),
         Store::Of(borrowed.first().copied()),
@@ -43,7 +43,7 @@ fn main() -> ExitCode
 /// is the tool and the rest is its argument. Which store was named travels separately because it
 /// is a fact about the command line rather than about what is left of it: a run given a store and
 /// no tool has named no tool and is still not the empty listing.
-fn Serve(graph: &KnowledgeGraph, arguments: &[&str], store: Store) -> ExitCode
+fn Serve_Command_Line(graph: &KnowledgeGraph, arguments: &[&str], store: Store) -> ExitCode
 {
     let Some((tool, rest)) = arguments.split_first()
     else
@@ -53,7 +53,7 @@ fn Serve(graph: &KnowledgeGraph, arguments: &[&str], store: Store) -> ExitCode
     };
 
     let argument = rest.first().copied().unwrap_or_default();
-    let Some(answers) = Answer(graph, tool, argument)
+    let Some(answers) = Answer_Tool_Call(graph, ToolName::Named(tool), argument)
     else
     {
         eprintln!("kwb-mcp: no tool named {tool}");

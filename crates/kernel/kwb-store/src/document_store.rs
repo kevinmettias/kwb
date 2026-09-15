@@ -109,7 +109,7 @@ impl DocumentStore
         let admission = self.Admission_Of(&document, identity)?;
         let written = Written::For(&document, admission);
 
-        if written.Was_Stored()
+        if written.Has_Stored()
         {
             self.Persist(identity, &document)?;
         }
@@ -219,7 +219,7 @@ impl DocumentStore
 
     /// Whether the store holds a document at this address.
     #[must_use]
-    pub fn Holds(&self, identity: ContentIdentity) -> bool
+    pub fn Has_Document(&self, identity: ContentIdentity) -> bool
     {
         return self.documents.contains_key(&identity);
     }

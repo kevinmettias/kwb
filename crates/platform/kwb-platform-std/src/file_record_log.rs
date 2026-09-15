@@ -27,7 +27,7 @@ pub struct FileRecordLog
 /// The cause is borrowed rather than taken, because it is only read: the refusal this crate
 /// reports is a `String`, so the error the medium produced is left where the caller's own
 /// `map_err` closure found it rather than consumed to be described.
-fn Refused(doing: &'static str, cause: &std::io::Error) -> StorageError
+fn Refused_Operation(doing: &'static str, cause: &std::io::Error) -> StorageError
 {
     return StorageError::Refused {
         doing,
@@ -48,14 +48,14 @@ impl FileRecordLog
         if let Some(parent) = path.parent()
         {
             std::fs::create_dir_all(parent)
-                .map_err(|cause| return Refused("creating the log directory", &cause))?;
+                .map_err(|cause| return Refused_Operation("creating the log directory", &cause))?;
         }
 
         OpenOptions::new()
             .create(true)
             .append(true)
             .open(&path)
-            .map_err(|cause| return Refused("opening the record log", &cause))?;
+            .map_err(|cause| return Refused_Operation("opening the record log", &cause))?;
 
         return Ok(Self { path });
     }
@@ -74,25 +74,25 @@ impl RecordLogStrategy for FileRecordLog
             .create(true)
             .append(true)
             .open(&self.path)
-            .map_err(|cause| return Refused("opening the record log to append", &cause))?;
+            .map_err(|cause| return Refused_Operation("opening the record log to append", &cause))?;
 
         writeln!(file, "{record}")
-            .map_err(|cause| return Refused("appending a record", &cause))?;
+            .map_err(|cause| return Refused_Operation("appending a record", &cause))?;
 
         return file
             .flush()
-            .map_err(|cause| return Refused("flushing an appended record", &cause));
+            .map_err(|cause| return Refused_Operation("flushing an appended record", &cause));
     }
 
     fn Records(&self) -> Result<Vec<String>, StorageError>
     {
         let file = File::open(&self.path)
-            .map_err(|cause| return Refused("opening the record log to read", &cause))?;
+            .map_err(|cause| return Refused_Operation("opening the record log to read", &cause))?;
 
         let mut records = Vec::new();
         for line in BufReader::new(file).lines()
         {
-            let line = line.map_err(|cause| return Refused("reading a record", &cause))?;
+            let line = line.map_err(|cause| return Refused_Operation("reading a record", &cause))?;
             if !line.is_empty()
             {
                 records.push(line);

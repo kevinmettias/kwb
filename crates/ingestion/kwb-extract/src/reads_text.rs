@@ -1,12 +1,16 @@
 //! Reading born-digital text, one passage at a time.
 
 use kwb_domain::Scope;
+use kwb_ingest::ClaimText;
+use kwb_ingest::ConceptName;
 use kwb_ingest::Extraction;
 use kwb_ingest::ExtractionLineage;
 use kwb_ingest::ExtractionError;
 use kwb_ingest::ExtractionStrategy;
 use kwb_ingest::ProposedReading;
+use kwb_ingest::ReaderName;
 use kwb_ingest::ReadingKind;
+use kwb_ingest::ReadingProtocol;
 use kwb_ingest::SourceLocation;
 use kwb_model::ContentIdentity;
 use kwb_platform_xvpe::inference::AnswerValue;
@@ -105,8 +109,17 @@ const MAXIMUM_PROPOSITIONS: u32 = 32;
 ///
 /// The middle one is where a model is most dangerous and the least work is needed, because
 /// `InferenceStrategy`'s own contract already says *a schema is a constraint, not a suggestion*
-/// and returns `Malformed` rather than a non-conforming answer. This maps that to a refusal; it
+/// and returns `Malformed_Answer` rather than a non-conforming answer. This maps that to a refusal; it
 /// does not re-check what the mechanism already refused.
+///
+/// # Why this is public
+///
+/// Its caller is the provider adapter, which lives **outside this repository by design** — no
+/// provider, credential or network dependency is in this workspace, so the composition root that
+/// constructs a reader is not here and never will be. That is the one case where an export has a
+/// caller the call graph cannot see: narrowing it would make this crate's entire product
+/// unreachable, which rustc reports as the whole module going dead. `PROTOCOL` is public for the
+/// same reason, and `Request_For` is not, because nothing outside needs to build a request.
 pub struct ReadsText<Reader>
 {
     reader: Reader,
@@ -241,7 +254,8 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         let answer = answered.Answer();
         let proposed = Proposed_From(answer)?;
         let model_name = self.model.As_Str();
-        let lineage = ExtractionLineage::Of(PROTOCOL, model_name);
+        let lineage =
+            ExtractionLineage::Of(ReadingProtocol::Named(PROTOCOL), ReaderName::Named(model_name));
         let reading = ProposedReading::Of(source, location, proposed, lineage);
 
         return Ok(reading);
@@ -250,16 +264,18 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
 
 /// The request this reader sends about one passage.
 ///
-/// # Why this is public
+/// # Why this is crate-visible rather than private
 ///
 /// A recording is keyed by a request's fingerprint, so a test that built its own request would
 /// be recording against a question this reader never asks — and would go on passing after the
 /// instructions or the schema changed underneath it. `KWB-57` is the item where a fixture built
 /// from a reconstruction rather than the real instance passed while the real one slipped
 /// through; this is the same hazard with a different shape, so the test and the reader ask
-/// through one function.
+/// through one function. That test lives in this crate (see [`crate::tests`]), which is the
+/// whole of why this is `pub(crate)` rather than private — the rung that reaches it and no
+/// higher one.
 #[must_use]
-pub fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRequest
+pub(crate) fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRequest
 {
     let role = ModelRole::Named(0, "extractor");
     let instructions = INSTRUCTIONS.to_owned();
@@ -285,7 +301,7 @@ pub fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRequest
 /// # Why the schema is the guard rather than a parser here
 ///
 /// `InferenceStrategy`'s contract is that *a schema is a constraint, not a suggestion*: an answer
-/// that does not conform comes back as `Malformed` rather than as data. So the strongest place to
+/// that does not conform comes back as `Malformed_Answer` rather than as data. So the strongest place to
 /// say what an extraction *is* is in the request, before anything has been read — and the reading
 /// below is then a total function over a value already known to have this shape, rather than a
 /// parser deciding at admission time what to make of whatever arrived.
@@ -293,7 +309,7 @@ pub fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRequest
 /// This is the user-stated invariant *malformed model output never becomes a graph mutation*,
 /// enforced one layer below KWB by a mechanism that already had to enforce it.
 #[must_use]
-pub fn Propositions_Schema() -> ResponseSchema
+pub(crate) fn Propositions_Schema() -> ResponseSchema
 {
     let proposition = SchemaNode::Record {
         description: "one proposition the passage asserts".to_owned(),
@@ -400,7 +416,7 @@ fn Proposed_From(answer: &AnswerValue) -> Result<Vec<Extraction>, ExtractionErro
     let Some(propositions) = answer.As_Sequence()
     else
     {
-        return Err(Malformed("a list of propositions was expected"));
+        return Err(Malformed_Answer("a list of propositions was expected"));
     };
 
     let mut proposed = Vec::new();
@@ -423,15 +439,15 @@ fn Proposed_Of(proposition: &AnswerValue) -> Result<Extraction, ExtractionError>
     let Some(concept) = proposition.Field("concept").and_then(AnswerValue::As_Text)
     else
     {
-        return Err(Malformed("a proposition carries no textual concept"));
+        return Err(Malformed_Answer("a proposition carries no textual concept"));
     };
     let Some(claim) = proposition.Field("claim").and_then(AnswerValue::As_Text)
     else
     {
-        return Err(Malformed("a proposition carries no textual claim"));
+        return Err(Malformed_Answer("a proposition carries no textual claim"));
     };
 
-    let extraction = Extraction::New(concept.to_owned(), claim.to_owned());
+    let extraction = Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
 
     return Ok(extraction);
 }
@@ -442,7 +458,7 @@ fn Proposed_Of(proposition: &AnswerValue) -> Result<Extraction, ExtractionError>
 /// and spelling the mapping out at each of them made a short check read as a five-line one. Every
 /// reason `Proposed_From` can reject an answer is this same fact about the reader, so the
 /// argument names which part of the answer was wrong and nothing else varies.
-fn Malformed(what: &str) -> ExtractionError
+fn Malformed_Answer(what: &str) -> ExtractionError
 {
     return ExtractionError::ReaderFailed {
         cause: format!("the answer is not what was asked for: {what}"),

@@ -74,7 +74,7 @@ impl Linked
 /// relation vocabulary `D-011` specifies, because that is the thing that would say which
 /// structures may consume which relations.
 #[must_use]
-pub fn Link_Concepts(extractions: &[Extraction]) -> Linked
+pub(crate) fn Link_Concepts(extractions: &[Extraction]) -> Linked
 {
     let mut linked = Linked::default();
 
@@ -86,8 +86,8 @@ pub fn Link_Concepts(extractions: &[Extraction]) -> Linked
             continue;
         }
 
-        let concept = Concept::Named(&extraction.concept_name);
-        let claim = Claim::About(&concept, &extraction.claim_text);
+        let concept = Concept::Named(extraction.concept_name.Text());
+        let claim = Claim::About(&concept, extraction.claim_text.Text());
 
         linked.concepts.push(concept);
         linked.claims.push(claim);

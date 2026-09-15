@@ -111,9 +111,9 @@ fn Test_Changed_Capitalisation_Should_Change_Identity()
 #[test]
 fn Test_Normalize_Should_Strip_Control_Characters()
 {
-    assert_eq!(Normalize("a\u{1F}b"), "ab");
-    assert_eq!(Normalize("a\u{0}b"), "ab");
-    assert_eq!(Normalize("  a   b  "), "a b");
+    assert_eq!(Normalize_Text("a\u{1F}b"), "ab");
+    assert_eq!(Normalize_Text("a\u{0}b"), "ab");
+    assert_eq!(Normalize_Text("  a   b  "), "a b");
 }
 
 // ---- the layout cannot be forged or confused ----

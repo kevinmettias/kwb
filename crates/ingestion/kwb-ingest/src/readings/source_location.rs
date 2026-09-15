@@ -20,7 +20,7 @@ impl SourceLocation
     #[must_use]
     pub fn Named(description: &str) -> Self
     {
-        return Self(kwb_model::Normalize(description));
+        return Self(kwb_model::Normalize_Text(description));
     }
 
     /// The description.

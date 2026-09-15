@@ -69,9 +69,9 @@ pub enum Coverage
     ///
     /// # Nothing in this repository produces one, and that is recorded rather than left
     ///
-    /// Every consumer here handles it — [`Name`], [`Findings`], [`Was_Run`] and
+    /// Every consumer here handles it — [`Name`], [`Findings`], [`Has_Run`] and
     /// [`Is_Evidence_Of_Absence`] each have an arm, and the tests exercise it. Nothing
-    /// constructs one, because nothing in the pipeline declines to examine anything: `Admit`
+    /// constructs one, because nothing in the pipeline declines to examine anything: `Admit_Source`
     /// takes one source and always reads it.
     ///
     /// **This is not the same as `kwb-store`'s `StoreError::Collision`**, which is also never
@@ -97,7 +97,7 @@ pub enum Coverage
     ///
     /// [`Name`]: Self::Name
     /// [`Findings`]: Self::Findings
-    /// [`Was_Run`]: Self::Was_Run
+    /// [`Has_Run`]: Self::Has_Run
     /// [`Is_Evidence_Of_Absence`]: Self::Is_Evidence_Of_Absence
     /// [`Barren`]: Self::Barren
     /// [`Unmet`]: Self::Unmet
@@ -138,7 +138,7 @@ impl Coverage
 
     /// Whether the rule actually ran.
     #[must_use]
-    pub const fn Was_Run(&self) -> bool
+    pub const fn Has_Run(&self) -> bool
     {
         return matches!(*self, Self::Yielded { .. } | Self::Barren { .. });
     }

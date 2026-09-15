@@ -1,5 +1,8 @@
 //! What produced an extraction, and under what protocol.
 
+use crate::ReaderName;
+use crate::ReadingProtocol;
+
 /// What produced an extraction, and under what protocol.
 ///
 /// # Why lineage travels with the output and not with the claim
@@ -21,8 +24,8 @@
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExtractionLineage
 {
-    protocol: String,
-    reader: String,
+    protocol: ReadingProtocol,
+    reader: ReaderName,
 }
 
 impl ExtractionLineage
@@ -32,26 +35,27 @@ impl ExtractionLineage
     /// `reader` is a person as readily as a model. The corpus's admission rule turns on whether
     /// a feature still makes sense with a perfect human annotator, and this type answers yes by
     /// construction — a person is a reader with a protocol, exactly like a model.
+    ///
+    /// The two are separate types rather than two `&str`s so that a caller cannot file a reader
+    /// under a protocol it did not read under; see [`ReadingProtocol`] and [`ReaderName`], which
+    /// carry the normalization both take.
     #[must_use]
-    pub fn Of(protocol: &str, reader: &str) -> Self
+    pub fn Of(protocol: ReadingProtocol, reader: ReaderName) -> Self
     {
-        return Self {
-            protocol: kwb_model::Normalize(protocol),
-            reader: kwb_model::Normalize(reader),
-        };
+        return Self { protocol, reader };
     }
 
     /// The protocol under which the source was read.
     #[must_use]
     pub fn Protocol(&self) -> &str
     {
-        return &self.protocol;
+        return self.protocol.Text();
     }
 
     /// Who or what read it.
     #[must_use]
     pub fn Reader(&self) -> &str
     {
-        return &self.reader;
+        return self.reader.Text();
     }
 }

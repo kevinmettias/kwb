@@ -7,7 +7,7 @@ use kwb_domain::CurrentKnowledge;
 use kwb_domain::KnowledgeGraph;
 use kwb_model::ContentIdentity;
 
-use crate::matching::Contains_All;
+use crate::matching::Has_All_Words;
 use crate::matching::Words_Of;
 use crate::Neighbourhood;
 
@@ -71,7 +71,7 @@ impl<'graph> CurrentQueries<'graph>
             .Current()
             .Claims()
             .into_iter()
-            .filter(|claim| return Contains_All(claim.Text(), &words))
+            .filter(|claim| return Has_All_Words(claim.Text(), &words))
             .collect();
     }
 
@@ -90,7 +90,7 @@ impl<'graph> CurrentQueries<'graph>
             .Current()
             .Concepts()
             .into_iter()
-            .filter(|concept| return Contains_All(concept.Canonical_Name(), &words))
+            .filter(|concept| return Has_All_Words(concept.Canonical_Name(), &words))
             .collect();
     }
 
