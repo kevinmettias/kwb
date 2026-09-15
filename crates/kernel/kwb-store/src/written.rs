@@ -76,3 +76,62 @@ impl Written
         return matches!(self.admission, Admission::Stored);
     }
 }
+
+/// The one assertion only this file can make, because [`Written::For`] is `pub(crate)`.
+///
+/// A receipt is minted in exactly one place, and a file under `tests/` compiles as its own package
+/// and sees only the `pub` surface — so the constructor cannot be reached from there, and its
+/// contract has to be asserted here. The four readers it feeds are asserted in `tests/written.rs`,
+/// which is where a `pub` method's test belongs.
+#[cfg(test)]
+mod tests
+{
+    use crate::Admission;
+    use crate::Document;
+    use crate::Written;
+
+    #[test]
+    fn Test_For_Should_Take_The_Receipt_Out_Of_The_Document_It_Was_Handed()
+    {
+        // The document is the only source of two of the three fields, and that is the whole reason
+        // this constructor is crate-private: a receipt for work nobody did would be one assembled
+        // from an address and a size a caller supplied. Handing over the document as a whole value
+        // — rather than a pair of numbers copied out of it — is what makes that unreachable, so it
+        // is what this asserts.
+        //
+        // The verdict is the third field, and it is the caller's: `For` carries what it was given
+        // rather than deciding anything, which is `D20` read at this seam — the store derives the
+        // admission from what it held, and the receipt only reports it.
+        let document = Document::Of(b"a passage".to_vec());
+
+        let stored = Written::For(&document, Admission::Stored);
+        let present = Written::For(&document, Admission::AlreadyPresent);
+
+        assert_eq!(
+            stored.Identity(),
+            document.Identity(),
+            "the receipt carries an address the document it was built from does not have"
+        );
+        assert_eq!(
+            stored.Length(),
+            document.Length(),
+            "the receipt carries a size the document it was built from does not have"
+        );
+        assert_eq!(
+            present.Identity(),
+            stored.Identity(),
+            "one document produced two receipts with different addresses, so the receipt depends on \
+             something other than the document"
+        );
+        assert_eq!(
+            stored.Admission(),
+            Admission::Stored,
+            "the verdict the store derived was not carried onto the receipt"
+        );
+        assert_eq!(
+            present.Admission(),
+            Admission::AlreadyPresent,
+            "the verdict the store derived was not carried onto the receipt"
+        );
+    }
+}

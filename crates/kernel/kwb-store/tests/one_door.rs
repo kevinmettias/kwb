@@ -16,6 +16,15 @@ fn Document_From_Text(text: &str) -> Document
     return Document::Of(text.as_bytes().to_vec());
 }
 
+/// The passages the ordering property is stated over: three, differing only in being three.
+///
+/// A provider rather than a literal inside the test, so the cases have an address of their own and
+/// adding a fourth is a change in one place rather than an edit to the bench.
+fn Passages() -> [&'static str; 3]
+{
+    return ["one", "two", "three"];
+}
+
 /// Clears a directory this test owns, and fails the test on anything but its absence.
 ///
 /// Each root below is one property's own name under the temp directory, and a run begins by
@@ -193,15 +202,14 @@ fn Test_A_Held_Document_Should_Not_Change_When_Another_Is_Written()
 fn Test_Every_Address_The_Store_Reports_Should_Read_Back()
 {
     let mut store = DocumentStore::Empty();
-    let passages = ["one", "two", "three"];
-    for passage in passages
+    for passage in Passages()
     {
         assert!(store.Write(Document_From_Text(passage)).expect("the document carries bytes, which is all an unbacked store requires").Has_Stored());
     }
 
     let identities: Vec<_> = store.Identities().collect();
 
-    assert_eq!(identities.len(), passages.len());
+    assert_eq!(identities.len(), Passages().len());
     for identity in identities
     {
         assert!(store.Has_Document(identity));
@@ -214,11 +222,11 @@ fn Test_The_Listing_Should_Not_Depend_On_The_Order_Documents_Arrived_In()
 {
     let mut forwards = DocumentStore::Empty();
     let mut backwards = DocumentStore::Empty();
-    for passage in ["one", "two", "three"]
+    for passage in Passages()
     {
         assert!(forwards.Write(Document_From_Text(passage)).expect("the document carries bytes, which is all an unbacked store requires").Has_Stored());
     }
-    for passage in ["three", "two", "one"]
+    for passage in Passages().into_iter().rev()
     {
         assert!(backwards.Write(Document_From_Text(passage)).expect("the document carries bytes, which is all an unbacked store requires").Has_Stored());
     }
