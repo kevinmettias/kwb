@@ -287,3 +287,62 @@ fn Print_History(through: usize, held: usize, graph: &KnowledgeGraph)
     println!("citations  {}", graph.Current().Assertions().len());
     println!("held       {}", graph.Every_Version().Concepts().len());
 }
+
+/// What the verb answers, in process, before and after it has a log.
+///
+/// `tests/history.rs` drives this command as a person runs it, which is the level at which the
+/// counts it prints and the sentence it refuses by can be read. What that cannot state is the exit
+/// code, and the exit code is the half a caller branches on: `tests/history.rs` checks that a
+/// refusal failed, and this checks that it failed the way this verb says it does.
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    #[test]
+    fn Test_History_Command_Should_Refuse_A_Run_With_No_Store_On_The_Command_Line()
+    {
+        // Without `--store` there is no log, and a graph replayed from no log is empty. Reporting
+        // zero concepts would be true of the value and false about the corpus, so the run ends on
+        // the usage exit instead: nothing failed, and what is wrong is that the command line did
+        // not say where the history is kept.
+        assert_eq!(History_Command(&[]), ExitCode::from(USAGE_EXIT));
+    }
+
+    #[test]
+    fn Test_History_Command_Should_Refuse_A_Flag_That_Arrives_With_No_Store()
+    {
+        // The same refusal with more on the command line, and reached before the flag is read —
+        // which is the part worth asserting. A verb that parsed `--through` first would answer the
+        // question it was asked with the empty graph of a store nobody named.
+        assert_eq!(History_Command(&["--through", "1"]), ExitCode::from(USAGE_EXIT));
+    }
+
+    #[test]
+    fn Test_History_Command_Should_Answer_A_Log_Holding_A_Publication_Written_Before_There_Were_Times()
+    {
+        // The whole verb in process: the log is opened, read, replayed and reported. The fixture is
+        // a real record of the shape this repository wrote before `KWB-64` — copied from a log, not
+        // constructed to pass — so this is also the check that a log older than timestamps still
+        // replays through the one command that reads it, which is the cost `D-014` could not pay.
+        let store = std::env::temp_dir().join("kwb-cli-history-command");
+        std::fs::create_dir_all(&store).expect("a writable temporary directory");
+        std::fs::write(
+            store.join("publications.log"),
+            concat!(
+                "concept\u{1F}asserted\u{1F}\u{1F}\u{1F}entropy\n",
+                "claim\u{1F}asserted\u{1F}\u{1F}\u{1F}",
+                "a05035869b31af055b5b16060404ea98130701b0b0e5a25be8a78c01427a652c",
+                "\u{1F}It is non-decreasing.\n"
+            ),
+        )
+        .expect("a writable temporary log");
+        let named = store.display().to_string();
+
+        assert_eq!(
+            History_Command(&["--store", named.as_str()]),
+            ExitCode::SUCCESS,
+            "a log this repository wrote could not be replayed by the command that reads it"
+        );
+    }
+}

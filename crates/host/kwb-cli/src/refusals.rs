@@ -59,3 +59,63 @@ pub(crate) fn Complained_With_Usage(verb: &'static str, complaint: &str) -> Exit
     Print_Usage();
     return ExitCode::from(USAGE_EXIT);
 }
+
+/// What each refusal answers with, which is the half of it a caller can read.
+///
+/// These three write two lines and end the process, so the words they print are checked where a
+/// person reads them — at the process boundary, in `tests/history.rs`. What is left inside the
+/// process is the exit code, and that is not the lesser half: it is what a script branches on and
+/// what tells a failed run apart from a mistyped command line. The three functions differ in
+/// nothing else, which is why the difference has to be a test rather than a note.
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    use crate::FAILURE_EXIT;
+
+    #[test]
+    fn Test_Wrong_Command_Line_Should_Answer_With_The_Usage_Exit_Whatever_The_Complaint()
+    {
+        // The complaints vary and the code must not. `main` reaches this from two directions —
+        // nothing typed at all, and a word that is not a verb — so a code that came from the
+        // complaint would make those two disagree with each other and with every other refusal
+        // that shows the syntax.
+        assert_eq!(Wrong_Command_Line("expected a verb"), ExitCode::from(USAGE_EXIT));
+        assert_eq!(Wrong_Command_Line("expected a concept"), ExitCode::from(USAGE_EXIT));
+    }
+
+    #[test]
+    fn Test_Complained_Without_Usage_Should_Carry_The_Code_It_Was_Handed()
+    {
+        // Why the code is a parameter at all, and the reason this is not `Wrong_Command_Line`
+        // under a longer name. A failed run and a mistyped argument both arrive here, they exit
+        // `1` and `2`, and a version that answered `USAGE_EXIT` regardless would report a run
+        // that could not finish as a person's typing mistake — the one thing the two lines of
+        // prose above cannot say, because prose is not what a script reads.
+        assert_eq!(
+            Complained_Without_Usage("kwb history", "cannot read the publication log", FAILURE_EXIT),
+            ExitCode::from(FAILURE_EXIT),
+            "a run that failed was reported as a command line that was mistyped"
+        );
+        assert_eq!(
+            Complained_Without_Usage("kwb history", "no such store", USAGE_EXIT),
+            ExitCode::from(USAGE_EXIT),
+            "the code the caller chose was not the code that came back"
+        );
+    }
+
+    #[test]
+    fn Test_Complained_With_Usage_Should_Answer_With_The_Usage_Exit_For_A_Well_Formed_Run()
+    {
+        // The case the module doc gives for this existing at all: nothing failed, and what is
+        // wrong is the syntax, so the syntax is shown and the code says so. It takes the same two
+        // arguments as its sibling above and differs in one of them, which is exactly why the
+        // pair cannot be told apart by reading the call.
+        assert_eq!(
+            Complained_With_Usage("kwb history", "--through takes a count"),
+            ExitCode::from(USAGE_EXIT),
+            "an argument that was mistyped was not answered with the usage exit"
+        );
+    }
+}

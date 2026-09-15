@@ -229,3 +229,59 @@ fn Finished_Admission(report: &AdmissionReport, kept: &mut Kept) -> ExitCode
 
     return ExitCode::SUCCESS;
 }
+
+/// The three ways a run can be refused, told apart by their exit codes, and the order they happen in.
+///
+/// `Run_Admission` prints a report and ends an exit, so the words it prints are read at the process
+/// boundary. What is left inside the process is the half a caller branches on — and the half the
+/// module doc above spends its length on: one wrong command line and two failed runs, each ending
+/// the way it should. Those are indistinguishable in any single refusal's text and are three
+/// different exit codes, which is the whole reason they travel apart.
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    use crate::USAGE_EXIT;
+
+    #[test]
+    fn Test_Run_Admission_Should_Refuse_A_Path_The_Medium_Would_Not_Hand_Over()
+    {
+        // A failed run rather than a wrong command line: the path is well-formed and it is the
+        // medium that refused, so the exit is `FAILURE_EXIT` and the usage is withheld. A run that
+        // answered `USAGE_EXIT` here would send a person to re-read the help for a file that is
+        // simply not there.
+        assert_eq!(
+            Run_Admission("no such file this run was pointed at", &[]),
+            ExitCode::from(FAILURE_EXIT)
+        );
+    }
+
+    #[test]
+    fn Test_Run_Admission_Should_Refuse_A_Mistyped_Command_Line_Before_It_Reads_The_File()
+    {
+        // The path does not exist, and deliberately. What is asserted is the ORDER: the flags are
+        // read before the bytes, so an argument the verb does not take is answered as a mistyped
+        // command line — `USAGE_EXIT`, with the syntax shown — rather than as the missing file it
+        // would also have been. Both are true of this run and only one of them is the answer.
+        assert_eq!(
+            Run_Admission("no such file this run was pointed at", &["--nonsense"]),
+            ExitCode::from(USAGE_EXIT)
+        );
+    }
+
+    #[test]
+    fn Test_Run_Admission_Should_Answer_Success_For_An_Admission_With_Nothing_To_Say()
+    {
+        // `--says` is how a passage's claims get in, and a run given none is still a run the tool
+        // documents: the bytes are admitted, the source is written, and the coverage is reported
+        // `unmet` rather than refused. A version that ended on a failure here would make
+        // `kwb admit <file>` — the command the help leads with — exit `1` for having been typed
+        // exactly as it was written down.
+        let source = std::env::temp_dir().join("kwb-cli-admission-nothing-to-say.txt");
+        std::fs::write(&source, b"a passage").expect("a writable temporary source");
+        let named = source.display().to_string();
+
+        assert_eq!(Run_Admission(&named, &[]), ExitCode::SUCCESS);
+    }
+}

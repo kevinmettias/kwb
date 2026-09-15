@@ -280,3 +280,89 @@ fn Print_Closure(name: &str, after: &KnowledgeGraph)
     println!("current    {}", after.Current().Concepts().len());
     println!("held       {}", after.Every_Version().Concepts().len());
 }
+
+/// The ways a closing command line is refused, from the verb itself.
+///
+/// Each ends on an exit code and prints its own complaint, so what is asserted here is the code —
+/// which is the half that tells the three kinds of refusal apart. A closure that reaches a store is
+/// driven where a person can read the counts it prints, at the process boundary.
+///
+/// `D17` is the reason there are four of these and not one: a reason and a place to keep it are
+/// both required, and the order they are demanded in is the order a person can fix them in.
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    use crate::USAGE_EXIT;
+
+    #[test]
+    fn Test_Close_Command_Should_Refuse_A_Closing_With_No_Concept_To_Close()
+    {
+        // The concept is split off the front before any flag is read, so a run with nothing after
+        // the verb is answered here rather than by whichever flag reader happened to look first.
+        assert_eq!(Close_Command(&[], None), ExitCode::from(USAGE_EXIT));
+    }
+
+    #[test]
+    fn Test_Close_Command_Should_Refuse_A_Retire_With_No_Reason()
+    {
+        // `D17`: destruction requires evidence, so `--because` is required rather than accepted.
+        // This is the refusal that makes the record answerable months later, which is the half of
+        // the 144-of-579 merges a log alone would not have supplied. A store is named so that what
+        // is being refused is the missing reason and not the missing store.
+        assert_eq!(
+            Close_Command(&["entropy", "--store", "somewhere"], None),
+            ExitCode::from(USAGE_EXIT)
+        );
+    }
+
+    #[test]
+    fn Test_Close_Command_Should_Refuse_A_Closing_With_Nowhere_To_Record_It()
+    {
+        // A closure nothing keeps is one the next run will not know about, which is why the store
+        // is required rather than defaulted — and why `Closed_Concept` records before it reports.
+        // The reason is supplied here, so the missing store is the only thing left to refuse.
+        assert_eq!(
+            Close_Command(&["entropy", "--because", "superseded by enthalpy"], None),
+            ExitCode::from(USAGE_EXIT)
+        );
+    }
+
+    #[test]
+    fn Test_Close_Command_Should_Refuse_An_Argument_No_Flag_Claimed()
+    {
+        // The way a reader is least likely to predict, and the reason the three refusals sit in
+        // one function: everything required is present and one word is left on the end. It is
+        // refused before either required flag is checked, so the complaint names the extra
+        // argument rather than denying a flag the person did type.
+        assert_eq!(
+            Close_Command(
+                &["entropy", "--store", "somewhere", "--because", "D17", "extra"],
+                None
+            ),
+            ExitCode::from(USAGE_EXIT)
+        );
+    }
+
+    #[test]
+    fn Test_Close_Command_Should_Refuse_A_Supersede_That_Named_No_Successor()
+    {
+        // The one thing separating the two verbs, which is why they share a file: a supersede with
+        // no `--into` merges into nothing, and `D17` refuses a merge whose successor cannot be
+        // resolved. Its exit is `FAILURE_EXIT` rather than `USAGE_EXIT` — the command line was
+        // well-formed and it is the closure that does not exist — which is the distinction all
+        // three refusals in this crate turn on.
+        let store = std::env::temp_dir().join("kwb-cli-closing-supersede");
+        let named = store.display().to_string();
+
+        assert_eq!(
+            Close_Command(
+                &["entropy", "--store", named.as_str(), "--because", "D17"],
+                Some(())
+            ),
+            ExitCode::from(FAILURE_EXIT),
+            "a merge into nothing was not refused as a closure that does not exist"
+        );
+    }
+}
