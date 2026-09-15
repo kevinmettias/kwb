@@ -62,3 +62,38 @@ impl Sealed
         return &self.excluded;
     }
 }
+
+/// The one assertion only this file can make, because [`Sealed::From`] is `pub(crate)`.
+///
+/// The three questions a finished derivation answers are asked from outside, in
+/// `tests/sealed.rs`, which is where a `pub` function's test belongs. The constructor cannot
+/// go there: a file under `tests/` compiles as a separate package and sees only the `pub`
+/// surface, so the one place entitled to assemble this record is reachable from nowhere but
+/// here.
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    use crate::Derivation;
+
+    #[test]
+    fn Test_From_Should_Take_The_Parts_It_Is_Given_And_Add_Nothing_Of_Its_Own()
+    {
+        // What a record of a derivation must not do is invent any part of it: an identity that
+        // nothing was derived from, a field that never participated, or a reason the caller did
+        // not write. The parts are handed over here rather than derived, because that is the
+        // only way to tell the constructor from the derivation that normally calls it.
+        let identity = Derivation::Of("claim").With_Text("text", "a passage").Seal().Identity();
+        let excluded = [Exclusion {
+            field: "source",
+            because: "two books asserting one claim must become one claim with two citations",
+        }];
+
+        let sealed = Sealed::From(identity, vec!["text"], excluded.to_vec());
+
+        assert_eq!(sealed.Identity(), identity, "the constructor minted an identity of its own");
+        assert_eq!(sealed.Included(), ["text"], "a field nobody wrote was reported as participating");
+        assert_eq!(sealed.Excluded(), excluded, "the exclusion was not carried through unchanged");
+    }
+}

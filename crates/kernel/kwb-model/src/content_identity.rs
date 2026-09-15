@@ -206,3 +206,36 @@ impl fmt::Debug for ContentIdentity
         return write!(formatter, "ContentIdentity({})", self.Render());
     }
 }
+
+/// The one assertion only this file can make, because [`ContentIdentity::From_Digest`] is
+/// `pub(crate)`.
+///
+/// Everything else about an identity is asserted from outside, in `tests/content_identity.rs`,
+/// which is where a `pub` function's test belongs. This one cannot go there: a file under
+/// `tests/` compiles as a separate package and sees only the library's `pub` surface, so the
+/// constructor that mints an identity from a finished digest is reachable from nowhere but
+/// the file that declares it.
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    #[test]
+    fn Test_From_Digest_Should_Carry_The_Digest_Into_The_Rendered_Identity()
+    {
+        // The constructor is the last step of every derivation in the workspace, and what it
+        // must not do is reinterpret what it is handed -- not re-hash it, not reorder it, not
+        // render it early. A digest that arrived as bytes has to be the same digest that leaves
+        // as text, byte for byte, or nothing derived above it addresses anything.
+        let digest = [0xAB_u8; IDENTITY_BYTES];
+
+        let identity = ContentIdentity::From_Digest(digest);
+
+        assert_eq!(identity.As_Bytes(), &digest, "the constructor changed the digest it was given");
+        assert_eq!(
+            identity.Render(),
+            "ab".repeat(IDENTITY_BYTES),
+            "the digest that was minted is not the digest that renders"
+        );
+    }
+}
