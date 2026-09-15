@@ -260,15 +260,7 @@ fn Test_The_Mutating_Method_Detector_Should_Detect()
 #[test]
 fn Test_The_Mutating_Method_Detector_Should_Not_Report_What_Is_Not_One()
 {
-    let quiet = [
-        "pub fn Read(&self) -> bool { }",
-        "fn Private(&mut self) { }",
-        "/// A doc comment mentioning &mut self, which is not a signature.",
-        "pub const fn Empty() -> Self { }",
-        "",
-    ];
-
-    for source in quiet
+    for source in NON_MUTATING_SOURCES
     {
         assert!(
             Mutating_Public_Methods(source).is_empty(),
@@ -276,3 +268,18 @@ fn Test_The_Mutating_Method_Detector_Should_Not_Report_What_Is_Not_One()
         );
     }
 }
+
+/// Sources that must produce no mutating method: a shared reader, a private writer, a doc comment
+/// that reads like a signature, a const constructor, and no declaration at all.
+///
+/// Declared outside the test, and named, for the reason the note above gives about the two copies:
+/// this table is the same one `kwb-store`'s `tests/one_door.rs` runs, and the pair is only worth
+/// running while the two can be read side by side. A case added to one is visible as a diff against
+/// a named thing rather than as an edit buried in a test body.
+const NON_MUTATING_SOURCES: &[&str] = &[
+    "pub fn Read(&self) -> bool { }",
+    "fn Private(&mut self) { }",
+    "/// A doc comment mentioning &mut self, which is not a signature.",
+    "pub const fn Empty() -> Self { }",
+    "",
+];
