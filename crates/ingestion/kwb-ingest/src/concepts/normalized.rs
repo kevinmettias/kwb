@@ -115,3 +115,97 @@ pub(crate) fn Normalize_Concepts(linked: Linked) -> Normalized
         merged,
     };
 }
+
+/// The two things only this file can assert, because [`Normalize_Concepts`] is `pub(crate)`.
+///
+/// A file under `tests/` compiles as its own package and sees only the `pub` surface, so the stage
+/// cannot be called from there; what is reachable is the [`Normalized`] it returns, and that is
+/// asserted in `tests/normalized.rs`. What is left for here is what the stage guarantees about the
+/// relation it groups by, which is a fact about this function rather than about its output.
+#[cfg(test)]
+mod tests
+{
+    use crate::ClaimText;
+    use crate::ConceptName;
+    use crate::Extraction;
+    use crate::Link_Concepts;
+    use crate::Normalize_Concepts;
+
+    /// Two passages naming one concept: one content identity, two mentions, so that a merge is a
+    /// number this fixture can state rather than a difference between two fixtures.
+    fn Mentions_Of_One_Concept() -> Vec<Extraction>
+    {
+        return vec![
+            An_Extraction("entropy", "It is non-decreasing."),
+            An_Extraction("entropy", "It is extensive."),
+        ];
+    }
+
+    /// Two concepts that are not one concept, which is the control: without it a stage that
+    /// grouped everything would satisfy the assertion below.
+    fn Distinct_Mentions() -> Vec<Extraction>
+    {
+        return vec![
+            An_Extraction("entropy", "It is non-decreasing."),
+            An_Extraction("enthalpy", "It is extensive."),
+        ];
+    }
+
+    fn An_Extraction(concept: &str, claim: &str) -> Extraction
+    {
+        return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
+    }
+
+    #[test]
+    fn Test_Normalize_Concepts_Should_Group_Mentions_Of_One_Concept()
+    {
+        // The stage's whole job, and the property that entitles it to compute a closure: two
+        // mentions of one name group, two mentions of two names do not. Grouping is a transitive
+        // closure, and a closure is only entitled to be computed over a relation that **is**
+        // transitive — which is why this function takes no predicate and a caller cannot hand it a
+        // looser notion of sameness. The second half is the control `D18` says to keep.
+        let distinct = Distinct_Mentions();
+
+        assert_eq!(
+            Normalize_Concepts(Link_Concepts(&Mentions_Of_One_Concept()))
+                .Concepts()
+                .len(),
+            1,
+            "two mentions of one content identity stayed two concepts, so a re-read source is two \
+             sources' worth of knowledge"
+        );
+        assert_eq!(
+            Normalize_Concepts(Link_Concepts(&distinct)).Concepts().len(),
+            distinct.len(),
+            "two concepts that are not one concept were grouped"
+        );
+    }
+
+    #[test]
+    fn Test_Normalize_Concepts_Should_Drop_No_Claim_When_It_Groups()
+    {
+        // Grouping concepts removes no claim, and this is where that is asserted as a fact about
+        // the stage rather than trusted as a comment. A merge that silently dropped the loser's
+        // claims would be a destructive edit with nothing authorising it — `D17` arriving one stage
+        // early, and arriving invisibly, because the concept count would be exactly right.
+        let mentions = Mentions_Of_One_Concept();
+        let normalized = Normalize_Concepts(Link_Concepts(&mentions));
+
+        assert_eq!(
+            normalized.Concepts().len(),
+            1,
+            "the fixture must merge, or the claim count below proves nothing"
+        );
+        assert_eq!(
+            normalized.Claims_Held(),
+            mentions.len(),
+            "grouping dropped a claim belonging to the concept it folded away"
+        );
+        assert_eq!(
+            normalized.Merged(),
+            1,
+            "the mention that was folded in was not counted, so the number does not say how much \
+             of the input was decided to be a duplicate"
+        );
+    }
+}

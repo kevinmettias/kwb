@@ -95,3 +95,113 @@ pub(crate) fn Link_Concepts(extractions: &[Extraction]) -> Linked
 
     return linked;
 }
+
+/// The two things only this file can assert, because [`Link_Concepts`] is `pub(crate)`.
+///
+/// A file under `tests/` compiles as its own package and sees only the `pub` surface, so the stage
+/// itself cannot be called from there. What is reachable from outside is the [`Linked`] it returns,
+/// and that is asserted in `tests/linked.rs`. What is left for here is what the stage guarantees
+/// about the input it was handed — that it infers nothing, and that it refuses rather than admits a
+/// blank half — which is a fact about this function rather than about the value it produces.
+#[cfg(test)]
+mod tests
+{
+    use crate::ClaimText;
+    use crate::ConceptName;
+    use crate::Extraction;
+    use crate::Link_Concepts;
+
+    /// Two concepts, so that *the concept its own extraction named* is a distinction rather than a
+    /// single value every answer would satisfy.
+    fn Two_Concepts() -> [&'static str; 2]
+    {
+        return ["entropy", "enthalpy"];
+    }
+
+    /// One extraction per concept, each asserting something.
+    fn Extractions_Naming_Two_Concepts() -> Vec<Extraction>
+    {
+        return Two_Concepts()
+            .iter()
+            .map(|name| return An_Extraction(name, "It is extensive."))
+            .collect();
+    }
+
+    /// One complete extraction and one missing a half, which is the pair the refusal is stated
+    /// over: a stage that refused everything would satisfy the refusal half on its own.
+    fn One_Complete_And_One_Half_Stated() -> Vec<Extraction>
+    {
+        return vec![
+            An_Extraction("entropy", "It is non-decreasing."),
+            An_Extraction("entropy", " \t "),
+        ];
+    }
+
+    fn An_Extraction(concept: &str, claim: &str) -> Extraction
+    {
+        return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
+    }
+
+    #[test]
+    fn Test_Link_Concepts_Should_Refuse_An_Extraction_Missing_A_Half()
+    {
+        // An extraction missing either side is refused rather than admitted with an empty field,
+        // which is the shape of the prototype's `ReplaceAllAsync` incident: an empty-but-valid
+        // reply erased a concept's entire synthesis because empty was indistinguishable from
+        // answered. The complete extraction beside it is the control — a stage that refused
+        // everything would satisfy the count below on its own, and would admit nothing at all.
+        let half = One_Complete_And_One_Half_Stated();
+        let linked = Link_Concepts(&half);
+
+        assert_eq!(
+            linked.Refused(),
+            1,
+            "an extraction missing a half was admitted, so a claim with a blank side reaches the \
+             graph"
+        );
+        assert_eq!(
+            linked.Concepts().len(),
+            1,
+            "the refused extraction produced a concept anyway, so the count of what was admitted \
+             and the count of what was refused disagree"
+        );
+        assert_eq!(linked.Claims().len(), 1, "the refused extraction produced a claim");
+    }
+
+    #[test]
+    fn Test_Link_Concepts_Should_Attach_A_Claim_To_The_Concept_Its_Own_Extraction_Named()
+    {
+        // Inference is what this stage refuses to do, and `D18` is why: `AliasDerivation.IsVariantOf`
+        // was a correct predicate, and the harm came from a stage consuming its answers with a
+        // structure assuming a property the predicate did not have. The cheapest way for this stage
+        // not to repeat that is to produce no relation beyond *this extraction named that concept*,
+        // which is what the pairing below asserts — a claim attached to any concept other than the
+        // one its own extraction named would be a judgement this stage is not entitled to make.
+        let linked = Link_Concepts(&Extractions_Naming_Two_Concepts());
+
+        let named: Vec<&str> = linked
+            .Concepts()
+            .iter()
+            .map(|concept| return concept.Canonical_Name())
+            .collect();
+
+        assert_eq!(
+            named.as_slice(),
+            Two_Concepts().as_slice(),
+            "a concept was named other than by the extraction that produced it"
+        );
+
+        for (index, claim) in linked.Claims().iter().enumerate()
+        {
+            assert_eq!(
+                claim.Concept(),
+                linked
+                    .Concepts()
+                    .get(index)
+                    .expect("one concept per complete extraction")
+                    .Identity(),
+                "a claim is attached to a concept other than the one its own extraction named"
+            );
+        }
+    }
+}
