@@ -53,8 +53,21 @@ fn Callens_Assertion(claim: &Claim) -> Assertion
     );
 }
 
+/// A graph holding a concept, the claim about it and an assertion of that claim, and that concept.
+///
+/// One value with named fields rather than a pair, because a pair says nothing about which of its
+/// two positions is the graph and which is the concept inside it.
+struct PublishedKnowledge
+{
+    /// The graph the three publications went into.
+    graph: KnowledgeGraph,
+
+    /// The concept the graph holds, which the claim is about.
+    concept: Concept,
+}
+
 /// A graph holding a concept, the claim about it, and an assertion of that claim.
-fn Published_Knowledge() -> (KnowledgeGraph, Concept)
+fn Published_Knowledge() -> PublishedKnowledge
 {
     let concept = Entropy();
     let claim = Its_Claim(&concept);
@@ -65,7 +78,7 @@ fn Published_Knowledge() -> (KnowledgeGraph, Concept)
         .With_Claim(Versioned::Asserted(claim))
         .With_Assertion(Versioned::Asserted(assertion));
 
-    return (graph, concept);
+    return PublishedKnowledge { graph, concept };
 }
 
 #[test]
@@ -74,7 +87,7 @@ fn Test_Concepts_Should_Reach_A_Concept_That_Was_Closed()
     // The distinction between this read and the other one, as one assertion: two concepts were
     // published, one of them was closed, and both are here. A `Merge_Losers` query that resolved
     // nothing is what `D19-B` measured, and it is only askable from this read.
-    let (graph, concept) = Published_Knowledge();
+    let PublishedKnowledge { graph, concept } = Published_Knowledge();
     let successor = Concept::Named("C++");
 
     let after = graph
@@ -100,7 +113,7 @@ fn Test_Claims_Should_Reach_A_Claim_About_A_Concept_That_Was_Closed()
     // The claim's own standing is untouched here; what changed is the concept's. Replay reconstructs
     // what happened rather than what is currently true, so a claim about a retired concept is still
     // a claim that was published -- and it is what replay needs to rebuild the graph in order.
-    let (graph, concept) = Published_Knowledge();
+    let PublishedKnowledge { graph, concept } = Published_Knowledge();
 
     let after = graph.With_Concept(
         Versioned::Asserted(concept).Closed(Standing::Retired {
@@ -119,7 +132,7 @@ fn Test_Claims_Should_Reach_A_Claim_About_A_Concept_That_Was_Closed()
 #[test]
 fn Test_Assertions_Should_Reach_An_Assertion_Of_A_Claim_That_Was_Closed()
 {
-    let (graph, concept) = Published_Knowledge();
+    let PublishedKnowledge { graph, concept } = Published_Knowledge();
 
     let after = graph.With_Claim(
         Versioned::Asserted(Its_Claim(&concept)).Closed(Standing::Retired {
@@ -142,7 +155,7 @@ fn Test_Merge_Losers_Should_Reach_Every_Concept_Closed_Against_A_Successor()
     // current* and *merged into something* are different, and a retired concept has the first
     // without the second -- so a read that asked `Is_Current` would report a withdrawn concept as
     // merged away, which is a merge log with entries that never happened.
-    let (graph, _) = Published_Knowledge();
+    let PublishedKnowledge { graph, .. } = Published_Knowledge();
     let successor = Concept::Named("C++");
     let withdrawn = Concept::Named("free energy");
 

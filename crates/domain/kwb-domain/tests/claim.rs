@@ -21,15 +21,31 @@ use kwb_domain::Claim;
 use kwb_domain::Concept;
 
 /// The statement most of these tests are about, and the concept they state it of.
-fn Entropy() -> (Concept, &'static str)
+///
+/// One value with named fields rather than a pair, because a pair says nothing about which of its
+/// two positions is the concept and which is the statement.
+struct EntropyStatement
 {
-    return (Concept::Named("entropy"), "It is non-decreasing in an isolated system.");
+    /// The concept the statement is about.
+    concept: Concept,
+
+    /// The statement itself, as the tests below hand it to `Claim::About`.
+    text: &'static str,
+}
+
+/// The statement most of these tests are about, and the concept they state it of.
+fn Entropy() -> EntropyStatement
+{
+    return EntropyStatement {
+        concept: Concept::Named("entropy"),
+        text: "It is non-decreasing in an isolated system.",
+    };
 }
 
 #[test]
 fn Test_About_Should_Exclude_The_Source_So_One_Claim_Carries_Two_Citations()
 {
-    let (entropy, text) = Entropy();
+    let EntropyStatement { concept: entropy, text } = Entropy();
 
     let callen = Claim::About(&entropy, text);
     let kittel = Claim::About(&entropy, text);
@@ -44,7 +60,7 @@ fn Test_About_Should_Exclude_The_Source_So_One_Claim_Carries_Two_Citations()
 #[test]
 fn Test_Identity_Should_Be_Independent_Of_How_The_Statement_Is_Laid_Out()
 {
-    let (entropy, _) = Entropy();
+    let EntropyStatement { concept: entropy, .. } = Entropy();
 
     let printed = Claim::About(&entropy, "It is  non-decreasing.\n");
     let reflowed = Claim::About(&entropy, "It is non-decreasing.");
@@ -59,7 +75,7 @@ fn Test_Identity_Should_Be_Independent_Of_How_The_Statement_Is_Laid_Out()
 #[test]
 fn Test_Identity_Should_Move_When_The_Statement_Changes()
 {
-    let (entropy, _) = Entropy();
+    let EntropyStatement { concept: entropy, .. } = Entropy();
 
     let stated = Claim::About(&entropy, "It is non-decreasing.");
     let edited = Claim::About(&entropy, "It is non-increasing.");
@@ -78,7 +94,7 @@ fn Test_Concept_Should_Participate_By_Address_So_A_Rename_Is_Computable_Stalenes
     // D-006: a claim declares what its input *was* when it was derived, so a renamed concept gives
     // its claims new identities and the staleness is computable rather than silent. The two
     // concepts differ only in the case of their first letter, which is an edit here.
-    let (entropy, text) = Entropy();
+    let EntropyStatement { concept: entropy, text } = Entropy();
     let renamed = Concept::Named("Entropy");
 
     let about_one = Claim::About(&entropy, text);
@@ -94,7 +110,7 @@ fn Test_A_Claim_Should_Carry_A_Concept_And_Neither_Scope_Nor_Confidence()
     // D-010 and D20 respectively, asserted the only way a test can assert an absence: by fixing
     // what a claim is made of. A scope or a grade added later fails this, and it has to be added
     // deliberately, because either changes the derivation and every identity in the corpus with it.
-    let (entropy, _) = Entropy();
+    let EntropyStatement { concept: entropy, .. } = Entropy();
     let claim = Claim::About(&entropy, "anything");
 
     assert_eq!(claim.Concept(), entropy.Identity());
@@ -109,7 +125,7 @@ fn Test_Text_Should_Agree_With_The_Address_Derived_From_The_Statement()
 {
     // `KWB-32`: two spellings that derive one address must render one text, or which one a reader
     // gets back depends on which was published first.
-    let (entropy, _) = Entropy();
+    let EntropyStatement { concept: entropy, .. } = Entropy();
 
     let printed = Claim::About(&entropy, "It is  non-decreasing.\n");
     let reflowed = Claim::About(&entropy, "It is non-decreasing.");

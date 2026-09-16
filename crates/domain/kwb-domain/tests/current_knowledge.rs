@@ -53,9 +53,22 @@ fn Callens_Assertion(claim: &Claim) -> Assertion
     );
 }
 
+/// A graph holding a concept, the claim about it and an assertion of that claim, and that concept.
+///
+/// One value with named fields rather than a pair, because a pair says nothing about which of its
+/// two positions is the graph and which is the concept inside it.
+struct PublishedKnowledge
+{
+    /// The graph the three publications went into.
+    graph: KnowledgeGraph,
+
+    /// The concept the graph holds, which the claim is about.
+    concept: Concept,
+}
+
 /// A graph holding a concept, the claim about it, and an assertion of that claim -- the three
 /// things the current read has to reach before there is anything to exclude.
-fn Published_Knowledge() -> (KnowledgeGraph, Concept)
+fn Published_Knowledge() -> PublishedKnowledge
 {
     let concept = Entropy();
     let claim = Its_Claim(&concept);
@@ -66,7 +79,7 @@ fn Published_Knowledge() -> (KnowledgeGraph, Concept)
         .With_Claim(Versioned::Asserted(claim))
         .With_Assertion(Versioned::Asserted(assertion));
 
-    return (graph, concept);
+    return PublishedKnowledge { graph, concept };
 }
 
 #[test]
@@ -76,7 +89,7 @@ fn Test_Concepts_Should_Not_Reach_A_Concept_That_Was_Closed()
     // both stay in the graph. The `Every_Version` half of that is asserted in
     // `tests/every_version.rs`; what is asserted here is that closing one never leaves it in the
     // answer a caller reads by default.
-    let (graph, concept) = Published_Knowledge();
+    let PublishedKnowledge { graph, concept } = Published_Knowledge();
     let successor = Concept::Named("C++");
 
     let after = graph
@@ -106,7 +119,7 @@ fn Test_Concepts_Should_Not_Reach_A_Concept_That_Was_Closed()
 #[test]
 fn Test_Claims_Should_Not_Reach_A_Claim_About_A_Concept_That_Is_Not_Current()
 {
-    let (graph, concept) = Published_Knowledge();
+    let PublishedKnowledge { graph, concept } = Published_Knowledge();
 
     assert_eq!(
         graph.Current().Claims().len(),
@@ -136,7 +149,7 @@ fn Test_Claims_Should_Not_Reach_A_Claim_About_A_Concept_That_Is_Not_Current()
 #[test]
 fn Test_Assertions_Should_Not_Reach_An_Assertion_Of_A_Claim_That_Is_Not_Current()
 {
-    let (graph, concept) = Published_Knowledge();
+    let PublishedKnowledge { graph, concept } = Published_Knowledge();
 
     assert_eq!(
         graph.Current().Assertions().len(),

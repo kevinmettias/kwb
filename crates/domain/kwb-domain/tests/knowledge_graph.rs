@@ -30,17 +30,40 @@ use kwb_domain::Versioned;
 /// Why the fixtures below close something.
 const BECAUSE: &str = "the two names denote one concept";
 
+/// A graph holding one concept, and that concept beside it.
+///
+/// One value with named fields rather than a pair, because a pair says nothing about which of its
+/// two positions is the graph and which is the thing that was put in it.
+struct OneConceptGraph
+{
+    /// The graph the concept was published into.
+    graph: KnowledgeGraph,
+
+    /// The concept that graph holds.
+    concept: Concept,
+}
+
 /// A graph holding one concept, which is the smallest graph that has anything to say.
-fn A_Graph_Holding_One_Concept() -> (KnowledgeGraph, Concept)
+fn A_Graph_Holding_One_Concept() -> OneConceptGraph
 {
     let concept = Concept::Named("entropy");
     let graph = KnowledgeGraph::Empty().With_Concept(Versioned::Asserted(concept.clone()));
-    return (graph, concept);
+    return OneConceptGraph { graph, concept };
+}
+
+/// A graph holding one concept and one claim about it, and that claim beside it.
+struct OneClaimGraph
+{
+    /// The graph the claim was published into.
+    graph: KnowledgeGraph,
+
+    /// The claim that graph holds.
+    claim: Claim,
 }
 
 /// A graph holding one concept and one claim about it, which is what a claim needs already
 /// published to be readable at all.
-fn A_Graph_Holding_One_Claim() -> (KnowledgeGraph, Claim)
+fn A_Graph_Holding_One_Claim() -> OneClaimGraph
 {
     let concept = Concept::Named("entropy");
     let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
@@ -49,11 +72,21 @@ fn A_Graph_Holding_One_Claim() -> (KnowledgeGraph, Claim)
         .With_Concept(Versioned::Asserted(concept))
         .With_Claim(Versioned::Asserted(claim.clone()));
 
-    return (graph, claim);
+    return OneClaimGraph { graph, claim };
+}
+
+/// A graph holding a concept, the claim about it and an assertion of that claim, and the assertion.
+struct OneAssertionGraph
+{
+    /// The graph the assertion was published into.
+    graph: KnowledgeGraph,
+
+    /// The assertion that graph holds.
+    assertion: Assertion,
 }
 
 /// A graph holding a concept, the claim about it, and a source's assertion of that claim.
-fn A_Graph_Holding_One_Assertion() -> (KnowledgeGraph, Assertion)
+fn A_Graph_Holding_One_Assertion() -> OneAssertionGraph
 {
     let concept = Concept::Named("entropy");
     let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");
@@ -68,7 +101,7 @@ fn A_Graph_Holding_One_Assertion() -> (KnowledgeGraph, Assertion)
         .With_Claim(Versioned::Asserted(claim))
         .With_Assertion(Versioned::Asserted(assertion.clone()));
 
-    return (graph, assertion);
+    return OneAssertionGraph { graph, assertion };
 }
 
 #[test]
@@ -91,7 +124,7 @@ fn Test_Empty_Should_Hold_Nothing_And_Answer_With_Nothing()
 #[test]
 fn Test_With_Concept_Should_Answer_The_Concept_It_Added()
 {
-    let (graph, concept) = A_Graph_Holding_One_Concept();
+    let OneConceptGraph { graph, concept } = A_Graph_Holding_One_Concept();
     let held = graph.Current().Concepts();
 
     assert_eq!(held.len(), 1, "a published concept was not published");
@@ -105,7 +138,7 @@ fn Test_With_Concept_Should_Answer_The_Concept_It_Added()
 #[test]
 fn Test_With_Claim_Should_Answer_The_Claim_It_Added()
 {
-    let (graph, claim) = A_Graph_Holding_One_Claim();
+    let OneClaimGraph { graph, claim } = A_Graph_Holding_One_Claim();
     let held = graph.Current().Claims();
 
     assert_eq!(held.len(), 1, "a published claim was not published");
@@ -120,7 +153,7 @@ fn Test_With_Claim_Should_Answer_The_Claim_It_Added()
 #[test]
 fn Test_With_Assertion_Should_Answer_The_Assertion_It_Added()
 {
-    let (graph, assertion) = A_Graph_Holding_One_Assertion();
+    let OneAssertionGraph { graph, assertion } = A_Graph_Holding_One_Assertion();
     let held = graph.Current().Assertions();
 
     assert_eq!(held.len(), 1, "a published assertion was not published");
@@ -137,7 +170,7 @@ fn Test_Current_Should_Not_Reach_What_Was_Closed()
 {
     // The finding that made this the interesting question: a concept retired on its own is not
     // current, and neither is one merged into another -- and `Every_Version` still holds both.
-    let (graph, concept) = A_Graph_Holding_One_Concept();
+    let OneConceptGraph { graph, concept } = A_Graph_Holding_One_Concept();
     let successor = Concept::Named("C++");
 
     let after = graph
@@ -165,7 +198,7 @@ fn Test_Every_Version_Should_Reach_What_The_Current_Read_Does_Not()
     // `D19-B`: the prototype's answer was two interfaces and a discipline about which one you
     // depend on, and `merge-audit` resolved **none** of the merge log's identifiers against the
     // filtered view, printed *"nothing has been merged away"* and exited `0`.
-    let (graph, concept) = A_Graph_Holding_One_Concept();
+    let OneConceptGraph { graph, concept } = A_Graph_Holding_One_Concept();
     let successor = Concept::Named("C++");
 
     let after = graph
