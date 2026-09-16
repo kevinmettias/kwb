@@ -90,12 +90,27 @@ fn Already_Known() -> KnowledgeGraph
         .With_Claim(Versioned::Asserted(Claim::About(&concept, ALREADY_KNOWN_CLAIM)));
 }
 
+/// The addresses a graph's current world holds, as two named lists a test can compare.
+///
+/// Two fields rather than a pair, because both lists are `Vec<ContentIdentity>`: a pair of those is
+/// two positions a caller has to remember the order of, and the compiler would accept a test that
+/// swapped the concepts for the claims.
+#[derive(Debug, PartialEq)]
+struct HeldWorld
+{
+    /// The addresses of the concepts the graph currently holds.
+    concepts: Vec<ContentIdentity>,
+
+    /// The addresses of the claims the graph currently holds.
+    claims: Vec<ContentIdentity>,
+}
+
 /// The addresses a graph's current world holds, as two lists that a test can compare.
 ///
 /// Addressed rather than counted, because a count is satisfied by a different concept of the same
 /// size -- and because the address is what the whole workspace uses to say *this is the same
 /// thing*, so a test that a graph was unchanged should say it in that vocabulary.
-fn Held(graph: &KnowledgeGraph) -> (Vec<ContentIdentity>, Vec<ContentIdentity>)
+fn Held(graph: &KnowledgeGraph) -> HeldWorld
 {
     let concepts = graph
         .Current()
@@ -110,7 +125,7 @@ fn Held(graph: &KnowledgeGraph) -> (Vec<ContentIdentity>, Vec<ContentIdentity>)
         .map(|claim| return claim.Identity())
         .collect();
 
-    return (concepts, claims);
+    return HeldWorld { concepts, claims };
 }
 
 #[test]
