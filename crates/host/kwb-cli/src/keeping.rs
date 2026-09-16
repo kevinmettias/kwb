@@ -210,44 +210,6 @@ mod tests
 
     use std::path::PathBuf;
 
-    /// A directory nobody else is using, named for the test that asked for it.
-    fn Temporary_Directory(test: &str) -> PathBuf
-    {
-        let root = std::env::temp_dir().join(format!("kwb-cli-keeping-{test}"));
-        if root.exists()
-        {
-            std::fs::remove_dir_all(&root).expect("a removable temporary directory");
-        }
-        return root;
-    }
-
-    /// The report one admitted passage produces, from the pipeline rather than from a fixture.
-    ///
-    /// Built through `Admit_Source` because that is the only door an `AdmissionReport` comes out
-    /// of — there is no public constructor — and because the publications `Record_Into` is about to
-    /// count have to be the ones the pipeline really produces for there to be anything to assert.
-    fn Admission_Report_At(root: &str) -> AdmissionReport
-    {
-        let statements = vec![Extraction::New(
-            ConceptName::Named("entropy"),
-            ClaimText::Stated("It does not fall."),
-        )];
-        let said = Stated::Of(
-            statements,
-            SourceLocation::Named("as stated on the command line"),
-            ExtractionLineage::Of(
-                ReadingProtocol::Named("stated-by-a-person"),
-                ReaderName::Named("the operator of kwb admit"),
-            ),
-            Scope::Unstated(),
-        );
-        let reader = said.as_ref().map(|said| return said as &dyn ExtractionStrategy);
-        let mut store = Store_For(Some(root)).expect("a writable temporary store");
-
-        return Admit_Source(b"a passage".to_vec(), reader, ReadingKind::Text, &mut store)
-            .expect("a source of one passage");
-    }
-
     #[test]
     fn Test_Store_For_Should_Answer_An_In_Memory_Store_When_It_Was_Told_Nowhere()
     {
@@ -459,5 +421,47 @@ mod tests
             "the clock answered a value that is not a wall time in this century, so publications \
              are being recorded against something that is not a date"
         );
+    }
+
+    /// A directory nobody else is using, named for the test that asked for it.
+    ///
+    /// Both of the helpers below are used by more than one test, so neither has a caller to sit
+    /// under: they are the shared region, and they are read here in the order they were first
+    /// written rather than in the order any one test reaches them.
+    fn Temporary_Directory(test: &str) -> PathBuf
+    {
+        let root = std::env::temp_dir().join(format!("kwb-cli-keeping-{test}"));
+        if root.exists()
+        {
+            std::fs::remove_dir_all(&root).expect("a removable temporary directory");
+        }
+        return root;
+    }
+
+    /// The report one admitted passage produces, from the pipeline rather than from a fixture.
+    ///
+    /// Built through `Admit_Source` because that is the only door an `AdmissionReport` comes out
+    /// of — there is no public constructor — and because the publications `Record_Into` is about to
+    /// count have to be the ones the pipeline really produces for there to be anything to assert.
+    fn Admission_Report_At(root: &str) -> AdmissionReport
+    {
+        let statements = vec![Extraction::New(
+            ConceptName::Named("entropy"),
+            ClaimText::Stated("It does not fall."),
+        )];
+        let said = Stated::Of(
+            statements,
+            SourceLocation::Named("as stated on the command line"),
+            ExtractionLineage::Of(
+                ReadingProtocol::Named("stated-by-a-person"),
+                ReaderName::Named("the operator of kwb admit"),
+            ),
+            Scope::Unstated(),
+        );
+        let reader = said.as_ref().map(|said| return said as &dyn ExtractionStrategy);
+        let mut store = Store_For(Some(root)).expect("a writable temporary store");
+
+        return Admit_Source(b"a passage".to_vec(), reader, ReadingKind::Text, &mut store)
+            .expect("a source of one passage");
     }
 }
