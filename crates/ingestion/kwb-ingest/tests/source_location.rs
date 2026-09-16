@@ -9,11 +9,17 @@
 
 use kwb_ingest::SourceLocation;
 
+/// How many spellings of one place the fixture holds, every difference between them whitespace.
+///
+/// Named rather than written in the return type, because the number is a fact about the fixture
+/// and a reader should not have to count it to read the assertion stated over all three.
+const SPELLINGS_OF_ONE_PLACE: usize = 3;
+
 /// One location named three ways, every difference between them whitespace.
 ///
 /// The medium here is a chapter, which is the point the type makes: what locates a passage
 /// differs by medium, so this is text rather than a page or an offset.
-fn One_Place_Spelled_Three_Ways() -> [&'static str; 3]
+fn One_Place_Spelled_Three_Ways() -> [&'static str; SPELLINGS_OF_ONE_PLACE]
 {
     return ["  chapter two  ", "chapter  two", "chapter two"];
 }

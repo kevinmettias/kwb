@@ -15,6 +15,13 @@ const SEPARATOR: char = '\u{1F}';
 /// the fixture and a reader should not have to count the fixture to read the assertion.
 const CONCEPTS_IN_CORPUS: usize = 2;
 
+/// How many shapes a record this writer could not have produced comes in, one of each way of not
+/// being one.
+const SHAPES_THIS_WRITER_COULD_NOT_HAVE_PRODUCED: usize = 6;
+
+/// How many shapes text that names nothing arrives in from a person or a shell.
+const SHAPES_OF_TEXT_THAT_NAMES_NOTHING: usize = 4;
+
 /// The subject the corpus is about: two concepts, the claim stated about the first, and the
 /// assertion a source made of it.
 ///
@@ -288,7 +295,7 @@ fn Test_A_Claim_Whose_Concept_Was_Never_Published_Should_Be_Refused()
 /// A table rather than a list inside the test, so that a case added here is seen by every test that
 /// asks the same question of a log -- which is the shape the rest of this file uses for the
 /// fixtures it reuses.
-fn Records_This_Writer_Could_Not_Have_Produced() -> [String; 6]
+fn Records_This_Writer_Could_Not_Have_Produced() -> [String; SHAPES_THIS_WRITER_COULD_NOT_HAVE_PRODUCED]
 {
     return [
         // No record at all, and a record with a kind and nothing else.
@@ -346,7 +353,7 @@ fn Fields_Of_Record(record: &str) -> usize
 ///
 /// Named rather than written inside the test, because [`Scope::Named`] answers the same question
 /// about each of them and `tests/scope.rs` asks it of the same four.
-fn Names_That_Say_Nothing() -> [&'static str; 4]
+fn Names_That_Say_Nothing() -> [&'static str; SHAPES_OF_TEXT_THAT_NAMES_NOTHING]
 {
     return ["", "   ", "\t", "\n  \n"];
 }

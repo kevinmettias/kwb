@@ -16,6 +16,19 @@ use kwb_model::IDENTITY_BYTES;
 use kwb_model::IDENTITY_CHARACTERS;
 use kwb_model::IdentityError;
 
+/// How many two-character pairs follow the one pair a test spells for itself. `IDENTITY_CHARACTERS`
+/// less that pair, halved because a byte renders as two characters.
+const PAIR_REPEATS: usize = (IDENTITY_CHARACTERS - 2) / 2;
+
+/// The rendering a test decodes: sixty-four hexadecimal characters whose first pair is `ab` and
+/// whose last is `89`. Named because a reader has to be able to see which end of a rendering each
+/// assertion below is about, and sixty-four characters of `abcdef01` do not say that.
+const RENDERING: &str = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789";
+
+/// What `RENDERING` begins and ends with, as the bytes `As_Bytes` hands back.
+const FIRST_BYTE: u8 = 0xAB;
+const LAST_BYTE: u8 = 0x89;
+
 #[test]
 fn Test_Render_Should_Spell_A_Leading_Zero_Byte_As_Two_Digits()
 {
@@ -23,7 +36,7 @@ fn Test_Render_Should_Spell_A_Leading_Zero_Byte_As_Two_Digits()
     // the zero-padding looks right on almost every identity there is. It is wrong in two ways
     // that matter: a rendering whose first byte is zero comes out one character short, and two
     // byte strings that differ only in a leading zero render to the same text.
-    let text = format!("00{}", "ff".repeat(31));
+    let text = format!("00{}", "ff".repeat(PAIR_REPEATS));
     let identity = ContentIdentity::Parse(&text).expect("sixty-four lowercase hexadecimal characters");
 
     assert_eq!(
@@ -42,7 +55,7 @@ fn Test_Parse_Should_Name_The_Character_It_Could_Not_Read_As_Hexadecimal()
     // and it has to name the character rather than the position: a person hunting one bad byte
     // in sixty-four needs the value, not the index. A refusal that said only "not hexadecimal"
     // would send them to the source of the string instead of to the byte inside it.
-    let text = format!("0z{}", "ff".repeat(31));
+    let text = format!("0z{}", "ff".repeat(PAIR_REPEATS));
 
     assert_eq!(
         ContentIdentity::Parse(&text),
@@ -58,19 +71,19 @@ fn Test_As_Bytes_Should_Answer_The_Thirty_Two_Bytes_A_Parsed_Identity_Carries()
     // what it must hand over is the digest the rendering decodes to -- not the rendering, and
     // not a prefix of it. Anything else and the two doors disagree about the same value, which
     // is how a record and the citation that points at it come apart.
-    let identity = ContentIdentity::Parse("abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789")
-        .expect("sixty-four lowercase hexadecimal characters");
+    let identity =
+        ContentIdentity::Parse(RENDERING).expect("sixty-four lowercase hexadecimal characters");
     let bytes = identity.As_Bytes();
 
     assert_eq!(bytes.len(), IDENTITY_BYTES, "the bytes are not the whole digest");
     assert_eq!(
         bytes.first().copied(),
-        Some(0xAB),
+        Some(FIRST_BYTE),
         "the first byte does not decode the first two characters of the rendering"
     );
     assert_eq!(
         bytes.last().copied(),
-        Some(0x89),
+        Some(LAST_BYTE),
         "the last byte does not decode the last two characters of the rendering"
     );
 }

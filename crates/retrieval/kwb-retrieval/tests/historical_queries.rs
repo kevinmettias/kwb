@@ -13,7 +13,12 @@
 //! reach, because the failure mode was a closed concept's claim reporting itself live.
 
 use kwb_domain::{Assertion, Claim, Concept, KnowledgeGraph, Scope, Standing, Versioned};
-use kwb_retrieval::{CurrentQueries, HistoricalQueries};
+use kwb_retrieval::{CurrentQueries, HeldNeighbourhood, HistoricalQueries};
+
+/// How many concepts the corpus below publishes: the successor and the one it superseded. Every
+/// version reaches both, and the current read reaches only the first, which is the difference this
+/// test is about.
+const EVERY_CONCEPT_IN_THE_CORPUS: usize = 2;
 
 /// A merge: one concept superseded by another, each carrying a claim, one of them cited.
 struct Corpus
@@ -118,9 +123,7 @@ fn Test_Neighbourhood_Of_Should_Reach_What_A_Closed_Concept_Carried()
 {
     let corpus = Corpus();
 
-    let held = HistoricalQueries::Over(&corpus.graph)
-        .Neighbourhood_Of(corpus.loser.Identity())
-        .expect("the concept was published, whatever became of it");
+    let held = Held_Neighbourhood_Of_The_Merge_Loser(&corpus);
 
     assert_eq!(held.concept.Value().Identity(), corpus.loser.Identity());
     assert_eq!(
@@ -141,12 +144,31 @@ fn Test_Neighbourhood_Of_Should_Reach_What_A_Closed_Concept_Carried()
     );
 }
 
+/// The historical world's answer about the concept the merge closed, reached by the identity the
+/// merge named and asked through the query built for versions that are no longer current — the
+/// only surface that can reach this concept at all, since the current world answers nothing about
+/// it.
+///
+/// The `expect` is part of the property under test rather than a convenience. The concept was
+/// published whatever became of it, so a query that declined would be the failure this file exists
+/// to name and not a detail of the call; a helper returning an `Option` would move that decision
+/// out to each caller, where the same message would have to be written again and could be dropped.
+fn Held_Neighbourhood_Of_The_Merge_Loser(corpus: &Corpus) -> HeldNeighbourhood<'_>
+{
+    return HistoricalQueries::Over(&corpus.graph)
+        .Neighbourhood_Of(corpus.loser.Identity())
+        .expect("the concept was published, whatever became of it");
+}
+
 #[test]
 fn Test_Concept_Count_Should_Count_Every_Version_And_Not_Only_What_Is_Current()
 {
     let corpus = Corpus();
 
-    assert_eq!(HistoricalQueries::Over(&corpus.graph).Concept_Count(), 2);
+    assert_eq!(
+        HistoricalQueries::Over(&corpus.graph).Concept_Count(),
+        EVERY_CONCEPT_IN_THE_CORPUS
+    );
     assert_eq!(
         CurrentQueries::Over(&corpus.graph).Concept_Count(),
         1,

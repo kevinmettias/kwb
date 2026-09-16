@@ -17,15 +17,23 @@
 
 use kwb_domain::Concept;
 
+/// How many spellings of one concept differ only in whitespace, which is the pair a reflow is
+/// supposed not to distinguish.
+const SPELLINGS_DIFFERING_ONLY_IN_WHITESPACE: usize = 2;
+
+/// How many spellings of one name differ in something other than whitespace, which is the case of
+/// a letter.
+const SPELLINGS_DIFFERING_ONLY_IN_CASE: usize = 2;
+
 /// One concept under two spellings that differ only in whitespace, which is the pair a reflow is
 /// supposed not to distinguish.
-fn One_Concept_Reflowed() -> [Concept; 2]
+fn One_Concept_Reflowed() -> [Concept; SPELLINGS_DIFFERING_ONLY_IN_WHITESPACE]
 {
     return [Concept::Named("a  b"), Concept::Named("a b")];
 }
 
 /// One name spelled two ways that differ in something other than whitespace: the case of a letter.
-fn One_Name_In_Two_Cases() -> [Concept; 2]
+fn One_Name_In_Two_Cases() -> [Concept; SPELLINGS_DIFFERING_ONLY_IN_CASE]
 {
     return [Concept::Named("BVH"), Concept::Named("bvh")];
 }

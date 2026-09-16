@@ -9,9 +9,15 @@
 
 use kwb_ingest::ReaderName;
 
+/// How many spellings of one reader the fixture holds: spaced, doubled and tight.
+///
+/// Named rather than written in the return type, because the number is a fact about the fixture
+/// and a reader should not have to count it to read the assertion stated over all three.
+const SPELLINGS_OF_ONE_READER: usize = 3;
+
 /// One reader named three ways: spaced, doubled, and tight. Every difference between them is
 /// whitespace, so every difference between them is one this type is supposed to erase.
-fn One_Reader_Spelled_Three_Ways() -> [&'static str; 3]
+fn One_Reader_Spelled_Three_Ways() -> [&'static str; SPELLINGS_OF_ONE_READER]
 {
     return ["  A Model  ", "A  Model", "A Model"];
 }

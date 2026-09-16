@@ -10,12 +10,19 @@
 
 use kwb_ingest::ReadingProtocol;
 
+/// How many spellings of one protocol the fixture holds, every difference between them
+/// whitespace.
+///
+/// Named rather than written in the return type, because the number is a fact about the fixture
+/// and a reader should not have to count it to read the assertion stated over all three.
+const SPELLINGS_OF_ONE_PROTOCOL: usize = 3;
+
 /// One protocol named three ways, every difference between them whitespace.
 ///
 /// Whitespace and not punctuation, deliberately: `kwb-model`'s normalization collapses runs of
 /// whitespace and touches nothing else, so a fixture whose spellings differed in their hyphens
 /// would be asserting that one protocol is two.
-fn One_Protocol_Spelled_Three_Ways() -> [&'static str; 3]
+fn One_Protocol_Spelled_Three_Ways() -> [&'static str; SPELLINGS_OF_ONE_PROTOCOL]
 {
     return ["  read-the-text-v1  ", "read-the-text-v1", "read-the-text-v1\n"];
 }

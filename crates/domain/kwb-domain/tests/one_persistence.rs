@@ -98,6 +98,30 @@ fn Store_Holding(values: &[Versioned<Concept>]) -> Store<Concept>
     return store.expect("the fixtures publish at least one concept");
 }
 
+/// The addresses the graph reports, in the order its all-versions read returns them.
+///
+/// That order is the map's rather than the publication's -- `D-012`'s map is a hash trie -- which is
+/// why the other read is sorted before the two of them are compared.
+fn Graph_Held_Addresses(graph: &KnowledgeGraph) -> Vec<ContentIdentity>
+{
+    return graph
+        .Every_Version()
+        .Concepts()
+        .into_iter()
+        .map(|held| return held.Value().Identity())
+        .collect();
+}
+
+/// The addresses the store holds, sorted, so that the two reads are compared as the sets they are.
+fn Store_Held_Addresses(store: &Store<Concept>) -> Vec<ContentIdentity>
+{
+    let mut held: Vec<ContentIdentity> =
+        store.iter().map(|(identity, _)| return *identity).collect();
+    held.sort_unstable();
+
+    return held;
+}
+
 #[test]
 fn Test_The_Store_This_Crate_Folds_Should_Hold_What_The_Graph_Reports()
 {
@@ -109,22 +133,44 @@ fn Test_The_Store_This_Crate_Folds_Should_Hold_What_The_Graph_Reports()
     let graph = Graph_Holding(&values);
     let store = Store_Holding(&values);
 
-    let held_by_the_graph: Vec<ContentIdentity> = graph
-        .Every_Version()
-        .Concepts()
-        .into_iter()
-        .map(|held| return held.Value().Identity())
-        .collect();
-
-    let mut held_by_the_store: Vec<ContentIdentity> =
-        store.iter().map(|(identity, _)| return *identity).collect();
-    held_by_the_store.sort_unstable();
-
     assert_eq!(
-        held_by_the_graph, held_by_the_store,
+        Graph_Held_Addresses(&graph),
+        Store_Held_Addresses(&store),
         "the graph and the store it is built on do not hold the same addresses, so what a caller \
          reads off the graph is not what the store the graph claims to be is holding"
     );
+}
+
+/// A store holding one published concept, the store that retired it, and both of the values.
+///
+/// Four named fields rather than any arrangement of positions: two of them are stores and two are
+/// the concepts that went into them, and which value each store was asked to hold is the whole of
+/// what the test below asserts.
+struct Succession
+{
+    /// The store the concept was published into, which must still hold it.
+    before: Store<Concept>,
+
+    /// The store the retirement was published into, which must hold the retired value.
+    after: Store<Concept>,
+
+    /// The concept as it was published.
+    published: Versioned<Concept>,
+
+    /// The same concept as it was retired, under the address it was published at.
+    retired: Versioned<Concept>,
+}
+
+/// A store holding one published concept, and the store built by retiring that concept over it.
+fn A_Retirement_Published_Over_A_Publication() -> Succession
+{
+    let published = Versioned::Asserted(Concept::Named("entropy"));
+    let retired = published.Closed(Standing::Retired { because: BECAUSE.to_owned() });
+
+    let before: Store<Concept> = Putting(None, published.Value().Identity(), published.clone());
+    let after = Putting(Some(&before), published.Value().Identity(), retired.clone());
+
+    return Succession { before, after, published, retired };
 }
 
 #[test]
@@ -136,21 +182,16 @@ fn Test_A_Publication_Should_Leave_The_Store_It_Was_Published_Into_Valid()
     // store rather than on the graph, because a test that read the graph would pass on an
     // implementation that copied the whole map on every publish, and this is the crate whose
     // behaviour decides which of the two it is.
-    let entropy = Versioned::Asserted(Concept::Named("entropy"));
-    let identity = entropy.Value().Identity();
-    let retired = entropy.Closed(Standing::Retired { because: BECAUSE.to_owned() });
-
-    let before: Store<Concept> = Putting(None, entropy.Value().Identity(), entropy.clone());
-    let after = Putting(Some(&before), identity, retired.clone());
+    let Succession { before, after, published, retired } = A_Retirement_Published_Over_A_Publication();
 
     assert_eq!(
-        before.Get(&identity),
-        Some(&entropy),
+        before.Get(&published.Value().Identity()),
+        Some(&published),
         "publishing into the store changed what the store it was published into held, so the graph \
          it came from is no longer a value and every read of it silently reads a later world"
     );
     assert_eq!(
-        after.Get(&identity),
+        after.Get(&retired.Value().Identity()),
         Some(&retired),
         "the store that was published into does not hold what was published into it"
     );

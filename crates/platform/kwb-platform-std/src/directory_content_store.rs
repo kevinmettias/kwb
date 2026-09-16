@@ -1,7 +1,7 @@
 //! A content store over a directory, one file per address.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use kwb_platform::{ContentStoreStrategy, StorageError};
 
@@ -96,7 +96,11 @@ impl ContentStoreStrategy for DirectoryContentStore
 /// a leftover `.staged` file is visible evidence that a write did not complete, and removing it
 /// would destroy the only sign that anything went wrong — which is `D17`'s rule applied to this
 /// function's own failure path.
-fn Write_Then_Rename(staged: &Path, destination: &Path, content: &[u8]) -> Result<(), StorageError>
+fn Write_Then_Rename(
+    staged: &std::path::Path,
+    destination: &std::path::Path,
+    content: &[u8],
+) -> Result<(), StorageError>
 {
     fs::write(staged, content).map_err(|cause| {
         return StorageError::Refused {

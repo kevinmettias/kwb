@@ -128,8 +128,23 @@ fn Test_Claims_Should_Arrive_In_The_Order_Their_Extractions_Did()
     // to a stage that closes over what it is given.
     let mentions = Mentions_Of_One_Concept();
     let linked = Linked_From(&mentions);
+    let expected = Claims_Each_Extraction_Stated(&mentions);
 
-    let expected: Vec<Claim> = mentions
+    assert_eq!(
+        linked.Claims(),
+        expected.as_slice(),
+        "a claim is not attached to the concept its own extraction named, in the order it arrived"
+    );
+}
+
+/// The claims these extractions state, one per extraction in the order they arrived.
+///
+/// Directly under the test that asks for it, because that test is the only one that does. The
+/// claims are rebuilt here from the extractions rather than read back out of `Linked`, so the
+/// assertion above compares what arrived against what was asked for, and not against itself.
+fn Claims_Each_Extraction_Stated(extractions: &[Extraction]) -> Vec<Claim>
+{
+    return extractions
         .iter()
         .map(|extraction| {
             return Claim::About(
@@ -138,12 +153,6 @@ fn Test_Claims_Should_Arrive_In_The_Order_Their_Extractions_Did()
             );
         })
         .collect();
-
-    assert_eq!(
-        linked.Claims(),
-        expected.as_slice(),
-        "a claim is not attached to the concept its own extraction named, in the order it arrived"
-    );
 }
 
 #[test]

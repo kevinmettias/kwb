@@ -45,7 +45,6 @@ use std::process::ExitCode;
 use kwb_domain::KnowledgeGraph;
 use kwb_ingest::{AdmissionReport, ExtractionError};
 
-use crate::closing::Close_Command;
 use crate::refusals::{Complained_With_Usage, Wrong_Command_Line};
 
 /// A wrong command line, which is not the same as a run that failed.
@@ -137,6 +136,8 @@ impl Command for Retire
 {
     fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
     {
+        use crate::closing::Close_Command;
+
         return Close_Command(arguments, None);
     }
 }
@@ -148,6 +149,8 @@ impl Command for Supersede
 {
     fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
     {
+        use crate::closing::Close_Command;
+
         return Close_Command(arguments, Some(()));
     }
 }
@@ -178,13 +181,33 @@ fn main() -> ExitCode
         return Wrong_Command_Line("expected a verb");
     };
 
-    if matches!(*verb, "help" | "--help" | "-h")
+    if Is_Help(verb)
     {
         Print_Usage();
         return ExitCode::SUCCESS;
     }
 
-    let Some(known) = VERBS.iter().find(|known| return known.name == *verb)
+    return Dispatch_Verb(verb, rest);
+}
+
+/// Whether a reader asked for the help rather than for a verb.
+///
+/// Named because the help is not a capability: it is how a reader finds the rest, which is why the
+/// verb table omits it and why this is asked before the table is consulted at all.
+fn Is_Help(verb: &str) -> bool
+{
+    return matches!(verb, "help" | "--help" | "-h");
+}
+
+/// Run the verb a reader named, over the arguments that followed it.
+///
+/// The one place the verb table is consulted to dispatch, and the whole reason `main` reads as
+/// orchestration: the lookup, the refusal of a verb the table does not name, and the call are one
+/// operation with one name. It takes the borrowed remainder rather than the process arguments,
+/// because a verb is handed its own arguments and never the ones that named it.
+fn Dispatch_Verb(verb: &str, rest: &[&str]) -> ExitCode
+{
+    let Some(known) = VERBS.iter().find(|known| return known.name == verb)
     else
     {
         return Wrong_Command_Line("expected a verb");

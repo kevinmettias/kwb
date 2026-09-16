@@ -282,13 +282,18 @@ fn Test_The_Liveness_Detector_Should_Find_Every_Definition()
     );
 }
 
+/// How many ways the liveness rule can be used without being defined: reading a standing, calling
+/// it through the graph's question about a concept, naming it in documentation, and a different
+/// function whose name merely begins the same way.
+const WAYS_OF_USING_LIVENESS_WITHOUT_DEFINING_IT: usize = 4;
+
 /// Source text that mentions the liveness rule without defining it, one shape per way of mentioning
 /// it: reading a standing, calling it through the graph's question about a concept, naming it in
 /// documentation, and a different function whose name merely begins the same way.
 ///
 /// A table rather than a list inside the test, so that a shape added here is seen by every case the
 /// detector is asked about.
-fn Sources_That_Use_Liveness_Without_Defining_It() -> [&'static str; 4]
+fn Sources_That_Use_Liveness_Without_Defining_It() -> [&'static str; WAYS_OF_USING_LIVENESS_WITHOUT_DEFINING_IT]
 {
     return [
         "if standing.Is_Current() { }",

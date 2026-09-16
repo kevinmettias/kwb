@@ -167,6 +167,18 @@ fn Admit_Into(store: &Path, source: &Path, flags: &[&str]) -> Output
     return Run(&arguments);
 }
 
+/// This file's one source admitted into a store through the built binary, and the run that did it.
+///
+/// Every test below drives the binary and then reads what the run left behind, and a run that
+/// failed would turn the assertions that follow into findings about a broken run rather than about
+/// the arrangement. That failure is refused here, once, instead of at each call site.
+fn Admitted_Run(store: &Path, source: &Path, flags: &[&str]) -> Output
+{
+    let run = Admit_Into(store, source, flags);
+    assert!(run.status.success(), "admit failed: {}", Stdout_Text(&run));
+    return run;
+}
+
 /// The records a store's log holds, read through the port rather than off the disk.
 ///
 /// `FileRecordLog::Records` is a method of `kwb-platform`'s trait, so reading through this is also
@@ -255,27 +267,31 @@ fn Held_Addresses(store: &Path) -> Vec<String>
 #[test]
 fn Test_The_Composition_Root_Should_Add_No_Rule_To_The_Admission_It_Drives()
 {
-    // The claim `keeping.rs` makes about this whole crate, checked where a reader of the binary
-    // cannot check it. The same bytes and the same reading go through `kwb-ingest` a second time,
-    // in process, built from the library's own names; what the binary wrote to its log and what the
-    // pipeline publishes must be the same concepts and the same claims.
-    //
-    // The location, the protocol and the reader name below are deliberately *not* the ones
-    // `admission.rs` uses. That is the point rather than carelessness: those literals describe who
-    // read the source, and this asserts that they decide nothing about what the graph holds — so
-    // the test cannot pass merely by restating the binary's own strings, and it will not fail
-    // because somebody renames the reader.
     let store = Store_For("no-rule");
     let world = Directory_For("no-rule");
     let source = Source_File(&world, "one.txt");
 
-    let run = Admit_Into(
+    Admitted_Run(
         &store,
         &source,
         &["--scope", SCOPE_NAME, "--says", CONCEPT_NAME, CLAIM_TEXT],
     );
-    assert!(run.status.success(), "admit failed: {}", Stdout_Text(&run));
 
+    let published = Published_By_The_Pipeline();
+
+    Assert_The_Log_Replayed_To(&store, &published);
+}
+
+/// What the pipeline publishes for this file's passage, computed in process from the library's own
+/// names, which is the claim `keeping.rs` makes about this whole crate read from the other side.
+///
+/// The location, the protocol and the reader name below are deliberately *not* the ones
+/// `admission.rs` uses. That is the point rather than carelessness: those literals describe who
+/// read the source, and this asserts that they decide nothing about what the graph holds — so the
+/// comparison cannot pass merely by restating the binary's own strings, and it will not fail
+/// because somebody renames the reader.
+fn Published_By_The_Pipeline() -> KnowledgeGraph
+{
     let lineage = ExtractionLineage::Of(
         ReadingProtocol::Named("a protocol this file made up"),
         ReaderName::Named("a reader this file made up"),
@@ -299,25 +315,35 @@ fn Test_The_Composition_Root_Should_Add_No_Rule_To_The_Admission_It_Drives()
         &mut documents,
     )
     .expect("the source is admitted");
-    let published = report.Published_Into(&KnowledgeGraph::Empty());
+    return report.Published_Into(&KnowledgeGraph::Empty());
+}
 
+/// The log the binary wrote, replayed and compared against what the pipeline published for the same
+/// bytes and the same reading.
+///
+/// This comparison is the whole subject of the test above: a composition root that had grown a rule
+/// of its own would leave a log that replays to a different graph than the library computes from
+/// the same input. The corpus is checked to be non-empty first, because an empty comparison is
+/// satisfied by two empty graphs and proves nothing on either side.
+fn Assert_The_Log_Replayed_To(store: &Path, published: &KnowledgeGraph)
+{
     assert!(
-        !Concepts_Of(&published).is_empty() && !Claims_Of(&published).is_empty(),
+        !Concepts_Of(published).is_empty() && !Claims_Of(published).is_empty(),
         "the corpus this test compares is empty on one side, so the comparison proves nothing"
     );
 
     let replayed =
-        Replay_Records(&Records_At(&store)).expect("the log this repository wrote replays");
+        Replay_Records(&Records_At(store)).expect("the log this repository wrote replays");
 
     assert_eq!(
         Concepts_Of(&replayed),
-        Concepts_Of(&published),
+        Concepts_Of(published),
         "the log the binary wrote holds different concepts than the pipeline publishes for the same \
          bytes and the same reading, so the composition root added a rule of its own"
     );
     assert_eq!(
         Claims_Of(&replayed),
-        Claims_Of(&published),
+        Claims_Of(published),
         "the log the binary wrote holds different claims than the pipeline publishes for the same \
          bytes and the same reading"
     );
@@ -326,24 +352,31 @@ fn Test_The_Composition_Root_Should_Add_No_Rule_To_The_Admission_It_Drives()
 #[test]
 fn Test_The_Citation_Should_Name_The_Bytes_The_Store_Holds()
 {
-    // Three ways of naming one document, asserted to be one name: what the report printed, what
-    // `kwb-store` derives from the bytes, and what stands in the citation the binary recorded. A
-    // composition root that cited a filename, a path or a counter would part from the address the
-    // store files the bytes under, and following the citation would stop returning the source.
     let store = Store_For("citation");
     let world = Directory_For("citation");
     let source = Source_File(&world, "one.txt");
 
-    let run = Admit_Into(
+    let run = Admitted_Run(
         &store,
         &source,
         &["--scope", SCOPE_NAME, "--says", CONCEPT_NAME, CLAIM_TEXT],
     );
-    assert!(run.status.success(), "admit failed: {}", Stdout_Text(&run));
 
+    Assert_The_Citation_Names_One_Document(&store, &Stdout_Text(&run));
+}
+
+/// The three ways this file names one document, asserted to be one name: what the report printed,
+/// what `kwb-store` derives from the bytes, and what stands in the citation the binary recorded.
+///
+/// A composition root that cited a filename, a path or a counter would part from the address the
+/// store files the bytes under, and a reader following the citation would stop returning the
+/// source. The scope is asserted beside the source because the citation carries both, and a run
+/// given one of them must not have lost the other on the way to the record.
+fn Assert_The_Citation_Names_One_Document(store: &Path, report: &str)
+{
     let written = Document::Of(PASSAGE.as_bytes().to_vec()).Identity().Render();
     assert_eq!(
-        Reported(&Stdout_Text(&run), "source"),
+        Reported(report, "source"),
         written,
         "the report names the source something other than the address its bytes are stored at"
     );
@@ -353,7 +386,7 @@ fn Test_The_Citation_Should_Name_The_Bytes_The_Store_Holds()
          nothing"
     );
 
-    let citation = Citation_In(&store);
+    let citation = Citation_In(store);
     assert_eq!(
         Field(&citation, CITED_SOURCE),
         written,
@@ -369,32 +402,43 @@ fn Test_The_Citation_Should_Name_The_Bytes_The_Store_Holds()
 #[test]
 fn Test_An_Absent_Scope_Should_Reach_The_Record_As_Absent()
 {
-    // `D-010` through the whole arrangement: an unstated scope is a real answer and stays
-    // distinguishable from every stated one. The two runs below differ in nothing but that flag, so
-    // the concept and the claim must come out byte-identical — the scope participates in the
-    // assertion's identity and in nothing else — while the assertion records differ.
     let scoped_store = Store_For("scoped");
     let absent_store = Store_For("absent");
     let world = Directory_For("scope");
     let source = Source_File(&world, "one.txt");
 
-    let scoped = Admit_Into(
+    Admitted_Run(
         &scoped_store,
         &source,
         &["--scope", SCOPE_NAME, "--says", CONCEPT_NAME, CLAIM_TEXT],
     );
-    let absent = Admit_Into(&absent_store, &source, &["--says", CONCEPT_NAME, CLAIM_TEXT]);
-    assert!(scoped.status.success(), "admit failed: {}", Stdout_Text(&scoped));
-    assert!(absent.status.success(), "admit failed: {}", Stdout_Text(&absent));
+    Admitted_Run(&absent_store, &source, &["--says", CONCEPT_NAME, CLAIM_TEXT]);
 
+    Assert_The_Absent_Run_Recorded_No_Scope(&absent_store);
+
+    Assert_The_Scope_Reached_Only_The_Assertion(&scoped_store, &absent_store);
+}
+
+/// `D-010` on the absent half alone: an unstated scope is a real answer and stays distinguishable
+/// from every stated one, so a run given no scope must not have recorded a defaulted one.
+fn Assert_The_Absent_Run_Recorded_No_Scope(absent_store: &Path)
+{
     assert_eq!(
-        Field(&Citation_In(&absent_store), CITED_SCOPE),
+        Field(&Citation_In(absent_store), CITED_SCOPE),
         "",
         "a run that stated no scope recorded one anyway, which is the default `D-010` refuses"
     );
+}
 
-    let scoped_records = Records_At(&scoped_store);
-    let absent_records = Records_At(&absent_store);
+/// The two runs compared, to say the scope reaches the assertion record and nothing else.
+///
+/// The runs differ in nothing but that flag, so the concept and the claim must come out
+/// byte-identical — the scope participates in the assertion's identity and in nothing else — while
+/// the assertion records must differ, or the scope is not in that identity at all.
+fn Assert_The_Scope_Reached_Only_The_Assertion(scoped_store: &Path, absent_store: &Path)
+{
+    let scoped_records = Records_At(scoped_store);
+    let absent_records = Records_At(absent_store);
     assert_eq!(
         scoped_records.first().map(String::as_str),
         absent_records.first().map(String::as_str),
@@ -407,13 +451,13 @@ fn Test_An_Absent_Scope_Should_Reach_The_Record_As_Absent()
         "the claim record changed with the scope, so a claim addresses its reader's scope"
     );
     assert_eq!(
-        Field(&Citation_In(&scoped_store), CITED_CLAIM),
-        Field(&Citation_In(&absent_store), CITED_CLAIM),
+        Field(&Citation_In(scoped_store), CITED_CLAIM),
+        Field(&Citation_In(absent_store), CITED_CLAIM),
         "two scopes of one claim are two assertions of one claim, and this is not one claim"
     );
     assert_ne!(
-        Citation_In(&scoped_store),
-        Citation_In(&absent_store),
+        Citation_In(scoped_store),
+        Citation_In(absent_store),
         "two scopes of one claim produced one assertion record, so the scope is not in the \
          assertion's identity"
     );
@@ -422,21 +466,28 @@ fn Test_An_Absent_Scope_Should_Reach_The_Record_As_Absent()
 #[test]
 fn Test_Every_Record_Should_Carry_An_Instant_The_Host_Clock_Reported()
 {
-    // `KWB-64`: a publication is stamped, and the stamp is a wall reading rather than an ordering.
-    // The window is the run's own lifetime, taken from the clock the composition root chose — the
-    // same `kwb-platform-xvpe` clock `Now()` in `keeping.rs` reads — so a record carrying a zero,
-    // an epoch or a constant is outside it, and a record carrying a time from anywhere but this
-    // process's clock is outside it too.
     let store = Store_For("instant");
     let world = Directory_For("instant");
     let source = Source_File(&world, "one.txt");
 
     let before = SystemClock.Now().Unix_Seconds();
-    let run = Admit_Into(&store, &source, &["--says", CONCEPT_NAME, CLAIM_TEXT]);
+    Admitted_Run(&store, &source, &["--says", CONCEPT_NAME, CLAIM_TEXT]);
     let after = SystemClock.Now().Unix_Seconds();
-    assert!(run.status.success(), "admit failed: {}", Stdout_Text(&run));
 
-    let records = Records_At(&store);
+    Assert_Every_Record_Was_Stamped_Between(&store, before, after);
+}
+
+/// Every record the run wrote, checked to be stamped inside the window the run itself lived in.
+///
+/// `KWB-64`: a publication is stamped, and the stamp is a wall reading rather than an ordering. The
+/// window is the run's own lifetime, taken from the clock the composition root chose — the same
+/// `kwb-platform-xvpe` clock `Now()` in `keeping.rs` reads — so a record carrying a zero, an epoch
+/// or a constant is outside it, and a record carrying a time from anywhere but this process's clock
+/// is outside it too. The window is passed in rather than read here, because only the caller can
+/// place it on either side of the run.
+fn Assert_Every_Record_Was_Stamped_Between(store: &Path, before: i64, after: i64)
+{
+    let records = Records_At(store);
     assert!(!records.is_empty(), "the run published nothing to stamp");
 
     for record in &records
@@ -454,32 +505,46 @@ fn Test_Every_Record_Should_Carry_An_Instant_The_Host_Clock_Reported()
 #[test]
 fn Test_Durability_Should_Follow_The_Store_And_Nothing_Else()
 {
-    // `D-014`, reported rather than assumed: whether anything was kept is a fact about the run, and
-    // the two words the report prints are that fact. Both halves are asserted because either alone
-    // is satisfied by a report that always says the same thing.
     let world = Directory_For("durable");
     let source = Source_File(&world, "one.txt");
 
-    let kept = Admit_Into(&Store_For("durable-store"), &source, &[
-        "--says",
-        CONCEPT_NAME,
-        CLAIM_TEXT,
-    ]);
-    assert!(kept.status.success(), "admit failed: {}", Stdout_Text(&kept));
-    let said = Stdout_Text(&kept);
-    assert_eq!(
-        Reported(&said, "documents"),
-        "kept",
-        "a run given a store did not report the bytes as kept: {said}"
+    let kept = Admitted_Run(
+        &Store_For("durable-store"),
+        &source,
+        &["--says", CONCEPT_NAME, CLAIM_TEXT],
     );
-    assert_eq!(
-        Reported(&said, "knowledge"),
-        "kept",
-        "a run given a store did not report the publications as kept: {said}"
-    );
+    Assert_The_Run_Reported_Kept(&Stdout_Text(&kept));
 
-    // And the words are not merely the report's opinion: the run is given a working directory of
-    // its own, and a run given no store leaves that directory as it found it.
+    Assert_Nothing_Was_Kept_Without_A_Store(&source);
+}
+
+/// `D-014`, reported rather than assumed: whether anything was kept is a fact about the run, and the
+/// two words the report prints are that fact.
+///
+/// Both halves are asserted because either alone is satisfied by a report that always says the same
+/// thing, which is the failure a single-word assertion cannot see.
+fn Assert_The_Run_Reported_Kept(report: &str)
+{
+    assert_eq!(
+        Reported(report, "documents"),
+        "kept",
+        "a run given a store did not report the bytes as kept: {report}"
+    );
+    assert_eq!(
+        Reported(report, "knowledge"),
+        "kept",
+        "a run given a store did not report the publications as kept: {report}"
+    );
+}
+
+/// The other half of `D-014`: a run given no store, and the working directory it must leave as it
+/// found it.
+///
+/// The words are not merely the report's opinion, so the run is given a working directory of its
+/// own and the directory is read back afterwards: a run that kept something behind its back wrote
+/// it here, where nothing else can have, and the empty directory is what says so.
+fn Assert_Nothing_Was_Kept_Without_A_Store(source: &Path)
+{
     let unhoused = Directory_For("nowhere");
     let nowhere = Run_In(&unhoused, &["admit", source.display().to_string().as_str()]);
     assert!(
@@ -488,6 +553,7 @@ fn Test_Durability_Should_Follow_The_Store_And_Nothing_Else()
         Stdout_Text(&nowhere)
     );
     let said = Stdout_Text(&nowhere);
+
     assert_eq!(
         Reported(&said, "documents"),
         "in memory only",
@@ -511,35 +577,50 @@ fn Test_Durability_Should_Follow_The_Store_And_Nothing_Else()
 #[test]
 fn Test_Admitting_One_Source_Twice_Should_Keep_One_Document()
 {
-    // The property that makes admitting a corpus again free, arriving through the composition
-    // root's choice of store: the address is the content, so the same bytes are the same document
-    // however many runs produce them. Both halves matter — the store does not grow, and the graph
-    // the log replays into does not either.
     let store = Store_For("twice");
     let world = Directory_For("twice");
     let source = Source_File(&world, "one.txt");
     let flags = ["--says", CONCEPT_NAME, CLAIM_TEXT];
 
-    let first = Admit_Into(&store, &source, &flags);
-    assert!(first.status.success(), "admit failed: {}", Stdout_Text(&first));
+    Admitted_Run(&store, &source, &flags);
     let after_one = Records_At(&store).len();
 
-    let second = Admit_Into(&store, &source, &flags);
-    assert!(second.status.success(), "admit failed: {}", Stdout_Text(&second));
+    Admitted_Run(&store, &source, &flags);
 
+    Assert_The_Store_Held_One_Document(&store, after_one);
+
+    Assert_The_Log_Replayed_To_One_Document(&store);
+}
+
+/// The store the second run left, checked not to have grown a second document.
+///
+/// The property that makes admitting a corpus again free, arriving through the composition root's
+/// choice of store: the address is the content, so the same bytes are the same document however
+/// many runs produce them. The log is checked to have grown as well, because a store that never
+/// changed cannot be told from a run that did not happen.
+fn Assert_The_Store_Held_One_Document(store: &Path, records_after_one_run: usize)
+{
     assert_eq!(
-        Held_Addresses(&store),
+        Held_Addresses(store),
         [Document::Of(PASSAGE.as_bytes().to_vec()).Identity().Render()],
         "a second run of one source left a second document behind, so the store is not addressing \
          bytes by their content"
     );
     assert!(
-        Records_At(&store).len() > after_one,
+        Records_At(store).len() > records_after_one_run,
         "the second run recorded nothing, so this test cannot tell a re-admission from a run that \
          did not happen"
     );
+}
 
-    let replayed = Replay_Records(&Records_At(&store)).expect("the log this repository wrote replays");
+/// The log the two runs wrote, replayed and checked to hold one concept and one claim.
+///
+/// Both halves matter, and this is the half the store's own directories cannot show: the graph the
+/// log replays into does not grow either, so a rerun over a corpus duplicates nothing.
+fn Assert_The_Log_Replayed_To_One_Document(store: &Path)
+{
+    let replayed =
+        Replay_Records(&Records_At(store)).expect("the log this repository wrote replays");
     assert_eq!(
         Concepts_Of(&replayed).len(),
         1,

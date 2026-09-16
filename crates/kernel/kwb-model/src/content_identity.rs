@@ -221,6 +221,10 @@ mod tests
 {
     use super::*;
 
+    /// The byte a digest is filled with. Which byte it is carries nothing: the assertion is that
+    /// whatever arrives as bytes is the same digest that leaves as text.
+    const FILLER: u8 = 0xAB;
+
     #[test]
     fn Test_From_Digest_Should_Carry_The_Digest_Into_The_Rendered_Identity()
     {
@@ -228,7 +232,7 @@ mod tests
         // must not do is reinterpret what it is handed -- not re-hash it, not reorder it, not
         // render it early. A digest that arrived as bytes has to be the same digest that leaves
         // as text, byte for byte, or nothing derived above it addresses anything.
-        let digest = [0xAB_u8; IDENTITY_BYTES];
+        let digest = [FILLER; IDENTITY_BYTES];
 
         let identity = ContentIdentity::From_Digest(digest);
 

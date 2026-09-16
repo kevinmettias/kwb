@@ -30,6 +30,10 @@ use kwb_domain::Versioned;
 /// Why the fixtures below close something.
 const BECAUSE: &str = "the two names denote one concept";
 
+/// How many concepts a merge leaves behind: the one that was closed, and the one it was closed
+/// into. Both are still in the graph, which is the whole of what `Every_Version` exists to say.
+const LOSER_AND_SUCCESSOR: usize = 2;
+
 /// A graph holding one concept, and that concept beside it.
 ///
 /// One value with named fields rather than a pair, because a pair says nothing about which of its
@@ -104,6 +108,45 @@ fn A_Graph_Holding_One_Assertion() -> OneAssertionGraph
     return OneAssertionGraph { graph, assertion };
 }
 
+/// A graph holding one concept, closed against a successor published beside it, and that concept.
+///
+/// One value with named fields rather than a pair, because a pair says nothing about which of its
+/// two positions is the graph and which is the concept that was put in it -- the same reason
+/// [`OneConceptGraph`] gives above.
+struct OneMergeGraph
+{
+    /// The graph the concept was published into, holding both it and the successor.
+    graph: KnowledgeGraph,
+
+    /// The concept that was closed against the successor, which is the one the merge log holds.
+    loser: Concept,
+
+    /// The concept the other was closed into, which is the one the current read still answers with.
+    successor: Concept,
+}
+
+/// A graph holding one concept, merged away into a successor published beside it.
+///
+/// Both of the readings that ask about a merge start here -- the current read that must not reach
+/// the loser, and the every-version read that must -- so the successor comes back too rather than
+/// being built again at each call site.
+fn A_Graph_Whose_Concept_Was_Merged_Into_A_Successor() -> OneMergeGraph
+{
+    let OneConceptGraph { graph, concept } = A_Graph_Holding_One_Concept();
+    let successor = Concept::Named("C++");
+
+    let merged = graph
+        .With_Concept(Versioned::Asserted(successor.clone()))
+        .With_Concept(
+            Versioned::Asserted(concept.clone()).Closed(Standing::Superseded {
+                by: successor.Identity(),
+                because: BECAUSE.to_owned(),
+            }),
+        );
+
+    return OneMergeGraph { graph: merged, loser: concept, successor };
+}
+
 #[test]
 fn Test_Empty_Should_Hold_Nothing_And_Answer_With_Nothing()
 {
@@ -170,24 +213,15 @@ fn Test_Current_Should_Not_Reach_What_Was_Closed()
 {
     // The finding that made this the interesting question: a concept retired on its own is not
     // current, and neither is one merged into another -- and `Every_Version` still holds both.
-    let OneConceptGraph { graph, concept } = A_Graph_Holding_One_Concept();
-    let successor = Concept::Named("C++");
-
-    let after = graph
-        .With_Concept(Versioned::Asserted(successor.clone()))
-        .With_Concept(
-            Versioned::Asserted(concept.clone()).Closed(Standing::Superseded {
-                by: successor.Identity(),
-                because: BECAUSE.to_owned(),
-            }),
-        );
+    let OneMergeGraph { graph: after, successor, .. } =
+        A_Graph_Whose_Concept_Was_Merged_Into_A_Successor();
 
     let current: Vec<_> = after.Current().Concepts().into_iter().map(Concept::Identity).collect();
 
     assert_eq!(current, [successor.Identity()], "a merge loser is still counted as current");
     assert_eq!(
         after.Every_Version().Concepts().len(),
-        2,
+        LOSER_AND_SUCCESSOR,
         "closing a concept removed it, which is the destruction D17 refuses"
     );
 }
@@ -198,29 +232,19 @@ fn Test_Every_Version_Should_Reach_What_The_Current_Read_Does_Not()
     // `D19-B`: the prototype's answer was two interfaces and a discipline about which one you
     // depend on, and `merge-audit` resolved **none** of the merge log's identifiers against the
     // filtered view, printed *"nothing has been merged away"* and exited `0`.
-    let OneConceptGraph { graph, concept } = A_Graph_Holding_One_Concept();
-    let successor = Concept::Named("C++");
-
-    let after = graph
-        .With_Concept(Versioned::Asserted(successor))
-        .With_Concept(
-            Versioned::Asserted(concept.clone()).Closed(Standing::Superseded {
-                by: Concept::Named("C++").Identity(),
-                because: BECAUSE.to_owned(),
-            }),
-        );
+    let OneMergeGraph { graph, loser, .. } = A_Graph_Whose_Concept_Was_Merged_Into_A_Successor();
 
     assert_eq!(
-        after.Every_Version().Merge_Losers().len(),
+        graph.Every_Version().Merge_Losers().len(),
         1,
         "the merge log cannot be answered from here, which is the query it exists for"
     );
     assert!(
-        after
+        graph
             .Every_Version()
             .Merge_Losers()
             .first()
-            .is_some_and(|held| return held.Value().Identity() == concept.Identity()),
+            .is_some_and(|held| return held.Value().Identity() == loser.Identity()),
         "the wrong concept was reported as merged away"
     );
 }

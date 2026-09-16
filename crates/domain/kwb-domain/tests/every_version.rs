@@ -31,6 +31,10 @@ use kwb_domain::Versioned;
 /// Why the fixtures below close something.
 const BECAUSE: &str = "the two names denote one concept";
 
+/// How many concepts a merge leaves behind: the one that was closed, and the one it was closed
+/// into. This read reaches both, which is what separates it from the current one.
+const LOSER_AND_SUCCESSOR: usize = 2;
+
 /// The concept every fixture here is about.
 fn Entropy() -> Concept
 {
@@ -101,7 +105,7 @@ fn Test_Concepts_Should_Reach_A_Concept_That_Was_Closed()
 
     assert_eq!(
         after.Every_Version().Concepts().len(),
-        2,
+        LOSER_AND_SUCCESSOR,
         "a concept that was closed is gone from the read that exists to report it, so the merge \
          log cannot be answered from anywhere"
     );
@@ -148,18 +152,18 @@ fn Test_Assertions_Should_Reach_An_Assertion_Of_A_Claim_That_Was_Closed()
     );
 }
 
-#[test]
-fn Test_Merge_Losers_Should_Reach_Every_Concept_Closed_Against_A_Successor()
+/// The fixture graph once one of its concepts was merged into a successor and another was retired.
+///
+/// The two closures are the pair the query below has to tell apart, and they are deliberately
+/// published together: `entropy` was merged into `C++` and `free energy` was retired by its author,
+/// and only the first of them is a merge loser.
+fn A_Graph_With_A_Merge_Loser_Beside_A_Retired_Concept() -> KnowledgeGraph
 {
-    // The query `merge-audit` needed. Two facts have to be told apart for it to answer: *not
-    // current* and *merged into something* are different, and a retired concept has the first
-    // without the second -- so a read that asked `Is_Current` would report a withdrawn concept as
-    // merged away, which is a merge log with entries that never happened.
     let PublishedKnowledge { graph, .. } = Published_Knowledge();
     let successor = Concept::Named("C++");
     let withdrawn = Concept::Named("free energy");
 
-    let after = graph
+    return graph
         .With_Concept(Versioned::Asserted(successor.clone()))
         .With_Concept(
             Versioned::Asserted(Entropy()).Closed(Standing::Superseded {
@@ -168,20 +172,34 @@ fn Test_Merge_Losers_Should_Reach_Every_Concept_Closed_Against_A_Successor()
             }),
         )
         .With_Concept(
-            Versioned::Asserted(withdrawn.clone()).Closed(Standing::Retired {
+            Versioned::Asserted(withdrawn).Closed(Standing::Retired {
                 because: BECAUSE.to_owned(),
             }),
         );
+}
 
-    let losers: Vec<&str> = after
+/// The canonical names the merge-loser query answers, in the order it answers them.
+fn Merge_Loser_Names(graph: &KnowledgeGraph) -> Vec<&str>
+{
+    return graph
         .Every_Version()
         .Merge_Losers()
         .into_iter()
         .map(|held| return held.Value().Canonical_Name())
         .collect();
+}
+
+#[test]
+fn Test_Merge_Losers_Should_Reach_Every_Concept_Closed_Against_A_Successor()
+{
+    // The query `merge-audit` needed. Two facts have to be told apart for it to answer: *not
+    // current* and *merged into something* are different, and a retired concept has the first
+    // without the second -- so a read that asked `Is_Current` would report a withdrawn concept as
+    // merged away, which is a merge log with entries that never happened.
+    let after = A_Graph_With_A_Merge_Loser_Beside_A_Retired_Concept();
 
     assert_eq!(
-        losers,
+        Merge_Loser_Names(&after),
         ["entropy"],
         "the merge log reports a concept that was retired rather than merged, or misses one that \
          was merged, and either way an audit of it answers a question nobody asked"

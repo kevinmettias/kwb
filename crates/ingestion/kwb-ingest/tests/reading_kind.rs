@@ -10,12 +10,19 @@
 
 use kwb_ingest::ReadingKind;
 
+/// How many kinds the vocabulary has, which is every one of them.
+///
+/// Named rather than written in the return type, because the number is a fact about the
+/// vocabulary rather than about the test: a kind added to it is a kind this fixture must hold,
+/// and a reader should not have to count the array to know whether it does.
+const KINDS_IN_THE_VOCABULARY: usize = 2;
+
 /// Every kind this vocabulary has, so that the distinctness below is asserted over all of them
 /// rather than over whichever two a test happened to name.
 ///
 /// A provider rather than a literal in the test: a third kind added here is a third kind the
 /// duplicate check runs against, which is the case a hand-written pair would silently miss.
-fn Kinds() -> [ReadingKind; 2]
+fn Kinds() -> [ReadingKind; KINDS_IN_THE_VOCABULARY]
 {
     return [ReadingKind::Text, ReadingKind::Visual];
 }

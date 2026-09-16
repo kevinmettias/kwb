@@ -10,11 +10,18 @@
 
 use kwb_ingest::ConceptName;
 
+/// How many names the fixture holds: two, because a name and the same name with blanks around it
+/// are two names here rather than one name spelled twice.
+///
+/// Named rather than written in the return type, because the number is a fact about the fixture
+/// and a reader should not have to count it to read the assertions stated over the pair.
+const NAMES_DIFFERING_ONLY_IN_WHITESPACE: usize = 2;
+
 /// One name, and the same name with whitespace around it.
 ///
 /// A provider rather than a literal in the test, because the pair is the whole fixture: what is
 /// being asserted is what happened to the difference between them.
-fn Spaced_And_Tight() -> [&'static str; 2]
+fn Spaced_And_Tight() -> [&'static str; NAMES_DIFFERING_ONLY_IN_WHITESPACE]
 {
     return ["  Entropy  ", "Entropy"];
 }

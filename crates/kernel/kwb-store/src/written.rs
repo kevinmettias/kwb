@@ -103,10 +103,26 @@ mod tests
         // rather than deciding anything, which is `D20` read at this seam — the store derives the
         // admission from what it held, and the receipt only reports it.
         let document = Document::Of(b"a passage".to_vec());
-
         let stored = Written::For(&document, Admission::Stored);
         let present = Written::For(&document, Admission::AlreadyPresent);
 
+        Assert_Receipt_Describes_The_Document(stored, present, &document);
+        Assert_Receipt_Carries_The_Admission(stored, present);
+    }
+
+    /// Asserts both receipts hold the address and the size of the one document they were minted
+    /// from, and that the two agree on the address.
+    ///
+    /// Compared against the document the test still holds rather than against a second derivation
+    /// from the same octets: a receipt that recomputed the address itself would agree with one,
+    /// and the claim being made here is that it carries the document's.
+    ///
+    /// The pair agreeing with each other is asserted for the same reason. One document producing
+    /// two addresses would mean the receipt answers to something other than the document, which is
+    /// the guarantee `For` taking the document whole exists to give — and a single receipt could
+    /// not show it.
+    fn Assert_Receipt_Describes_The_Document(stored: Written, present: Written, document: &Document)
+    {
         assert_eq!(
             stored.Identity(),
             document.Identity(),
@@ -123,6 +139,16 @@ mod tests
             "one document produced two receipts with different addresses, so the receipt depends on \
              something other than the document"
         );
+    }
+
+    /// Asserts each receipt reports the verdict the caller handed to `For`, and that the two
+    /// verdicts differ.
+    ///
+    /// Both are asserted together because either one alone is satisfied by a receipt that reports
+    /// the same verdict forever: the differing pair is what shows the field tracks what it was
+    /// given rather than a constant.
+    fn Assert_Receipt_Carries_The_Admission(stored: Written, present: Written)
+    {
         assert_eq!(
             stored.Admission(),
             Admission::Stored,

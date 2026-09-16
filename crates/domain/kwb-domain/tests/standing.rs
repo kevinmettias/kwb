@@ -26,6 +26,9 @@ const RETIRED_BECAUSE: &str = "the concept was withdrawn by its author";
 /// Why the superseded concept in these fixtures was merged.
 const SUPERSEDED_BECAUSE: &str = "the two names denote one concept";
 
+/// How many kinds a standing can be: asserted, retired and superseded.
+const STANDING_KINDS: usize = 3;
+
 /// The concept the superseded standing points at.
 fn A_Successor() -> Concept
 {
@@ -36,7 +39,7 @@ fn A_Successor() -> Concept
 ///
 /// Named rather than written inside a test because `Not current` and `merged into something` are
 /// two facts, and every test here needs all three states to tell them apart.
-fn Every_Standing(successor: &Concept) -> [Standing; 3]
+fn Every_Standing(successor: &Concept) -> [Standing; STANDING_KINDS]
 {
     return [
         Standing::Asserted,

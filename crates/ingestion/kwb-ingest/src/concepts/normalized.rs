@@ -92,29 +92,54 @@ impl Normalized
 #[must_use]
 pub(crate) fn Normalize_Concepts(linked: Linked) -> Normalized
 {
+    let grouped = Grouping_Of(linked.Concepts());
+
+    return Normalized {
+        concepts: grouped.kept,
+        linked,
+        merged: grouped.folded,
+    };
+}
+
+/// What one pass over the mentions kept, and how much it folded away.
+///
+/// Named rather than returned as a pair, because `(Vec<Concept>, usize)` does not say which half
+/// is the concepts and which is the count of mentions that did not become one.
+struct Grouping
+{
+    /// One concept per content identity, in the order the identities were first mentioned.
+    kept: Vec<Concept>,
+
+    /// How many mentions named an identity already kept.
+    folded: usize,
+}
+
+/// The concepts one per content identity, and how many mentions that folded away.
+///
+/// The comparison is on [`Concept::Identity`] and on nothing else, which is what makes the
+/// relation this loop closes over equality — see the doc above, and `D18` for what a looser one
+/// cost the prototype.
+fn Grouping_Of(concepts: &[Concept]) -> Grouping
+{
     use kwb_model::ContentIdentity;
 
-    let mut concepts: Vec<Concept> = Vec::new();
+    let mut kept: Vec<Concept> = Vec::new();
     let mut seen: Vec<ContentIdentity> = Vec::new();
-    let mut merged = 0_usize;
+    let mut folded = 0_usize;
 
-    for concept in linked.Concepts()
+    for concept in concepts
     {
         if seen.contains(&concept.Identity())
         {
-            merged = merged.saturating_add(1);
+            folded = folded.saturating_add(1);
             continue;
         }
 
         seen.push(concept.Identity());
-        concepts.push(concept.clone());
+        kept.push(concept.clone());
     }
 
-    return Normalized {
-        concepts,
-        linked,
-        merged,
-    };
+    return Grouping { kept, folded };
 }
 
 /// The two things only this file can assert, because [`Normalize_Concepts`] is `pub(crate)`.

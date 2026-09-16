@@ -210,6 +210,16 @@ mod tests
 
     use std::path::PathBuf;
 
+    /// The instant the recording test hands `Record_Into`. Which instant it is carries nothing —
+    /// what is asserted is how many records the log came out with, not what date they carry — so
+    /// it is one fixed value rather than anything the test derives from a clock.
+    const PUBLISHED_AT: i64 = 1_700_000_000;
+
+    /// The first second of 2020, as a floor for what the real clock can answer. Any instant after
+    /// it is a wall time this century; anything at or below it is the shape a counter in place of
+    /// a clock would produce.
+    const START_OF_2020: i64 = 1_577_836_800;
+
     #[test]
     fn Test_Store_For_Should_Answer_An_In_Memory_Store_When_It_Was_Told_Nowhere()
     {
@@ -387,7 +397,7 @@ mod tests
             .expect("a writable temporary root")
             .expect("a log under a root that was named");
 
-        Record_Into(Some(&log), &report, Some(1_700_000_000)).expect("a writable temporary log");
+        Record_Into(Some(&log), &report, Some(PUBLISHED_AT)).expect("a writable temporary log");
 
         assert_eq!(
             Records_Of(&log).expect("a readable temporary log").len(),
@@ -417,7 +427,7 @@ mod tests
         // every publication before the epoch, and `history --as-of` would answer every question
         // with the whole log — the failure `Through_Time` refuses to paper over one layer up.
         assert!(
-            Now() > 1_577_836_800,
+            Now() > START_OF_2020,
             "the clock answered a value that is not a wall time in this century, so publications \
              are being recorded against something that is not a date"
         );

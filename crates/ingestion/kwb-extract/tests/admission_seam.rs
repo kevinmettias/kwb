@@ -30,6 +30,8 @@
 //! source file and covers nothing -- correctly, since its subject is the boundary between this
 //! crate and another rather than either side's files. It follows `kwb-mcp`'s `tests/retrieval_seam.rs`,
 //! which is the same shape for the same reason.
+//!
+//! [`ExtractionStrategy`]: kwb_ingest::ExtractionStrategy
 
 use kwb_domain::Claim;
 use kwb_domain::Concept;
@@ -37,9 +39,9 @@ use kwb_domain::KnowledgeGraph;
 use kwb_domain::Scope;
 use kwb_domain::Versioned;
 use kwb_extract::ReadsText;
+use kwb_ingest::AdmissionReport;
 use kwb_ingest::Admit_Source;
 use kwb_ingest::ExtractionError;
-use kwb_ingest::ExtractionStrategy;
 use kwb_ingest::ReadingKind;
 use kwb_model::ContentIdentity;
 use kwb_platform_xvpe::inference::ModelIdentifier;
@@ -58,6 +60,11 @@ const SCOPE_NAME: &str = "physical theory";
 /// something in it: an empty graph cannot show that an admission left one alone.
 const ALREADY_KNOWN_NAME: &str = "enthalpy";
 const ALREADY_KNOWN_CLAIM: &str = "It is a thermodynamic potential.";
+
+/// How many times the re-admission test hands the same source to the same store. Two, because one
+/// admission is what the other tests do and a single admission cannot show that a repeat is
+/// idempotent.
+const ADMISSIONS: usize = 2;
 
 /// The model these recordings are attributed to. Nothing is recorded for it, so every request it
 /// is asked is one no fixture answers.
@@ -129,6 +136,25 @@ fn Held(graph: &KnowledgeGraph) -> HeldWorld
     return HeldWorld { concepts, claims };
 }
 
+/// The report from admitting the one passage in [`PASSAGE`] through the reader this crate offers.
+///
+/// All four tests below start here, so the arrangement is written once rather than re-derived at
+/// each of them. The reader crosses as the trait object the composition root hands it —
+/// `Some(&reader)` is a `&dyn ExtractionStrategy` by the coercion at the call — which is also
+/// what pins that a consumer can use this crate's reader without knowing what it is.
+///
+/// The expectation is the same in every test below, and that is the seam's subject rather than a
+/// shortcut: the surprising half is not that a reading can fail but that the *admission* succeeds
+/// when it does. The source is written before the reader is consulted, so a refusal costs the
+/// reading and never the source.
+fn Admitted(reading: ReadingKind, store: &mut DocumentStore) -> AdmissionReport
+{
+    let reader = Reader();
+
+    return Admit_Source(PASSAGE.as_bytes().to_vec(), Some(&reader), reading, store)
+        .expect("the source is admitted even though the reading did not happen");
+}
+
 #[test]
 fn Test_A_Reading_That_Did_Not_Happen_Should_Leave_The_Graph_Exactly_As_It_Was()
 {
@@ -137,20 +163,9 @@ fn Test_A_Reading_That_Did_Not_Happen_Should_Leave_The_Graph_Exactly_As_It_Was()
     // caller published into is unchanged, which is the claim that actually matters and the one a
     // report-level assertion cannot make -- a refusal that reached the graph by some other path
     // would still report nothing.
-    //
-    // The reader is handed over as the trait object the composition root hands it, so this also
-    // pins that a consumer can use this crate's reader without knowing what it is.
     let before = Already_Known();
-    let reader = Reader();
     let mut store = DocumentStore::Empty();
-
-    let report = Admit_Source(
-        PASSAGE.as_bytes().to_vec(),
-        Some(&reader as &dyn ExtractionStrategy),
-        ReadingKind::Text,
-        &mut store,
-    )
-    .expect("the source is admitted even though the reading did not happen");
+    let report = Admitted(ReadingKind::Text, &mut store);
 
     assert_eq!(
         report.Coverage().Name(),
@@ -162,10 +177,8 @@ fn Test_A_Reading_That_Did_Not_Happen_Should_Leave_The_Graph_Exactly_As_It_Was()
         "a reader that failed was recorded as evidence the source is empty, which is the 1,367-row \
          incident with a model in place of a prerequisite"
     );
-
-    let after = report.Published_Into(&before);
     assert_eq!(
-        Held(&after),
+        Held(&report.Published_Into(&before)),
         Held(&before),
         "a reading that did not happen changed the graph, so the invariant is being kept by the \
          report and not by the pipeline"
@@ -182,16 +195,8 @@ fn Test_A_Source_Needing_A_Look_Should_Be_Refused_Without_Asking_A_Model()
     // point of the variant, and only the outside view can see it: from `src/tests.rs` the reader's
     // own code is in scope, and a test there reads the branch rather than the behaviour.
     let before = Already_Known();
-    let reader = Reader();
     let mut store = DocumentStore::Empty();
-
-    let report = Admit_Source(
-        PASSAGE.as_bytes().to_vec(),
-        Some(&reader),
-        ReadingKind::Visual,
-        &mut store,
-    )
-    .expect("the source is admitted even though it needed a look");
+    let report = Admitted(ReadingKind::Visual, &mut store);
 
     assert!(
         matches!(
@@ -223,16 +228,8 @@ fn Test_A_Source_Should_Be_Kept_When_Its_Reading_Did_Not_Happen()
     // backwards: the source is written **before** the reader is consulted, so a refusal costs the
     // reading and not the source. A later run over a working reader finds the bytes where this one
     // left them, which is what makes admitting a whole corpus possible when a model is down.
-    let reader = Reader();
     let mut store = DocumentStore::Empty();
-
-    let report = Admit_Source(
-        PASSAGE.as_bytes().to_vec(),
-        Some(&reader),
-        ReadingKind::Text,
-        &mut store,
-    )
-    .expect("the source is admitted even though the reading did not happen");
+    let report = Admitted(ReadingKind::Text, &mut store);
 
     let receipt = report.Source().expect("a source that was written has a receipt");
     assert_eq!(
@@ -255,18 +252,11 @@ fn Test_Reading_One_Source_Twice_Should_Keep_One_Document()
     // the reader changes? Yes, and the second run must not grow the store -- the document is
     // addressed by its content, so the same bytes are the same document however many times they
     // arrive. Asserted through this crate's reader because that is the reader a rerun would use.
-    let reader = Reader();
     let mut store = DocumentStore::Empty();
 
-    for _ in 0..2
+    for _ in 0..ADMISSIONS
     {
-        Admit_Source(
-            PASSAGE.as_bytes().to_vec(),
-            Some(&reader),
-            ReadingKind::Text,
-            &mut store,
-        )
-        .expect("the source is admitted even though the reading did not happen");
+        Admitted(ReadingKind::Text, &mut store);
     }
 
     assert_eq!(

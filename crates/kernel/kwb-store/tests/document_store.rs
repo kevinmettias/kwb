@@ -18,11 +18,19 @@ use kwb_store::Document;
 use kwb_store::DocumentStore;
 use kwb_store::StoreError;
 
+/// How many passages the provider below yields: the whole sample every case here is stated over.
+///
+/// The number belongs to the sample and not to the type, so it is named here rather than written
+/// into the array type: another passage is a change to this line and to the cases, and the tests
+/// that compare against `Passages().len()` are comparing against the sample rather than against a
+/// count that happens to agree with it today.
+const PASSAGE_COUNT: usize = 3;
+
 /// Three passages, differing only in being three.
 ///
 /// A provider rather than a literal in the tests that need more than one document: the cases live
 /// here, the loops live there, and adding a fourth is a change in one place.
-fn Passages() -> [&'static str; 3]
+fn Passages() -> [&'static str; PASSAGE_COUNT]
 {
     return ["one", "two", "three"];
 }
@@ -171,7 +179,23 @@ fn Test_Length_Should_Count_Each_Distinct_Document_Once()
     // counts what the store holds rather than how often it was asked — and the three offered twice
     // is what tells the two apart.
     let mut store = DocumentStore::Empty();
+    Store_Every_Passage_Once(&mut store);
+    Re_Offer_Every_Passage(&mut store);
 
+    assert_eq!(
+        store.Length(),
+        Passages().len(),
+        "the store is counting writes rather than the documents it holds"
+    );
+}
+
+/// Stores each of the three passages, asserting that each offer was the write that stored it.
+///
+/// The verdict is asserted here rather than left to the count below, because the count rests on
+/// this premise: a passage the store did not store is one it is right to leave out of its length,
+/// so a length of three reads the same whether the write happened or was quietly dropped.
+fn Store_Every_Passage_Once(store: &mut DocumentStore)
+{
     for passage in Passages()
     {
         assert!(
@@ -182,6 +206,15 @@ fn Test_Length_Should_Count_Each_Distinct_Document_Once()
             "the store did not store a passage it had not seen before"
         );
     }
+}
+
+/// Offers each of the three passages a second time, asserting that none was counted as newly stored.
+///
+/// This is the other half of the premise the count needs: content addressing makes the same octets
+/// one document however many times they are offered, so a store that counted writes would answer
+/// `Stored` again and report six. Offering them twice is what tells the two counts apart.
+fn Re_Offer_Every_Passage(store: &mut DocumentStore)
+{
     for passage in Passages()
     {
         assert!(
@@ -192,12 +225,6 @@ fn Test_Length_Should_Count_Each_Distinct_Document_Once()
             "a passage the store already held was counted as newly stored"
         );
     }
-
-    assert_eq!(
-        store.Length(),
-        Passages().len(),
-        "the store is counting writes rather than the documents it holds"
-    );
 }
 
 #[test]
@@ -227,8 +254,25 @@ fn Test_Identities_Should_List_Every_Address_The_Store_Holds_And_No_Other()
     // of documents held and nothing else — an iterator that yielded nothing, or yielded twice,
     // would satisfy neither half — and every address on it has to be one the store answers for.
     let mut store = DocumentStore::Empty();
-    let mut written = Vec::new();
 
+    Assert_Listing_Is_Exactly_What_Was_Written(&mut store);
+    Assert_Every_Address_Listed_Is_Held(&store);
+}
+
+/// Writes every passage, collecting each address as it goes, and asserts that the store's listing
+/// is exactly that set.
+///
+/// The addresses are collected from the documents as they are written rather than read back out of
+/// the store, because comparing the listing against a second walk of the store would assert only
+/// that its iterator agrees with itself — which every iterator does, including one that yields
+/// nothing.
+///
+/// The write's own verdict is asserted alongside, because the equality below depends on it: a
+/// passage the store never stored is an address the listing is right to omit, so a store that
+/// dropped the write and one that kept it would pass the comparison equally.
+fn Assert_Listing_Is_Exactly_What_Was_Written(store: &mut DocumentStore)
+{
+    let mut written = Vec::new();
     for passage in Passages()
     {
         let document = Document::Of(passage.as_bytes().to_vec());
@@ -241,7 +285,6 @@ fn Test_Identities_Should_List_Every_Address_The_Store_Holds_And_No_Other()
             "a passage was not stored, so the listing below is not of what was written"
         );
     }
-
     // Sorted before comparing, because the order is the map's and not the order they arrived in;
     // that independence is `one_door.rs`'s to assert and not this test's.
     written.sort();
@@ -249,8 +292,16 @@ fn Test_Identities_Should_List_Every_Address_The_Store_Holds_And_No_Other()
     listed.sort();
 
     assert_eq!(listed, written, "the listing is not the set of documents the store holds");
+}
 
-    for identity in listed
+/// Asserts that every address the store lists is one the store answers for.
+///
+/// The set being the right size and its members being addresses the store can answer for are two
+/// different claims: an iterator that yielded the right number of addresses belonging to something
+/// else would satisfy the comparison above and fail this one, which is what `Has_Document` is for.
+fn Assert_Every_Address_Listed_Is_Held(store: &DocumentStore)
+{
+    for identity in store.Identities()
     {
         assert!(store.Has_Document(identity), "the listing names an address the store does not hold");
     }

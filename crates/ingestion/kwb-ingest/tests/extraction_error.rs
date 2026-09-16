@@ -11,11 +11,18 @@
 use kwb_ingest::ExtractionError;
 use kwb_ingest::ReadingKind;
 
+/// How many refusals the crate can produce, one per kind: those are the rows this table holds.
+///
+/// Named rather than written in the return type, because the number is a fact about
+/// `ExtractionError` rather than about the test — and a kind added to it has to join this table
+/// visibly rather than leave the distinctness check below asserting over a subset.
+const REFUSALS_THIS_CRATE_CAN_PRODUCE: usize = 3;
+
 /// One refusal of each kind this crate can produce.
 ///
 /// A provider rather than three literals in the test, so that the three answers are one table a
 /// fourth variant would visibly fail to join.
-fn Every_Refusal() -> [ExtractionError; 3]
+fn Every_Refusal() -> [ExtractionError; REFUSALS_THIS_CRATE_CAN_PRODUCE]
 {
     return [
         ExtractionError::CannotRead {

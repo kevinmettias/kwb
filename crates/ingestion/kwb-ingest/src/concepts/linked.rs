@@ -110,6 +110,7 @@ mod tests
     use crate::ConceptName;
     use crate::Extraction;
     use crate::Link_Concepts;
+    use crate::Linked;
 
     #[test]
     fn Test_Link_Concepts_Should_Refuse_An_Extraction_Missing_A_Half()
@@ -171,19 +172,7 @@ mod tests
             Two_Concepts().as_slice(),
             "a concept was named other than by the extraction that produced it"
         );
-
-        for (index, claim) in linked.Claims().iter().enumerate()
-        {
-            assert_eq!(
-                claim.Concept(),
-                linked
-                    .Concepts()
-                    .get(index)
-                    .expect("one concept per complete extraction")
-                    .Identity(),
-                "a claim is attached to a concept other than the one its own extraction named"
-            );
-        }
+        Assert_Each_Claim_Names_The_Concept_Its_Own_Extraction_Named(&linked);
     }
 
     /// One extraction per concept, each asserting something.
@@ -198,12 +187,18 @@ mod tests
             .collect();
     }
 
+    /// How many concepts the fixture names: two, because *the concept its own extraction named* is
+    /// a distinction only when there is a second concept the claim could have been attached to
+    /// wrongly. Named rather than written in the return type, because the number is a fact about
+    /// the fixture and a reader should not have to count it to read the assertion.
+    const CONCEPTS_IN_THE_DISTINCTION: usize = 2;
+
     /// Two concepts, so that *the concept its own extraction named* is a distinction rather than a
     /// single value every answer would satisfy.
     ///
     /// Both tests name both halves, so this belongs under neither of them and sits in the shared
     /// region with `An_Extraction` below it.
-    fn Two_Concepts() -> [&'static str; 2]
+    fn Two_Concepts() -> [&'static str; CONCEPTS_IN_THE_DISTINCTION]
     {
         return ["entropy", "enthalpy"];
     }
@@ -211,5 +206,27 @@ mod tests
     fn An_Extraction(concept: &str, claim: &str) -> Extraction
     {
         return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
+    }
+
+    /// Every claim is attached to the concept **its own extraction** named, and to no other.
+    ///
+    /// Below the pair the fixture is built from rather than directly under the test that asks for
+    /// it, because this is called last: the test names its fixture first, the fixture names the two
+    /// concepts and the extraction under those, and this pairing is what is left to assert once the
+    /// names have been compared.
+    fn Assert_Each_Claim_Names_The_Concept_Its_Own_Extraction_Named(linked: &Linked)
+    {
+        for (index, claim) in linked.Claims().iter().enumerate()
+        {
+            assert_eq!(
+                claim.Concept(),
+                linked
+                    .Concepts()
+                    .get(index)
+                    .expect("one concept per complete extraction")
+                    .Identity(),
+                "a claim is attached to a concept other than the one its own extraction named"
+            );
+        }
     }
 }

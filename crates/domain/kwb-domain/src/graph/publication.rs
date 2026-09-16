@@ -275,9 +275,6 @@ fn Applied_Assertion(
         return Err(Malformed_Record(record));
     };
 
-    let address = ContentIdentity::Parse(claim)
-        .map_err(|cause| return Unaddressed_Field(claim, cause))?;
-    let held = Claim_At(graph, address).ok_or_else(|| return Unpublished_Address(claim))?;
     // An empty trailing field is an unstated scope, and reading it that way is
     // deliberate rather than the swallow `Scope::Named` now refuses. A record is what
     // was already written: logs on disk carry the empty field for every assertion whose
@@ -285,11 +282,29 @@ fn Applied_Assertion(
     // wrong. What was wrong was a *person's blank input* becoming that field, and that
     // is refused where the input arrives, not here where it is read back.
     let scope = Scope::Named(scope).unwrap_or_else(Scope::Unstated);
+    let held = Claim_Named_By(graph, claim)?;
     let assertion = Assertion::By(source, &held, scope);
     let standing = Standing_Of(standing, Successor_Of(successor), because)
         .ok_or_else(|| return Malformed_Record(record))?;
 
     return Ok(graph.With_Assertion(Versioned::Asserted(assertion).Closed(standing)));
+}
+
+/// The claim an assertion record names by address, or the refusal that answers the field naming
+/// it.
+///
+/// Two refusals, because a field can fail to name a claim in two ways that are not one. A field
+/// that is not an address at all is [`Unaddressed_Field`], which carries the identity reader's own
+/// complaint rather than replacing it -- that complaint is the only thing that says whether the
+/// text was the wrong length or held a character outside the alphabet. An address that resolves to
+/// nothing is [`Unpublished_Address`]: the record's shape read, so the log is out of order rather
+/// than the assertion unreadable.
+fn Claim_Named_By(graph: &KnowledgeGraph, field: &str) -> Result<Claim, ReplayError>
+{
+    let address = ContentIdentity::Parse(field)
+        .map_err(|cause| return Unaddressed_Field(field, cause))?;
+
+    return Claim_At(graph, address).ok_or_else(|| return Unpublished_Address(field));
 }
 
 /// The claim at an address, whatever its standing.

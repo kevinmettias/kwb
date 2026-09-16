@@ -139,6 +139,10 @@ mod tests
     /// The same record with a time appended, which is the whole of what `KWB-64` changed.
     const STAMPED: [&str; 6] = [CONCEPT, "asserted", "", "", "entropy", "1730000000"];
 
+    /// The second `STAMPED` spells, as the reader hands it back: the same instant as the record's
+    /// last field, in the type the reader returns rather than the text the log carries.
+    const STAMPED_AT: i64 = 1_730_000_000;
+
     #[test]
     fn Test_Without_Time_Should_Split_A_Record_At_Its_Trailing_Time()
     {
@@ -166,7 +170,7 @@ mod tests
         );
         assert_eq!(
             stamped.at,
-            Some(1_730_000_000),
+            Some(STAMPED_AT),
             "the time is on the record and was not read back off it"
         );
     }

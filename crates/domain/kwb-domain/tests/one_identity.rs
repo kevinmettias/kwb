@@ -80,6 +80,10 @@ const SCOPE_NAME: &str = "physical theory";
 /// The same scope, written the way a model that re-indented its own output would write it.
 const SCOPE_NAME_REFLOWED: &str = "physical   theory";
 
+/// How many spellings of one name differ only in the whitespace around it, which is every spelling
+/// a reflow of that name can take.
+const SPELLINGS_DIFFERING_ONLY_IN_WHITESPACE: usize = 4;
+
 // ---- the scheme, written out where a change to either side is visible ----
 
 /// # What the exclusions are not asserted here
@@ -181,9 +185,27 @@ fn Test_A_Claim_Should_Address_Its_Concept_By_Identity_Rather_Than_By_Name()
 ///
 /// A table rather than a list inside the test, because the property is about all of them at once
 /// and a spelling added here must be seen by the assertion below it.
-fn One_Name_Reflowed() -> [&'static str; 4]
+fn One_Name_Reflowed() -> [&'static str; SPELLINGS_DIFFERING_ONLY_IN_WHITESPACE]
 {
     return [NAME, " entropy", "entropy ", "  entropy  "];
+}
+
+/// Every spelling in a reflow table answers one address.
+///
+/// Named rather than left where it is used, because "all of these are one concept" is the property
+/// the table exists to be asked about, and the message it fails with has to name the spelling that
+/// disagreed.
+fn Assert_Every_Reflow_Answers_The_Address(spellings: &[&'static str], address: &ContentIdentity)
+{
+    for spelling in spellings
+    {
+        assert_eq!(
+            Concept::Named(spelling).Identity(),
+            *address,
+            "{spelling:?} named a different concept, so a reflow is an edit to one of the two \
+             crates and not to the other"
+        );
+    }
 }
 
 #[test]
@@ -207,15 +229,7 @@ fn Test_A_Reflow_Should_Not_Move_A_Concept_Between_The_Two_Crates()
          and what a reader is handed back come from two different strings"
     );
 
-    for spelling in One_Name_Reflowed()
-    {
-        assert_eq!(
-            Concept::Named(spelling).Identity(),
-            derived.Identity(),
-            "{spelling:?} named a different concept, so a reflow is an edit to one of the two \
-             crates and not to the other"
-        );
-    }
+    Assert_Every_Reflow_Answers_The_Address(&One_Name_Reflowed(), &derived.Identity());
 }
 
 #[test]

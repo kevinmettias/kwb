@@ -52,11 +52,18 @@ const EXAMINED_MATERIAL_IN_THE_BARREN_FIXTURE: usize = 40;
 /// assertion that follows -- that the derivation carries it through unchanged is the property.
 const FINDINGS_IN_THE_DERIVATION_FIXTURE: usize = 2;
 
+/// How many outcomes a [`Coverage`] has, one of each in the order a reader meets them.
+const OUTCOMES_OF_A_COVERAGE: usize = 4;
+
+/// How many of those outcomes report nothing: a run that found nothing, a skipped one and an unmet
+/// one, which is three answers and not one.
+const OUTCOMES_THAT_FOUND_NOTHING: usize = 3;
+
 /// The four outcomes, one of each, in the order a reader of [`Coverage`] meets them.
 ///
 /// Named rather than written inside a test because the list is the subject several of the tests
 /// below share, and a case added here is a case they all see.
-fn Every_Outcome() -> [Coverage; 4]
+fn Every_Outcome() -> [Coverage; OUTCOMES_OF_A_COVERAGE]
 {
     return [
         Coverage::Of_Run(FINDINGS_FROM_THE_COMPLETED_RUN, Nonzero_Count(EXAMINED_MATERIAL)),
@@ -70,7 +77,7 @@ fn Every_Outcome() -> [Coverage; 4]
 ///
 /// The trap this exists for: a caller asking `Findings() == 0` instead of asking the question,
 /// and deleting on the strength of it.
-fn Three_Outcomes_None_Of_Which_Found_Anything() -> [Coverage; 3]
+fn Three_Outcomes_None_Of_Which_Found_Anything() -> [Coverage; OUTCOMES_THAT_FOUND_NOTHING]
 {
     return [
         Coverage::Of_Run(0, Nonzero_Count(EXAMINED_MATERIAL_IN_THE_THREE_OUTCOME_FIXTURE)),

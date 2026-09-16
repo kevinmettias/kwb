@@ -215,34 +215,16 @@ fn Test_Both_Worlds_Should_Answer_One_Query_By_The_Same_Words()
     // successor is in the historical world and not the current one -- while the one claim the
     // query is about stays current in both. So the agreement below is about the words and not
     // about the two worlds being the same graph, which the last assertion says out loud.
-    let entropy = Concept::Named(CONCEPT_NAME);
-    let claim = Claim::About(&entropy, CLAIM_TEXT);
-    let graph = KnowledgeGraph::Empty()
-        .With_Concept(Versioned::Asserted(entropy))
-        .With_Claim(Versioned::Asserted(claim))
-        .With_Concept(Versioned::Asserted(Concept::Named("enthalpy")).Closed(Standing::Superseded {
-            by: Concept::Named("enthalpy, second edition").Identity(),
-            because: "the two names denote one concept".to_owned(),
-        }));
-
-    let current: Vec<&str> = CurrentQueries::Over(&graph)
-        .Claims_Matching("isolated system")
-        .into_iter()
-        .map(|found| return found.Text())
-        .collect();
-    let historical: Vec<&str> = HistoricalQueries::Over(&graph)
-        .Claims_Matching("isolated system")
-        .into_iter()
-        .map(|found| return found.Value().Text())
-        .collect();
+    let graph = Corpus_Where_The_Two_Worlds_Differ();
+    let answers = Answers_Of_Both_Worlds(&graph, "isolated system");
 
     assert_eq!(
-        current,
+        answers.current,
         [CLAIM_TEXT],
         "the current world did not answer the claim the words belong to"
     );
     assert_eq!(
-        historical,
+        answers.historical,
         [CLAIM_TEXT],
         "the historical world answered differently about the same words, so the two searches have \
          come apart about what a match is"
@@ -253,4 +235,57 @@ fn Test_Both_Worlds_Should_Answer_One_Query_By_The_Same_Words()
         "the two worlds were supposed to differ, or the agreement above says nothing about the \
          words"
     );
+}
+
+/// The corpus with one further concept closed against a successor, which is what makes the two
+/// worlds differ: the one claim the query below asks about stays current in both, and only the
+/// version read holds the concept that was closed.
+///
+/// The difference is built here rather than asserted in the test, because it is the premise of the
+/// agreement and not a third thing being checked — two worlds handed the same graph would agree
+/// about anything, which is what the last assertion of the test says out loud.
+fn Corpus_Where_The_Two_Worlds_Differ() -> KnowledgeGraph
+{
+    return Corpus().With_Concept(Versioned::Asserted(Concept::Named("enthalpy")).Closed(
+        Standing::Superseded {
+            by: Concept::Named("enthalpy, second edition").Identity(),
+            because: "the two names denote one concept".to_owned(),
+        },
+    ));
+}
+
+/// What each of the two worlds answered the one query with, held as one value because they are one
+/// question asked of two types: a difference between the fields is a difference about the words,
+/// which is the whole of what the test above is about.
+///
+/// Named fields rather than a pair, for the reason `Corpus` gives: a pair communicates by position,
+/// and `answers.1` would not say which world answered it.
+struct Answers<'graph>
+{
+    /// What the current world answered, in the order the search returned it.
+    current: Vec<&'graph str>,
+
+    /// What the historical world answered the same query with.
+    historical: Vec<&'graph str>,
+}
+
+/// Both answers to one query, gathered through the two public types.
+///
+/// Gathered together rather than read once per world at the call site, so that the two results are
+/// unwrapped the same way: a second unwrapping written beside the first is exactly where the two
+/// searches would come to be compared as two different readings of what a match is.
+fn Answers_Of_Both_Worlds<'graph>(graph: &'graph KnowledgeGraph, query: &str) -> Answers<'graph>
+{
+    let current: Vec<&str> = CurrentQueries::Over(graph)
+        .Claims_Matching(query)
+        .into_iter()
+        .map(|found| return found.Text())
+        .collect();
+    let historical: Vec<&str> = HistoricalQueries::Over(graph)
+        .Claims_Matching(query)
+        .into_iter()
+        .map(|found| return found.Value().Text())
+        .collect();
+
+    return Answers { current, historical };
 }

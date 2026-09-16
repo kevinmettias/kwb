@@ -50,22 +50,6 @@
       "expires": "2026-12-13"
     },
     {
-      "check": "check-dependency-placement",
-      "path": "crates/ingestion/kwb-extract/src/reads_text.rs",
-      "message": "`kwb_domain`",
-      "reason": "Scope appears in ExtractionStrategy's own signature, in both fn Read's return and fn Scope, so every implementation of the seam must name it. This crate is that implementation with a model behind it, and its charter keeps it outside the knowledge engine -- so the edge is the seam's, not a file's.",
-      "owner": "@kevinmettias",
-      "expires": "2026-12-13"
-    },
-    {
-      "check": "check-dependency-placement",
-      "path": "crates/ingestion/kwb-extract/src/reads_text.rs",
-      "message": "`kwb_model`",
-      "reason": "ContentIdentity is a parameter of ExtractionStrategy::Read, so an implementation cannot avoid naming it however the crate is laid out. reads_text.rs is the whole of this crate's code -- the second source file is the facade -- so a single file carrying the edge is arithmetic here, which is the shape the check's own exemption for one-file units exists to recognise.",
-      "owner": "@kevinmettias",
-      "expires": "2026-12-13"
-    },
-    {
       "check": "check-facade-surface",
       "path": "crates/platform/kwb-platform-xvpe/src/lib.rs",
       "message": "renamed facade re-export `VersionedMap`",
@@ -244,16 +228,16 @@
     {
       "check": "check-file-size",
       "path": "crates/host/kwb-cli/tests/composition_seam.rs",
-      "fingerprint": "35cfcc6523fbe940",
-      "reason": "549 lines, of which 103 are this file's own doc comment and 53 are blank: 394 lines of code, inside the trigger. What is over it is the module's design argument, written at the top of the module it explains, which is where this repository keeps that argument. The coupling that keeps the file whole is that it has one subject -- this composition root's six seams, asserted by driving the built binary and comparing what the run left behind against what the crates underneath compute for themselves -- and one shared harness, the sixteen helpers from `Store_For` to `Held_Addresses`. Each of the six scenarios is that comparison, so extracting the harness would separate the comparison from the thing compared, and extracting scenarios would leave six files that each need the other five's harness. The remedy the check itself prescribes is not available: measured, a copy of this file carrying `// file-size: allow: ...` is still reported by check-file-size, because standards.json carries no suppression section and the shipped default does not honour the marker. suppressions.json is therefore the only place this reason can be declared.",
+      "fingerprint": "7949487682321085",
+      "reason": "631 lines, of which 134 are this file's own doc comment and 64 are blank: 433 lines of code. What is over it is the module's design argument, written at the top of the module it explains, which is where this repository keeps that argument. The coupling that keeps the file whole is that it has one subject -- this composition root's six seams, asserted by driving the built binary and comparing what the run left behind against what the crates underneath compute for themselves -- and one shared harness, the sixteen helpers from `Store_For` to `Held_Addresses`. Each of the six scenarios is that comparison, so extracting the harness would separate the comparison from the thing compared, and extracting scenarios would leave six files that each need the other five's harness. The file is 81 lines longer than when this waiver was written because check-function-size's remedy for those six scenarios was to name the operations each one performs, which added eleven helpers -- one shared and ten beside the test that asks for it. The two rules therefore pull this one file in opposite directions, and this is the rule with no other remedy: the other rule's work is done and the sections it named are gone. The remedy the check itself prescribes is not available: measured, a copy of this file carrying `// file-size: allow: ...` is still reported by check-file-size, because standards.json carries no suppression section and the shipped default does not honour the marker. suppressions.json is therefore the only place this reason can be declared.",
       "owner": "@kevinmettias",
       "expires": "2026-12-13"
     },
     {
       "check": "check-file-size",
       "path": "crates/ingestion/kwb-extract/src/reads_text.rs",
-      "fingerprint": "555de3520ecc6790",
-      "reason": "556 lines, of which 188 are doc comment and 51 are blank: 318 lines of code, and the last 82 of those are the in-crate `mod tests`. The tests cannot move to tests/: they exercise `Request_For` and `Propositions_Schema`, which are pub(crate) deliberately -- KWB-57 is the item where a fixture built from a reconstruction passed while the real instance slipped through, and tests/admission_seam.rs's header states the consequence and src/lib.rs accepts it, that exporting either for the suite's sake would outlive the test. The source is one file for a recorded reason and not by accident: this repository's existing check-dependency-placement waiver on this same path says reads_text.rs is the whole of this crate's code, the second source file being the facade, so a single file carrying that edge is arithmetic. Splitting it would contradict that and cut a reading pipeline whose steps do not make sense apart -- decode the bytes, split into passages, ask the model, parse the answer -- and the prose is not settled either: check-doc-placement reports 3 findings on this path asking that item prose move to the crate's docs/api markdown, which is unresolved and would move the material this finding is about. The remedy the check itself prescribes is not available: measured, a copy of a file carrying `// file-size: allow: ...` is still reported by check-file-size, because standards.json carries no suppression section and the shipped default does not honour the marker.",
+      "fingerprint": "3d177be39723a082",
+      "reason": "608 lines, of which 225 are doc comment, 52 are blank and 11 are non-doc comment: 320 lines of code, and the last 87 are the in-crate `mod tests`, leaving 521 lines of implementation above them. The tests cannot move to tests/: they exercise `Request_For` and `Propositions_Schema`, which are pub(crate) deliberately -- KWB-57 is the item where a fixture built from a reconstruction passed while the real instance slipped through, and tests/admission_seam.rs's header states the consequence and src/lib.rs accepts it, that exporting either for the suite's sake would outlive the test. The source is one file because this crate has only three: lib.rs is the facade and the crate's whole published surface, tests.rs is the in-crate suite, and reads_text.rs is the implementation entire -- decode the bytes, split into passages, ask the model, parse the answer -- so what is over the trigger is one pipeline whose steps do not make sense apart, and splitting it would cut it into pieces that each need the others' vocabulary. The prose is not settled either: check-doc-placement reports 3 findings on this path, and one more on lib.rs, asking that item prose move to the crate's docs/api markdown, which is unresolved and would move the material this finding is about. This file is also held from the other side by a rule pulling the opposite way, so the exception is not merely a size that grew: check-responsibility-extraction fires on a file of 500 or more lines carrying 25 or more behaviour declarations, and this one now carries 24. Measured by bisection on both revisions -- adding dummy functions until the check fires -- HEAD carried 22 and the current file carries 24, and check-function-size's remedy is what moved the count, because extracting the helpers that shortened `Reading_Of` and `Passages_Of` took it to 26. Two of those four extractions were then inlined back to named operations inside their callers to clear the second rule, which is why the count sits one below its trigger and why this rule is the one with no other remedy. The remedy THIS check prescribes is refused, measured rather than inferred: a copy of this file carrying `// file-size: allow: ...` is still reported, and the run says why on stderr -- `1 in-code marker(s) were NOT honoured -- this repository's suppression.markers policy is \"safety-only\"`. suppressions.json is therefore the only place this reason can be declared. The fingerprint above is keyed to this message, which quotes the line count, so any edit that changes the file's size invalidates this entry; it must be re-anchored rather than left to fail.",
       "owner": "@kevinmettias",
       "expires": "2026-12-13"
     }

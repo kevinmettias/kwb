@@ -33,9 +33,12 @@ use kwb_domain::Standing;
 /// The time the fixtures below say they were published at, in Unix seconds.
 const PUBLISHED_AT: i64 = 1_730_000_000;
 
+/// How many kinds a publication can be: the concept, the claim and the assertion.
+const PUBLICATION_KINDS: usize = 3;
+
 /// One publication of each kind, which is what tells apart a reader that reads a trailing field
 /// from one that reads it only for the kinds whose records have one.
-fn Every_Kind() -> [Publication; 3]
+fn Every_Kind() -> [Publication; PUBLICATION_KINDS]
 {
     let concept = Concept::Named("entropy");
     let claim = Claim::About(&concept, "It is non-decreasing in an isolated system.");

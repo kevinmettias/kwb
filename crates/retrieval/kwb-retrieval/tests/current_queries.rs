@@ -16,6 +16,11 @@
 use kwb_domain::{Assertion, Claim, Concept, KnowledgeGraph, Scope, Standing, Versioned};
 use kwb_retrieval::CurrentQueries;
 
+/// How many concepts a merge leaves current: the successor, and the bystander the merge never
+/// touched. The graph holds three versions by then and the third is the one that was closed, which
+/// is the reason this count and the historical one differ.
+const CURRENT_AFTER_A_MERGE: usize = 2;
+
 /// Two concepts, a claim about one of them, and the assertion of that claim.
 struct Corpus
 {
@@ -94,7 +99,7 @@ fn Test_Concept_Count_Should_Count_Only_Concepts_That_Are_Current()
     let corpus = Corpus();
     let merged = After_A_Merge(&corpus);
 
-    assert_eq!(CurrentQueries::Over(&merged).Concept_Count(), 2);
+    assert_eq!(CurrentQueries::Over(&merged).Concept_Count(), CURRENT_AFTER_A_MERGE);
 }
 
 #[test]

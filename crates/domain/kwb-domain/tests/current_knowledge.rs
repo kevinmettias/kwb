@@ -82,6 +82,40 @@ fn Published_Knowledge() -> PublishedKnowledge
     return PublishedKnowledge { graph, concept };
 }
 
+/// The fixture graph once its concept was merged into a successor.
+///
+/// A merge is two publications rather than one -- the successor, and the loser closed against the
+/// successor's own address -- and naming the pair is what lets the test below assert the one thing
+/// it is about: that the current read does not hand the loser back.
+fn A_Graph_Whose_Concept_Was_Merged_Into_A_Successor() -> KnowledgeGraph
+{
+    let PublishedKnowledge { graph, concept } = Published_Knowledge();
+    let successor = Concept::Named("C++");
+
+    return graph
+        .With_Concept(Versioned::Asserted(successor.clone()))
+        .With_Concept(
+            Versioned::Asserted(concept).Closed(Standing::Superseded {
+                by: successor.Identity(),
+                because: BECAUSE.to_owned(),
+            }),
+        );
+}
+
+/// The canonical names the current read answers, in the order it answers them.
+///
+/// A named read rather than a chain written where it is compared, because what the test below
+/// contrasts is a list of names, and the walk that produced them is not part of that contrast.
+fn Current_Concept_Names(graph: &KnowledgeGraph) -> Vec<&str>
+{
+    return graph
+        .Current()
+        .Concepts()
+        .into_iter()
+        .map(|held| return held.Canonical_Name())
+        .collect();
+}
+
 #[test]
 fn Test_Concepts_Should_Not_Reach_A_Concept_That_Was_Closed()
 {
@@ -89,30 +123,27 @@ fn Test_Concepts_Should_Not_Reach_A_Concept_That_Was_Closed()
     // both stay in the graph. The `Every_Version` half of that is asserted in
     // `tests/every_version.rs`; what is asserted here is that closing one never leaves it in the
     // answer a caller reads by default.
-    let PublishedKnowledge { graph, concept } = Published_Knowledge();
-    let successor = Concept::Named("C++");
-
-    let after = graph
-        .With_Concept(Versioned::Asserted(successor.clone()))
-        .With_Concept(
-            Versioned::Asserted(concept.clone()).Closed(Standing::Superseded {
-                by: successor.Identity(),
-                because: BECAUSE.to_owned(),
-            }),
-        );
-
-    let current: Vec<&str> = after
-        .Current()
-        .Concepts()
-        .into_iter()
-        .map(|held| return held.Canonical_Name())
-        .collect();
+    let after = A_Graph_Whose_Concept_Was_Merged_Into_A_Successor();
 
     assert_eq!(
-        current,
+        Current_Concept_Names(&after),
         ["C++"],
         "a concept that was closed is still handed out as current, so a merge loser keeps being \
          read as the thing it was merged away from"
+    );
+}
+
+/// The fixture graph once the concept it is about was retired.
+///
+/// Retiring is the other closure a concept has, and it names no successor: what makes the claim
+/// below not current is the concept's standing alone, which is the half of the rule this test does
+/// not share with the merge above.
+fn A_Graph_Whose_Concept_Was_Retired(graph: &KnowledgeGraph, concept: Concept) -> KnowledgeGraph
+{
+    return graph.With_Concept(
+        Versioned::Asserted(concept).Closed(Standing::Retired {
+            because: BECAUSE.to_owned(),
+        }),
     );
 }
 
@@ -128,11 +159,7 @@ fn Test_Claims_Should_Not_Reach_A_Claim_About_A_Concept_That_Is_Not_Current()
          would ever be readable and this test would pass on a read that answers nothing at all"
     );
 
-    let after = graph.With_Concept(
-        Versioned::Asserted(concept).Closed(Standing::Retired {
-            because: BECAUSE.to_owned(),
-        }),
-    );
+    let after = A_Graph_Whose_Concept_Was_Retired(&graph, concept);
 
     assert!(
         after.Current().Claims().is_empty(),
@@ -143,6 +170,19 @@ fn Test_Claims_Should_Not_Reach_A_Claim_About_A_Concept_That_Is_Not_Current()
         after.Every_Version().Claims().len(),
         1,
         "the claim was removed rather than excluded, which is the destruction D17 refuses"
+    );
+}
+
+/// The fixture graph once the claim about its concept was retired.
+///
+/// The claim's own standing is what changed here rather than its concept's, so the assertion below
+/// is asserting the second application of the rule rather than the first one again.
+fn A_Graph_Whose_Claim_Was_Retired(graph: &KnowledgeGraph, concept: &Concept) -> KnowledgeGraph
+{
+    return graph.With_Claim(
+        Versioned::Asserted(Its_Claim(concept)).Closed(Standing::Retired {
+            because: BECAUSE.to_owned(),
+        }),
     );
 }
 
@@ -158,11 +198,7 @@ fn Test_Assertions_Should_Not_Reach_An_Assertion_Of_A_Claim_That_Is_Not_Current(
          that answers nothing at all"
     );
 
-    let after = graph.With_Claim(
-        Versioned::Asserted(Its_Claim(&concept)).Closed(Standing::Retired {
-            because: BECAUSE.to_owned(),
-        }),
-    );
+    let after = A_Graph_Whose_Claim_Was_Retired(&graph, &concept);
 
     assert!(
         after.Current().Assertions().is_empty(),

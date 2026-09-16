@@ -287,24 +287,21 @@ mod tests
     {
         // Absent counts as not current, and so does closed. The alternative for a claim about a
         // concept nobody ever published is to treat it as current, which is how a claim outlives
-        // the thing it is about.
+        // the thing it is about. The three graphs are built first and one question is asked of each
+        // afterwards, so that the three cases read as a table: one question, three standings.
         let concept = Concept::Named("entropy");
+        let absent = KnowledgeGraph::Empty();
+        let asserted = KnowledgeGraph::Empty().With_Concept(Asserted_Concept("entropy"));
+        let closed = KnowledgeGraph::Empty().With_Concept(Retired_Concept("entropy"));
 
         assert!(
-            !KnowledgeGraph::Empty().Is_Concept_Current(concept.Identity()),
+            !absent.Is_Concept_Current(concept.Identity()),
             "a concept that was never published is reported as current"
         );
-
-        let asserted = KnowledgeGraph::Empty().With_Concept(Asserted_Concept("entropy"));
         assert!(
             asserted.Is_Concept_Current(concept.Identity()),
             "an asserted and published concept is not reported as current, so every claim and \
              assertion about it would drop out of the current read"
-        );
-
-        let closed = KnowledgeGraph::Empty().With_Concept(
-            Asserted_Concept("entropy")
-                .Closed(Standing::Retired { because: BECAUSE.to_owned() }),
         );
         assert!(
             !closed.Is_Concept_Current(concept.Identity()),
@@ -312,37 +309,29 @@ mod tests
         );
     }
 
+    /// A concept published and then closed against no successor, which is the standing the current
+    /// read exists to exclude.
+    ///
+    /// Only [`Test_Is_Concept_Current_Should_Be_False_Of_An_Absent_Concept_And_Of_A_Closed_One`]
+    /// asks for it, so it sits under that test rather than in the shared region below, which is
+    /// for the helpers more than one test builds on.
+    fn Retired_Concept(name: &str) -> Versioned<Concept>
+    {
+        return Asserted_Concept(name).Closed(Standing::Retired { because: BECAUSE.to_owned() });
+    }
+
     #[test]
     fn Test_Ordered_Entries_Should_Sort_By_Address_Rather_Than_By_The_Order_They_Were_Put_In()
     {
-        // Which of two addresses is lower is the hasher's business, so the expectation is the lower
-        // of the pair as the identities themselves order them, rather than a spelling that happens
-        // to sort first today.
-        let alpha = Concept::Named("alpha");
-        let zeta = Concept::Named("zeta");
-        let (low, high) = if alpha.Identity() < zeta.Identity()
-        {
-            (alpha.Identity(), zeta.Identity())
-        }
-        else
-        {
-            (zeta.Identity(), alpha.Identity())
-        };
-
-        // Published in the descending order, so an implementation that took the map's own order
-        // rather than sorting would have to disagree with the expectation.
-        let graph = KnowledgeGraph::Empty()
-            .With_Concept(Asserted_Concept("zeta"))
-            .With_Concept(Asserted_Concept("alpha"));
-
-        let ordered: Vec<ContentIdentity> = Ordered_Entries(graph.Held_Concepts())
-            .into_iter()
-            .map(|held| return held.Value().Identity())
-            .collect();
+        // The expectation is read off the identities themselves rather than spelled out as the pair
+        // that happens to sort first today: which of two addresses is lower is the hasher's
+        // business, and the fixture publishes the two in the opposite order, so an implementation
+        // that took the map's own order rather than sorting would have to disagree with it.
+        let published = A_Graph_Published_Against_Its_Address_Order();
 
         assert_eq!(
-            ordered,
-            [low, high],
+            Listed_Addresses(&published.graph),
+            published.in_address_order,
             "the listing is in the map's own order, so it changes between runs for no reason \
              anybody could account for"
         );
@@ -350,6 +339,53 @@ mod tests
             Ordered_Entries::<Concept>(None).is_empty(),
             "a graph holding nothing lists something"
         );
+    }
+
+    /// Two concepts published in the order opposite to their addresses, and the addresses in the
+    /// order a listing owes them in.
+    ///
+    /// One value with named fields rather than a pair, because a pair says nothing about which of
+    /// its two positions is the graph and which is the order the listing has to come back in.
+    struct AgainstAddressOrder
+    {
+        /// The graph the two concepts were published into.
+        graph: KnowledgeGraph,
+
+        /// The two addresses, lower first, as the identities themselves order them.
+        in_address_order: Vec<ContentIdentity>,
+    }
+
+    /// The graph the ordering test asks about, and the order its listing owes.
+    ///
+    /// The graph and the expectation are one fact and are built together because they cannot be
+    /// assembled apart: an expectation spelled out as two names would be asserting which spelling
+    /// sorts first rather than that the listing is sorted by address at all. Which of two addresses
+    /// is lower is the hasher's business, so it is asked here rather than assumed.
+    fn A_Graph_Published_Against_Its_Address_Order() -> AgainstAddressOrder
+    {
+        let alpha = Concept::Named("alpha");
+        let zeta = Concept::Named("zeta");
+        let mut in_address_order: Vec<ContentIdentity> = vec![alpha.Identity(), zeta.Identity()];
+        in_address_order.sort();
+
+        let graph = KnowledgeGraph::Empty()
+            .With_Concept(Asserted_Concept("zeta"))
+            .With_Concept(Asserted_Concept("alpha"));
+
+        return AgainstAddressOrder { graph, in_address_order };
+    }
+
+    /// The addresses a concept listing hands out, in the order it handed them out.
+    ///
+    /// The question the test asks is about that order, so taking the identities back out of the
+    /// values is named rather than written inline: what is asserted is where the two addresses came
+    /// back, not how each one was read off the thing holding it.
+    fn Listed_Addresses(graph: &KnowledgeGraph) -> Vec<ContentIdentity>
+    {
+        return Ordered_Entries(graph.Held_Concepts())
+            .into_iter()
+            .map(|held| return held.Value().Identity())
+            .collect();
     }
 
     /// A concept published as asserted, which is the ordinary case.

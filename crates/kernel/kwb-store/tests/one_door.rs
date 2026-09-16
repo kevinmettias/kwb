@@ -16,11 +16,20 @@ fn Document_From_Text(text: &str) -> Document
     return Document::Of(text.as_bytes().to_vec());
 }
 
+/// How many passages the provider below yields: the whole sample the properties here are stated
+/// over, differing only in being that many.
+///
+/// The number belongs to the sample and not to the type, so it is named here rather than written
+/// into the array type: adding a fourth is a change to this line and to the cases, and the
+/// assertions that compare against `Passages().len()` are comparing against the sample rather
+/// than against a count that happens to agree with it today.
+const PASSAGE_COUNT: usize = 3;
+
 /// The passages the ordering property is stated over: three, differing only in being three.
 ///
 /// A provider rather than a literal inside the test, so the cases have an address of their own and
 /// adding a fourth is a change in one place rather than an edit to the bench.
-fn Passages() -> [&'static str; 3]
+fn Passages() -> [&'static str; PASSAGE_COUNT]
 {
     return ["one", "two", "three"];
 }

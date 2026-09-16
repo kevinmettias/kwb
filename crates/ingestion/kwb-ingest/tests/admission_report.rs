@@ -230,6 +230,19 @@ fn Test_Publications_Should_Express_What_Reached_The_Graph_As_Records()
     let report = Admitted(b"a source", &Two_Claims());
     let publications = report.Publications();
 
+    Assert_One_Publication_Per_Thing_The_Report_Holds(&report);
+    Assert_A_Concept_Comes_First_And_An_Assertion_Comes_Last(&publications);
+}
+
+/// One publication per thing the report holds, by kind: one concept per concept, one claim per
+/// claim, one assertion per assertion.
+///
+/// Directly under the test that asks for it, because that test is the only one that does, and the
+/// comment above it carries what the publications are for.
+fn Assert_One_Publication_Per_Thing_The_Report_Holds(report: &AdmissionReport)
+{
+    let publications = report.Publications();
+
     assert_eq!(
         (
             publications
@@ -252,6 +265,14 @@ fn Test_Publications_Should_Express_What_Reached_The_Graph_As_Records()
         ),
         "the publications are not one per thing the report holds, by kind"
     );
+}
+
+/// A concept comes first and an assertion comes last, which is the order replay consumes.
+///
+/// Directly under the test that asks for it, because that test is the only one that does, and the
+/// comment above it says why the two ends are where the order is asserted.
+fn Assert_A_Concept_Comes_First_And_An_Assertion_Comes_Last(publications: &[Publication])
+{
     assert!(
         matches!(publications.first(), Some(Publication::Concept { .. })),
         "a publication other than a concept comes first, so replay refuses every claim after it"
@@ -301,8 +322,30 @@ fn Test_Admit_Source_Should_Write_The_Source_And_Report_What_It_Saw()
 
     let report = Admit_Source(bytes.clone(), Some(&reader), ReadingKind::Text, &mut store)
         .expect("a source of bytes is admitted even when its reading does not happen");
+    Assert_The_Store_Holds_The_Source_The_Report_Cited(&store, &report, &bytes);
 
+    assert_eq!(
+        report.Normalized().Claims_Held(),
+        statements.len(),
+        "the claims were not handed back to the caller"
+    );
+}
+
+/// The source the report cites is the source the store holds, and the store holds nothing else.
+///
+/// Directly under the test that asks for it, because that test is the only one that does. These are
+/// the two halves of one thing: the source goes through `kwb-store`'s one write door, so the address
+/// the report cites is the address of bytes that exist — and the store holding one document is what
+/// asserts nothing was queued for a consumer, which is the shape `D19` says a producer outrunning
+/// its consumer takes.
+fn Assert_The_Store_Holds_The_Source_The_Report_Cited(
+    store: &DocumentStore,
+    report: &AdmissionReport,
+    bytes: &[u8],
+)
+{
     let written = report.Source().expect("a source went through the write door");
+
     assert_eq!(
         store
             .Read(written.Identity())
@@ -315,10 +358,5 @@ fn Test_Admit_Source_Should_Write_The_Source_And_Report_What_It_Saw()
         store.Length(),
         1,
         "admission queued something in the store for a consumer that does not exist"
-    );
-    assert_eq!(
-        report.Normalized().Claims_Held(),
-        statements.len(),
-        "the claims were not handed back to the caller"
     );
 }

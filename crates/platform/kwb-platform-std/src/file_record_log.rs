@@ -1,6 +1,6 @@
 //! An append-only log in a file, one record per line.
 
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 
@@ -86,6 +86,8 @@ impl RecordLogStrategy for FileRecordLog
 
     fn Records(&self) -> Result<Vec<String>, StorageError>
     {
+        use std::fs::File;
+
         let file = File::open(&self.path)
             .map_err(|cause| return Refused_Operation("opening the record log to read", &cause))?;
 

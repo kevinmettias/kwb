@@ -218,7 +218,12 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         return Ok(readings);
     }
 
-    /// Ask about one passage.
+    /// Ask about one passage, and carry the answer back as a reading anchored to `source`.
+    ///
+    /// Two acts, and the split is between them: *asking* is the one step that consults the model
+    /// and the one step that can refuse, and *assembling* is where the passage was, who read it,
+    /// and under which protocol — which is all one splice of values into
+    /// [`ProposedReading::Of`], and not three decisions a reader could follow separately.
     fn Reading_Of(
         &self,
         source: ContentIdentity,
@@ -230,25 +235,39 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         use kwb_ingest::ReadingProtocol;
         use kwb_ingest::SourceLocation;
 
-        let passage_text = passage.Text();
-        let request = Request_For(&self.model, passage_text);
+        let proposed = self.Proposed_For(passage)?;
+        let where_in = Where_In(passage);
+        let location = SourceLocation::Named(&where_in);
+        let model_name = self.model.As_Str();
+        let lineage =
+            ExtractionLineage::Of(ReadingProtocol::Named(PROTOCOL), ReaderName::Named(model_name));
 
+        return Ok(ProposedReading::Of(source, location, proposed, lineage));
+    }
+
+    /// What the reader proposes about one passage, or the refusal that it did not answer usably.
+    ///
+    /// The request and the refusal it can raise are one step, because they are the whole of what
+    /// happens between handing the model a question and having an answer to read: everything after
+    /// them is assembly of values already in hand. A strategy that was asked and did not answer
+    /// becomes `ReaderFailed` — **nothing was learned about the source** — rather than an empty
+    /// reading, which is the distinction this seam exists to keep, and the reason the refusal is
+    /// raised *here* rather than left to whether the answer turned out empty.
+    ///
+    /// # Errors
+    ///
+    /// [`ExtractionError::ReaderFailed`] when the strategy did not answer usably, and the same
+    /// variant carrying the same fact when [`Proposed_From`] refuses the shape of what came back.
+    fn Proposed_For(&self, passage: &Passage) -> Result<Vec<Extraction>, ExtractionError>
+    {
+        let request = Request_For(&self.model, passage.Text());
         let answered = self.reader.Infer(&request).map_err(|cause| {
             return ExtractionError::ReaderFailed {
                 cause: format!("{cause}"),
             };
         })?;
 
-        let where_in = Where_In(passage);
-        let location = SourceLocation::Named(&where_in);
-        let answer = answered.Answer();
-        let proposed = Proposed_From(answer)?;
-        let model_name = self.model.As_Str();
-        let lineage =
-            ExtractionLineage::Of(ReadingProtocol::Named(PROTOCOL), ReaderName::Named(model_name));
-        let reading = ProposedReading::Of(source, location, proposed, lineage);
-
-        return Ok(reading);
+        return Proposed_From(answered.Answer());
     }
 }
 
@@ -301,75 +320,98 @@ pub(crate) fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRe
 ///
 /// This is the user-stated invariant *malformed model output never becomes a graph mutation*,
 /// enforced one layer below KWB by a mechanism that already had to enforce it.
+///
+/// # Why the two levels are written as one value
+///
+/// The sequence bounds the answer — how many propositions it may hold, and that it is a list at
+/// all — and the record says what one proposition *is*: the concept it is about, and what the
+/// passage says about it, each named in the passage's own terms. *What a proposition is* is a
+/// claim about the reading and the same whatever the answer carries; the bounds are a claim about
+/// the answer. They are one value naming one shape, and only the outer level is what an overflowing
+/// or non-conforming answer is refused for.
+///
+/// The two fields are `Required` rather than optional because a proposition missing either is not
+/// a proposition this crate can link: [`Proposed_Of`] refuses such a record rather than admitting
+/// half of one, and the schema is where that is said before anything has been read.
 #[must_use]
 pub(crate) fn Propositions_Schema() -> ResponseSchema
 {
     use kwb_platform_xvpe::inference::SchemaField;
-
-    let proposition = SchemaNode::Record {
-        description: "one proposition the passage asserts".to_owned(),
-        fields: vec![
-            SchemaField::Required(
-                "concept".to_owned(),
-                SchemaNode::Text {
-                    description: "what it is about, as the passage names it".to_owned(),
-                },
-            ),
-            SchemaField::Required(
-                "claim".to_owned(),
-                SchemaNode::Text {
-                    description: "what the passage asserts about it".to_owned(),
-                },
-            ),
-        ],
-    };
 
     return ResponseSchema::New(
         "propositions".to_owned(),
         SchemaNode::Sequence {
             description: "every proposition the passage asserts, and nothing it does not"
                 .to_owned(),
-            items: Box::new(proposition),
+            items: Box::new(SchemaNode::Record {
+                description: "one proposition the passage asserts".to_owned(),
+                fields: vec![
+                    SchemaField::Required(
+                        "concept".to_owned(),
+                        SchemaNode::Text {
+                            description: "what it is about, as the passage names it".to_owned(),
+                        },
+                    ),
+                    SchemaField::Required(
+                        "claim".to_owned(),
+                        SchemaNode::Text {
+                            description: "what the passage asserts about it".to_owned(),
+                        },
+                    ),
+                ],
+            }),
             maximum_length: Some(MAXIMUM_PROPOSITIONS),
         },
     );
 }
 
-/// The passages of one text file.
+/// The passages of one text file, as XVPE's own splitter cuts it.
 ///
-/// A file is one page, which is the honest description of a born-digital text source: it has no
-/// page structure, and inventing one would be this crate deciding something `xvpe-corpus-text`
-/// owns. The splitter is XVPE's, so what a passage *is* stays measured there.
+/// The splitter is XVPE's, so what a passage *is* stays measured there; what is this crate's is
+/// the page it is handed and the two settings this module declares. Those two are *validated*
+/// rather than assumed, because each constructor refuses a setting that admits nothing at all — a
+/// budget with a zero on either axis, or a fidelity pair whose floor is above its ceiling — and a
+/// source that cannot be split is therefore no passages rather than a panic. The constants above
+/// make that unreachable; this stays honest about it rather than assuming it.
 fn Passages_Of(text: &str) -> Vec<Passage>
 {
     use kwb_platform_xvpe::reading::FidelityThresholds;
-    use kwb_platform_xvpe::reading::PageNumber;
-    use kwb_platform_xvpe::reading::PageProfile;
-    use kwb_platform_xvpe::reading::PageText;
     use kwb_platform_xvpe::reading::PassageBudget;
     use kwb_platform_xvpe::reading::SectionBoundary;
-
-    let characters = u32::try_from(text.chars().count()).unwrap_or(u32::MAX);
-    let number = PageNumber::From_Zero_Based(0);
-    let profile = PageProfile::New(characters, 0, 0);
-    let content = text.to_owned();
-    let page = PageText::New(number, profile, content);
 
     let Some(budget) = PassageBudget::New(PASSAGE_CHARACTERS, PASSAGE_PAGES)
     else
     {
         return Vec::new();
     };
-
     let Some(thresholds) = FidelityThresholds::New(IMAGE_ONLY_BELOW, SPARSE_BELOW)
     else
     {
         return Vec::new();
     };
 
-    let passages = SectionBoundary.Chunk_Pages(&[page], budget, thresholds);
+    return SectionBoundary.Chunk_Pages(&[Page_Of(text)], budget, thresholds);
+}
 
-    return passages;
+/// The one page a text file is, built so the splitter above can measure it.
+///
+/// A file is one page, which is the honest description of a born-digital text source: it has no
+/// page structure, and inventing one would be this crate deciding something `xvpe-corpus-text`
+/// owns. Its profile counts the characters and nothing else — the two zeros are the raster and
+/// vector objects a text file does not draw — so what the splitter grades the page on is how much
+/// text it holds, and nothing this crate guessed about it.
+fn Page_Of(text: &str) -> kwb_platform_xvpe::reading::PageText
+{
+    use kwb_platform_xvpe::reading::PageNumber;
+    use kwb_platform_xvpe::reading::PageProfile;
+    use kwb_platform_xvpe::reading::PageText;
+
+    let characters = u32::try_from(text.chars().count()).unwrap_or(u32::MAX);
+    let number = PageNumber::From_Zero_Based(0);
+    let profile = PageProfile::New(characters, 0, 0);
+    let content = text.to_owned();
+
+    return PageText::New(number, profile, content);
 }
 
 /// Where a passage was, in the reader's own words.
@@ -517,9 +559,9 @@ mod tests
     #[test]
     fn Test_Propositions_Schema_Should_Require_A_Concept_And_A_Claim_From_Each_Proposition()
     {
+        // Read top down as the two levels of one shape: the sequence that bounds the answer, and
+        // the record every element of it must be.
         let schema = Propositions_Schema();
-
-        assert_eq!(schema.Name(), "propositions");
         let SchemaNode::Sequence {
             items,
             maximum_length,
@@ -527,22 +569,20 @@ mod tests
         } = schema.Root()
         else
         {
-            // A `let ... else` requires its else block to diverge, so the panic is the divergence
-            // the destructuring needs rather than a failure this test chose to give up on.
+            // The divergence a `let ... else` needs, for a shape nothing below can describe.
             panic!("the schema's root is not a sequence of propositions");
         };
+        assert_eq!(schema.Name(), "propositions");
         assert_eq!(
             *maximum_length,
             Some(MAXIMUM_PROPOSITIONS),
             "the ceiling belongs in the request, so an answer that overflows is refused rather \
              than trimmed here"
         );
-
         let SchemaNode::Record { fields, .. } = items.as_ref()
         else
         {
-            // The other half of the same divergence: one element of the sequence was destructured,
-            // and the panic is what a shape that is not a record leaves this block to do.
+            // The same divergence one level in: this is what a non-record leaves the test to do.
             panic!("a proposition is not a record of fields");
         };
         let required: Vec<&str> = fields

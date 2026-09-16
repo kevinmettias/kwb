@@ -86,18 +86,27 @@ fn Is_Usage_Line(line: &str) -> bool
     return verb.starts_with(TOOL) && (label == LABEL || label.trim().is_empty());
 }
 
-#[test]
-fn Test_Print_Usage_Should_Label_The_First_Usage_Line_And_Align_The_Rest_Under_It()
+/// The floor on how much layout the test below is actually checking.
+///
+/// Separated from the two claims about the layout because it is not one: a renderer reduced to a
+/// single line would satisfy both of them and mean nothing by it, so this is the guard on whether
+/// they are worth reading at all.
+fn Assert_Enough_Lines(usage: &[&str])
 {
-    let help = Help();
-    let usage = Usage_Lines(&help);
-
     assert!(
         usage.len() >= FEWEST_USAGE_LINES,
         "only {} usage line(s) were found, so this guard is checking almost no layout: {usage:?}",
         usage.len()
     );
+}
 
+/// The label stands on the first usage line and on no other.
+///
+/// Both halves are one claim. A renderer that dropped the label leaves the rest with nothing to
+/// align under, and one that repeated it on every line has not aligned anything — the second is
+/// the failure the alignment exists to avoid, and it is only visible once the first is known.
+fn Assert_Only_The_First_Line_Carries_The_Label(usage: &[&str])
+{
     let (first, rest) = usage.split_first().expect("a usage line to label");
     assert!(
         first.starts_with(LABEL),
@@ -113,8 +122,12 @@ fn Test_Print_Usage_Should_Label_The_First_Usage_Line_And_Align_The_Rest_Under_I
              alignment exists to avoid: {line}"
         );
     }
+}
 
-    for line in &usage
+/// Every verb begins at the label's own column, so two usage lines compare line for line.
+fn Assert_Every_Verb_Starts_At_The_Label_Column(usage: &[&str])
+{
+    for line in usage
     {
         let at = line.find(TOOL).expect("a usage line names the tool it is a usage for");
 
@@ -124,4 +137,15 @@ fn Test_Print_Usage_Should_Label_The_First_Usage_Line_And_Align_The_Rest_Under_I
              reader comparing two of them cannot: {line}"
         );
     }
+}
+
+#[test]
+fn Test_Print_Usage_Should_Label_The_First_Usage_Line_And_Align_The_Rest_Under_It()
+{
+    let help = Help();
+    let usage = Usage_Lines(&help);
+
+    Assert_Enough_Lines(&usage);
+    Assert_Only_The_First_Line_Carries_The_Label(&usage);
+    Assert_Every_Verb_Starts_At_The_Label_Column(&usage);
 }

@@ -9,11 +9,17 @@
 
 use kwb_ingest::ClaimText;
 
+/// How many texts the fixture holds: the same text shouted and quiet, differing only in case.
+///
+/// Named rather than written in the return type, because the number is a fact about the fixture
+/// and a reader should not have to count it to read the assertions stated over the pair.
+const TEXTS_DIFFERING_ONLY_IN_CASE: usize = 2;
+
 /// Text whose case is the only thing that would move if it were folded.
 ///
 /// The one normalization that looks obviously helpful and is not, and `kwb-model`'s own rule says
 /// why: folding case would make `Polish notation` and `polish notation` one assertion.
-fn Same_Text_Two_Ways() -> [&'static str; 2]
+fn Same_Text_Two_Ways() -> [&'static str; TEXTS_DIFFERING_ONLY_IN_CASE]
 {
     return ["BVH", "bvh"];
 }

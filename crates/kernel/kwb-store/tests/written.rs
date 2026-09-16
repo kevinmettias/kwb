@@ -69,6 +69,39 @@ fn Test_Admission_Should_Say_Whether_This_Write_Is_What_Stored_The_Bytes()
     // bytes that landed now, or bytes the store already held. Both are successes and they are not
     // the same fact, so the second write must report the second value — a run that admitted nothing
     // new and a run that admitted a corpus are otherwise one number.
+    let writes = Two_Writes_Of_One_Passage();
+
+    assert_eq!(
+        writes.first.Admission(),
+        Admission::Stored,
+        "the first write of a passage does not report that it stored it"
+    );
+    assert_eq!(
+        writes.second.Admission(),
+        Admission::AlreadyPresent,
+        "a re-offered document reports that this write stored bytes the store already held"
+    );
+}
+
+/// The two receipts one passage collects from one store: the write that stored it, and the offer
+/// that found it already there.
+///
+/// A named struct rather than a pair of receipts, because both fields have the same type and a
+/// tuple would not say which half was the first write — the distinction the assertions above are
+/// entirely about.
+struct TwoWrites
+{
+    first: Written,
+    second: Written,
+}
+
+/// Writes one passage to a fresh store twice, answering both receipts in the order they were made.
+///
+/// Both writes come from the same store, because the second verdict exists only in relation to the
+/// first: a fresh store per write would report `Stored` twice, and `Stored` on its own cannot be
+/// told from a store that answers every write the same way.
+fn Two_Writes_Of_One_Passage() -> TwoWrites
+{
     let mut store = DocumentStore::Empty();
 
     let first = store
@@ -78,16 +111,7 @@ fn Test_Admission_Should_Say_Whether_This_Write_Is_What_Stored_The_Bytes()
         .Write(Document::Of(b"a passage".to_vec()))
         .expect("a re-offered document is answered, never refused");
 
-    assert_eq!(
-        first.Admission(),
-        Admission::Stored,
-        "the first write of a passage does not report that it stored it"
-    );
-    assert_eq!(
-        second.Admission(),
-        Admission::AlreadyPresent,
-        "a re-offered document reports that this write stored bytes the store already held"
-    );
+    return TwoWrites { first, second };
 }
 
 #[test]

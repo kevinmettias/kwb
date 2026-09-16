@@ -18,8 +18,11 @@
 
 use kwb_domain::Scope;
 
+/// How many shapes text that names nothing arrives in from a person or a shell.
+const SHAPES_OF_TEXT_THAT_NAMES_NOTHING: usize = 4;
+
 /// Text that names nothing, in the four shapes a person or a shell actually supplies.
-fn Names_That_Say_Nothing() -> [&'static str; 4]
+fn Names_That_Say_Nothing() -> [&'static str; SHAPES_OF_TEXT_THAT_NAMES_NOTHING]
 {
     return ["", "   ", "\t", "\n  \n"];
 }
