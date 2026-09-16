@@ -76,10 +76,12 @@ impl DocumentStore
     /// [`Write`][Self::Write] like everything else, which is what keeps the one-write-path
     /// property true rather than true-except-for-persistence.
     #[must_use]
-    // The strategy arrives as a trait object because this crate names `ContentStoreStrategy` and
-    // never an implementation of it: taking one by value would put a concrete type in the
-    // signature, which is the thing this crate is arranged not to do.
-    pub fn Backed_By(durable: Box<dyn ContentStoreStrategy>) -> Self
+    pub fn Backed_By(
+        // The strategy arrives as a trait object because this crate names `ContentStoreStrategy`
+        // and never an implementation of it: taking one by value would put a concrete type in the
+        // signature, which is the thing this crate is arranged not to do.
+        durable: Box<dyn ContentStoreStrategy>,
+    ) -> Self
     {
         return Self {
             documents: BTreeMap::new(),
