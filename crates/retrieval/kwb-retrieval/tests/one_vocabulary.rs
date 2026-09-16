@@ -192,9 +192,10 @@ fn Test_A_Reflowed_Claim_Should_Still_Be_Found_By_The_Words_It_Keeps()
     // for, even though neither the stored text nor the query contains those words as written.
     let reflowed = REFLOWED_CLAIM_TEXT;
     let entropy = Concept::Named(CONCEPT_NAME);
+    let claim = Claim::About(&entropy, reflowed);
     let graph = KnowledgeGraph::Empty()
         .With_Concept(Versioned::Asserted(entropy.clone()))
-        .With_Claim(Versioned::Asserted(Claim::About(&entropy, reflowed)));
+        .With_Claim(Versioned::Asserted(claim));
 
     assert_eq!(
         CurrentQueries::Over(&graph).Claims_Matching("isolated system").len(),

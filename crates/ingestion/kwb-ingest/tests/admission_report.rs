@@ -62,13 +62,18 @@ fn Nothing_Admissible() -> Vec<Extraction>
 
 fn Stated_By_A_Person(statements: &[Extraction]) -> Stated
 {
+    // The lineage is named before it is passed, rather than written into the argument list it is
+    // one quarter of: as an argument it is four positions to hold at once, and as a local it is one
+    // name the reader has already been told the meaning of.
+    let lineage = ExtractionLineage::Of(
+        ReadingProtocol::Named("stated-by-a-person"),
+        ReaderName::Named("a test"),
+    );
+
     return Stated::Of(
         statements.to_vec(),
         SourceLocation::Named("throughout"),
-        ExtractionLineage::Of(
-            ReadingProtocol::Named("stated-by-a-person"),
-            ReaderName::Named("a test"),
-        ),
+        lineage,
         Scope::Unstated(),
     )
     .expect("a person who stated something is a reader");

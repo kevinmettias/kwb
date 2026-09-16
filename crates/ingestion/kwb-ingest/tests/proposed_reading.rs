@@ -141,15 +141,14 @@ fn Test_Lineage_Should_Carry_The_Protocol_And_The_Reader()
     // into the graph. It is carried at all so that a caller reporting which protocol produced a
     // corpus can ask, and so that a field nothing consumes is recorded as such rather than
     // reading like a field something does.
-    let under_a_new_prompt = ProposedReading::Of(
-        The_Source(),
-        A_Location(),
-        Statements(),
-        ExtractionLineage::Of(
-            ReadingProtocol::Named("read-the-text-v2"),
-            ReaderName::Named("a model"),
-        ),
+    // Named before it is passed, because one argument of four that is itself a call is four more
+    // positions to hold at once; named, the reading below is the four things it is made of.
+    let a_new_prompt = ExtractionLineage::Of(
+        ReadingProtocol::Named("read-the-text-v2"),
+        ReaderName::Named("a model"),
     );
+    let under_a_new_prompt =
+        ProposedReading::Of(The_Source(), A_Location(), Statements(), a_new_prompt);
     let reading = ProposedReading::Of(The_Source(), A_Location(), Statements(), A_Lineage());
 
     assert_eq!(reading.Lineage().Protocol(), "read-the-text-v1");

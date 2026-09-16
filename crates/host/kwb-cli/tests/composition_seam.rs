@@ -276,16 +276,17 @@ fn Test_The_Composition_Root_Should_Add_No_Rule_To_The_Admission_It_Drives()
     );
     assert!(run.status.success(), "admit failed: {}", Stdout_Text(&run));
 
+    let lineage = ExtractionLineage::Of(
+        ReadingProtocol::Named("a protocol this file made up"),
+        ReaderName::Named("a reader this file made up"),
+    );
     let said = Stated::Of(
         vec![Extraction::New(
             ConceptName::Named(CONCEPT_NAME),
             ClaimText::Stated(CLAIM_TEXT),
         )],
         SourceLocation::Named("a place this file made up"),
-        ExtractionLineage::Of(
-            ReadingProtocol::Named("a protocol this file made up"),
-            ReaderName::Named("a reader this file made up"),
-        ),
+        lineage,
         Scope::Named(SCOPE_NAME).expect("a named scope"),
     )
     .expect("a person who said something is a reader");

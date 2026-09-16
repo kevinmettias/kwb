@@ -449,13 +449,14 @@ mod tests
             ConceptName::Named("entropy"),
             ClaimText::Stated("It does not fall."),
         )];
+        let lineage = ExtractionLineage::Of(
+            ReadingProtocol::Named("stated-by-a-person"),
+            ReaderName::Named("the operator of kwb admit"),
+        );
         let said = Stated::Of(
             statements,
             SourceLocation::Named("as stated on the command line"),
-            ExtractionLineage::Of(
-                ReadingProtocol::Named("stated-by-a-person"),
-                ReaderName::Named("the operator of kwb admit"),
-            ),
+            lineage,
             Scope::Unstated(),
         );
         let reader = said.as_ref().map(|said| return said as &dyn ExtractionStrategy);

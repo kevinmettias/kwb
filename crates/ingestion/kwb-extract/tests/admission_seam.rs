@@ -84,10 +84,11 @@ fn Reader() -> ReadsText<ReplayInference>
 fn Already_Known() -> KnowledgeGraph
 {
     let concept = Concept::Named(ALREADY_KNOWN_NAME);
+    let claim = Claim::About(&concept, ALREADY_KNOWN_CLAIM);
 
     return KnowledgeGraph::Empty()
         .With_Concept(Versioned::Asserted(concept.clone()))
-        .With_Claim(Versioned::Asserted(Claim::About(&concept, ALREADY_KNOWN_CLAIM)));
+        .With_Claim(Versioned::Asserted(claim));
 }
 
 /// The addresses a graph's current world holds, as two named lists a test can compare.
