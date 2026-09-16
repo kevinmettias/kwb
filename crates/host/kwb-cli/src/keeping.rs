@@ -459,6 +459,8 @@ mod tests
             lineage,
             Scope::Unstated(),
         );
+        // The reading crosses as a trait object because `Admit_Source` is written against one: the
+        // reader is handed over as the pipeline's parameter, not as the `Stated` this file built.
         let reader = said.as_ref().map(|said| return said as &dyn ExtractionStrategy);
         let mut store = Store_For(Some(root)).expect("a writable temporary store");
 

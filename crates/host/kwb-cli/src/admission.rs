@@ -192,6 +192,9 @@ fn Reader_For(extractions: Vec<Extraction>, scope: Scope) -> Option<Stated>
 /// handed a trait object derived from it and never the value itself.
 fn Ran_Admission(bytes: Vec<u8>, said: Option<&Stated>, kept: &mut Kept) -> ExitCode
 {
+    // The reading crosses as a trait object because `Admit_Source` is written against one: the
+    // pipeline is handed a reader and never a `Stated`, so the vtable is the seam's own signature
+    // rather than a decision taken here.
     let reader = said.map(|said| return said as &dyn ExtractionStrategy);
 
     // Text, because that is what a person reading a file to type `--says` was doing. A source

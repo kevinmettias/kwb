@@ -55,6 +55,9 @@ pub struct DocumentStore
     /// configuration — every test in this workspace is one — and making that state a variant of
     /// the type says so, where a do-nothing strategy would have made *lost on exit* look
     /// identical to *written to disk* at every call site.
+    // The strategy arrives as a trait object because this crate names `ContentStoreStrategy` and
+    // never an implementation of it: the choice is made by whoever calls `Backed_By`, and a
+    // concrete type here would be this crate naming one.
     durable: Option<Box<dyn ContentStoreStrategy>>,
 }
 
@@ -73,6 +76,9 @@ impl DocumentStore
     /// [`Write`][Self::Write] like everything else, which is what keeps the one-write-path
     /// property true rather than true-except-for-persistence.
     #[must_use]
+    // The strategy arrives as a trait object because this crate names `ContentStoreStrategy` and
+    // never an implementation of it: taking one by value would put a concrete type in the
+    // signature, which is the thing this crate is arranged not to do.
     pub fn Backed_By(durable: Box<dyn ContentStoreStrategy>) -> Self
     {
         return Self {
