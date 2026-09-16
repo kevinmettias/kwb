@@ -214,12 +214,6 @@ mod tests
     /// Why the concept the fixtures close was withdrawn.
     const BECAUSE: &str = "the concept was withdrawn by its author";
 
-    /// A concept published as asserted, which is the ordinary case.
-    fn Asserted_Concept(name: &str) -> Versioned<Concept>
-    {
-        return Versioned::Asserted(Concept::Named(name));
-    }
-
     #[test]
     fn Test_Held_Concepts_Should_Be_Absent_Until_Something_Is_Published()
     {
@@ -356,5 +350,15 @@ mod tests
             Ordered_Entries::<Concept>(None).is_empty(),
             "a graph holding nothing lists something"
         );
+    }
+
+    /// A concept published as asserted, which is the ordinary case.
+    ///
+    /// Last rather than beside the first test that uses it, because more than one does: a helper
+    /// with several callers belongs under no single one of them, so it sits in the shared region
+    /// after the tests instead of interrupting the pair that read together.
+    fn Asserted_Concept(name: &str) -> Versioned<Concept>
+    {
+        return Versioned::Asserted(Concept::Named(name));
     }
 }
