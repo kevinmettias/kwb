@@ -478,12 +478,6 @@ mod tests
     use super::*;
     use kwb_platform_xvpe::inference::ReplayInference;
 
-    /// The model these tests ask through.
-    fn Model() -> ModelIdentifier
-    {
-        return ModelIdentifier::New("a-recorded-reader".to_owned());
-    }
-
     #[test]
     fn Test_Over_Should_Carry_The_Reach_It_Was_Given_Into_The_Reader()
     {
@@ -552,5 +546,14 @@ mod tests
             ["concept", "claim"],
             "an answer could leave a concept or a claim out, so a proposition would arrive half-read"
         );
+    }
+
+    /// The model these tests ask through.
+    ///
+    /// Last because all three tests ask through it, so it belongs under none of them: a helper
+    /// with one caller sits beneath that caller, and a helper with several sits here.
+    fn Model() -> ModelIdentifier
+    {
+        return ModelIdentifier::New("a-recorded-reader".to_owned());
     }
 }
