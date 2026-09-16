@@ -7,8 +7,6 @@
 //!
 //! [`EveryVersion`]: crate::EveryVersion
 
-use kwb_model::ContentIdentity;
-
 use crate::graph::knowledge_graph::Ordered_Entries;
 use crate::Assertion;
 use crate::Claim;
@@ -74,6 +72,8 @@ impl<'graph> CurrentKnowledge<'graph>
     #[must_use]
     pub fn Assertions(&self) -> Vec<&'graph Assertion>
     {
+        use kwb_model::ContentIdentity;
+
         let current: Vec<ContentIdentity> = self
             .Claims()
             .iter()

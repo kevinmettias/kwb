@@ -1,7 +1,5 @@
 //! How far an assertion is claimed to reach.
 
-use kwb_model::Normalize_Text;
-
 /// The domain over which a source asserts a claim.
 ///
 /// # Why this is a value and not an enumeration
@@ -21,10 +19,10 @@ use kwb_model::Normalize_Text;
 ///
 /// # Why it is normalized but not folded
 ///
-/// Through `kwb-model`'s [`Normalize_Text`], for the reason every other text field goes through
-/// it: a reflow is not an edit. Case is deliberately preserved, so `Thermodynamics` and
-/// `thermodynamics` are two scopes — consistent with `Concept`, and wrong to decide
-/// differently here without a reason that applies only here.
+/// Through `kwb-model`'s [`Normalize_Text`](kwb_model::Normalize_Text), for the reason every other
+/// text field goes through it: a reflow is not an edit. Case is deliberately preserved, so
+/// `Thermodynamics` and `thermodynamics` are two scopes — consistent with `Concept`, and wrong to
+/// decide differently here without a reason that applies only here.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Scope(String);
 
@@ -55,6 +53,8 @@ impl Scope
     #[must_use]
     pub fn Named(name: &str) -> Option<Self>
     {
+        use kwb_model::Normalize_Text;
+
         let normalized = Normalize_Text(name);
         if normalized.is_empty()
         {

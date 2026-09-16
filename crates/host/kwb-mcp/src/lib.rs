@@ -33,7 +33,6 @@
 
 use kwb_domain::{Assertion, Claim, KnowledgeGraph, Replay_Records};
 use kwb_platform::RecordLogStrategy;
-use kwb_platform_std::FileRecordLog;
 use kwb_retrieval::{CurrentQueries, HeldAssertion, HeldClaim, HistoricalQueries};
 
 mod store;
@@ -60,6 +59,8 @@ pub use world::World;
 /// records after the first bad one would answer confidently about knowledge it does not have.
 pub fn Corpus_At(root: Option<&str>) -> Result<KnowledgeGraph, String>
 {
+    use kwb_platform_std::FileRecordLog;
+
     let Some(root) = root
     else
     {

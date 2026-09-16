@@ -1,7 +1,6 @@
 //! What a document is to this crate: its octets, and the address they give it.
 
 use kwb_model::ContentIdentity;
-use kwb_model::Derivation;
 
 /// The kind a document's identity is derived under, so that a document and a claim
 /// carrying identical bytes are not the same artifact.
@@ -46,6 +45,8 @@ impl Document
     #[must_use]
     pub fn Of(content: Vec<u8>) -> Self
     {
+        use kwb_model::Derivation;
+
         let identity = Derivation::Of(DOCUMENT)
             .With_Bytes(CONTENT, &content)
             .Excluding(

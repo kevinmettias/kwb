@@ -2,7 +2,6 @@
 //! to be grouped by.
 
 use kwb_domain::Concept;
-use kwb_model::ContentIdentity;
 
 use crate::Linked;
 
@@ -93,6 +92,8 @@ impl Normalized
 #[must_use]
 pub(crate) fn Normalize_Concepts(linked: Linked) -> Normalized
 {
+    use kwb_model::ContentIdentity;
+
     let mut concepts: Vec<Concept> = Vec::new();
     let mut seen: Vec<ContentIdentity> = Vec::new();
     let mut merged = 0_usize;

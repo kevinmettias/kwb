@@ -45,11 +45,8 @@ use std::process::ExitCode;
 use kwb_domain::KnowledgeGraph;
 use kwb_ingest::{AdmissionReport, ExtractionError};
 
-use crate::admission::Run_Admission;
 use crate::closing::Close_Command;
-use crate::history::History_Command;
 use crate::refusals::{Complained_With_Usage, Wrong_Command_Line};
-use crate::usage::Print_Usage;
 
 /// A wrong command line, which is not the same as a run that failed.
 const USAGE_EXIT: u8 = 2;
@@ -162,12 +159,16 @@ impl Command for History
 {
     fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
     {
+        use crate::history::History_Command;
+
         return History_Command(arguments);
     }
 }
 
 fn main() -> ExitCode
 {
+    use crate::usage::Print_Usage;
+
     let arguments: Vec<String> = std::env::args().skip(1).collect();
     let borrowed: Vec<&str> = arguments.iter().map(String::as_str).collect();
 
@@ -199,6 +200,8 @@ impl Command for Admit
 {
     fn Run_Command_Line(&self, arguments: &[&str]) -> ExitCode
     {
+        use crate::admission::Run_Admission;
+
         let Some((path, rest)) = arguments.split_first()
         else
         {

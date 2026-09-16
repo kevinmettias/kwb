@@ -1,8 +1,6 @@
 //! A concept: a thing the corpus talks about, addressed by what it is called.
 
 use kwb_model::ContentIdentity;
-use kwb_model::Derivation;
-use kwb_model::Normalize_Text;
 
 /// The kind a concept's identity is derived under.
 const CONCEPT: &str = "concept";
@@ -41,6 +39,9 @@ impl Concept
     #[must_use]
     pub fn Named(canonical_name: &str) -> Self
     {
+        use kwb_model::Derivation;
+        use kwb_model::Normalize_Text;
+
         let identity = Derivation::Of(CONCEPT)
             .With_Text(CANONICAL_NAME, canonical_name)
             .Excluding(

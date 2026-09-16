@@ -13,11 +13,11 @@
 //!
 //! [`VERBS`]: crate::VERBS
 
-use crate::VERBS;
-
 /// What this tool does, including the half it does not have.
 pub(crate) fn Print_Usage()
 {
+    use crate::VERBS;
+
     // Rendered from `VERBS`, not restated beside it. The first line carries the `usage:` label
     // and the rest align under it, which is the only thing this loop knows that the table does
     // not -- and it is a fact about layout rather than about what the binary can do.

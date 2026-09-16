@@ -1,7 +1,6 @@
 //! One source asserting one claim, at one scope. The thing a claim has none of.
 
 use kwb_model::ContentIdentity;
-use kwb_model::Derivation;
 
 use crate::Claim;
 use crate::Scope;
@@ -75,6 +74,8 @@ impl Assertion
     #[must_use]
     pub fn By(source: &str, claim: &Claim, scope: Scope) -> Self
     {
+        use kwb_model::Derivation;
+
         let identity = Derivation::Of(ASSERTION)
             .With_Identity(CLAIM, &claim.Identity())
             .With_Text(SOURCE, source)

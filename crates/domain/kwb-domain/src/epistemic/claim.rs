@@ -1,8 +1,6 @@
 //! A claim: something asserted about a concept, addressed by what it says.
 
 use kwb_model::ContentIdentity;
-use kwb_model::Derivation;
-use kwb_model::Normalize_Text;
 
 use crate::Concept;
 
@@ -56,6 +54,9 @@ impl Claim
     #[must_use]
     pub fn About(concept: &Concept, text: &str) -> Self
     {
+        use kwb_model::Derivation;
+        use kwb_model::Normalize_Text;
+
         let identity = Derivation::Of(CLAIM)
             .With_Identity(CONCEPT, &concept.Identity())
             .With_Text(TEXT, text)

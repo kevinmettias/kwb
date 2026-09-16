@@ -1,6 +1,5 @@
 //! The same questions, asked of every version.
 
-use kwb_domain::Assertion;
 use kwb_domain::Claim;
 use kwb_domain::Concept;
 use kwb_domain::EveryVersion;
@@ -8,8 +7,6 @@ use kwb_domain::KnowledgeGraph;
 use kwb_domain::Versioned;
 use kwb_model::ContentIdentity;
 
-use crate::matching::Has_All_Words;
-use crate::matching::Words_Of;
 use crate::HeldAssertion;
 use crate::HeldClaim;
 use crate::HeldNeighbourhood;
@@ -39,6 +36,9 @@ impl<'graph> HistoricalQueries<'graph>
     #[must_use]
     pub fn Claims_Matching(&self, query: &str) -> Vec<&'graph Versioned<Claim>>
     {
+        use crate::matching::Has_All_Words;
+        use crate::matching::Words_Of;
+
         let words = Words_Of(query);
         if words.is_empty()
         {
@@ -123,6 +123,8 @@ impl<'graph> HistoricalQueries<'graph>
     #[must_use]
     fn Live_Assertion_Identities(self) -> Vec<ContentIdentity>
     {
+        use kwb_domain::Assertion;
+
         return self
             .graph
             .Current()

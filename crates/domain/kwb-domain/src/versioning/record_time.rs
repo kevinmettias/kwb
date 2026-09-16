@@ -12,10 +12,7 @@
 //!
 //! [`publication`]: crate::publication
 
-use crate::graph::publication::ASSERTION;
-use crate::graph::publication::CLAIM;
 use crate::graph::publication::CONCEPT;
-use crate::graph::publication::SEPARATOR;
 
 /// How many fields a concept record carried before `KWB-64` added a time.
 ///
@@ -89,6 +86,9 @@ fn Timestamped_Fields<'fields>(
 /// free to call `1985`. A format that can be misread by content is one that will be.
 fn Untimed_Arity(kind: &str) -> Option<usize>
 {
+    use crate::graph::publication::ASSERTION;
+    use crate::graph::publication::CLAIM;
+
     // The constants, not their spellings. A copy of `"concept"` here would be a second place
     // that decides what a concept record is called, and it would go on agreeing until the day
     // somebody renamed one of them -- at which point every record of that kind would read as a
@@ -110,6 +110,8 @@ fn Untimed_Arity(kind: &str) -> Option<usize>
 #[must_use]
 pub fn Published_At(record: &str) -> Option<i64>
 {
+    use crate::graph::publication::SEPARATOR;
+
     let fields: Vec<&str> = record.split(SEPARATOR).collect();
 
     return Without_Time(&fields).at;

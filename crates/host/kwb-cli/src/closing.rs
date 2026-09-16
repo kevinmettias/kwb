@@ -14,7 +14,6 @@ use kwb_platform::RecordLogStrategy;
 use kwb_platform_std::FileRecordLog;
 
 use crate::arguments::{Flag_From_Arguments, LeadingFlag, Nothing_Left, Store_Root_From_Arguments};
-use crate::keeping::Recorded_At;
 use crate::refusals::{Complained_Without_Usage, Wrong_Command_Line};
 use crate::FAILURE_EXIT;
 
@@ -141,6 +140,8 @@ fn Required_Of<'arguments>(
 /// be opened or replayed, a closure `D17` refuses, and a record the medium would not take.
 fn Closed_Concept(closing: &Closing) -> Result<(), String>
 {
+    use crate::keeping::Recorded_At;
+
     let recorded = Recorded_At(Some(closing.store_root))?;
     let applied = Applied_To(closing, &recorded.known)?;
 

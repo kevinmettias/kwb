@@ -15,10 +15,8 @@ use crate::Claim;
 use crate::Concept;
 use crate::KnowledgeGraph;
 use crate::ReplayError;
-use crate::Scope;
 use crate::Standing;
 use crate::Versioned;
-use crate::versioning::record_time::Without_Time;
 
 /// Between the fields of a record.
 ///
@@ -163,6 +161,8 @@ impl Publication
 /// record published.
 pub fn Replay_Records(records: &[String]) -> Result<KnowledgeGraph, ReplayError>
 {
+    use crate::versioning::record_time::Without_Time;
+
     let mut graph = KnowledgeGraph::Empty();
 
     for record in records
@@ -267,6 +267,8 @@ fn Applied_Assertion(
     rest: &[&str],
 ) -> Result<KnowledgeGraph, ReplayError>
 {
+    use crate::Scope;
+
     let [standing, successor, because, claim, source, scope] = rest
     else
     {
