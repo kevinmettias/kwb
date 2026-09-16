@@ -38,6 +38,18 @@ fn Physical_Theory() -> Scope
     return Scope::Named("physical theory").expect("a named scope");
 }
 
+/// One source asserting one claim at a scope it named, which is the shape most of these tests are
+/// about.
+///
+/// The scope is built here rather than at each site because a name this file wrote parses as a
+/// named scope whatever it says, so the promise is one promise and not one per assertion. Made
+/// once, it leaves the call sites reading as the two things that actually differ between them:
+/// who said it, and how far they meant it.
+fn Asserted_At(source: &str, claim: &Claim, scope: &str) -> Assertion
+{
+    return Assertion::By(source, claim, Scope::Named(scope).expect("a named scope"));
+}
+
 #[test]
 fn Test_By_Should_Answer_The_Same_Address_When_It_Is_Given_The_Same_Three_Things()
 {
@@ -56,8 +68,8 @@ fn Test_Identity_Should_Move_When_How_Far_It_Reaches_Moves()
 {
     let claim = Entropy_Claim();
 
-    let broad = Assertion::By("Callen 1985", &claim, Scope::Named("universal mathematics").expect("a named scope"));
-    let narrow = Assertion::By("Callen 1985", &claim, Scope::Named("this game workload").expect("a named scope"));
+    let broad = Asserted_At("Callen 1985", &claim, "universal mathematics");
+    let narrow = Asserted_At("Callen 1985", &claim, "this game workload");
 
     assert_ne!(
         broad.Identity(),
@@ -92,8 +104,8 @@ fn Test_A_Preference_And_A_Measurement_Should_Meet_At_The_Claim()
     let concept = Concept::Named("static dispatch");
     let claim = Claim::About(&concept, "Under workload W, target H, constraints C, it was preferred.");
 
-    let measured = Assertion::By("benchmark run 41", &claim, Scope::Named("project evidence").expect("a named scope"));
-    let preferred = Assertion::By("the user", &claim, Scope::Named("user preference").expect("a named scope"));
+    let measured = Asserted_At("benchmark run 41", &claim, "project evidence");
+    let preferred = Asserted_At("the user", &claim, "user preference");
 
     assert_eq!(
         measured.Claim(),
