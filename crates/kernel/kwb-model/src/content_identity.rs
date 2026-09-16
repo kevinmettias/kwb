@@ -65,10 +65,11 @@ impl ContentIdentity
     #[must_use]
     pub fn Render(&self) -> String
     {
+        use fmt::Write as _;
+
         let mut rendered = String::with_capacity(IDENTITY_CHARACTERS);
         for byte in self.0
         {
-            use fmt::Write as _;
             let _ = write!(rendered, "{byte:02x}");
         }
         return rendered;
