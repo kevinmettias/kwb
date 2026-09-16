@@ -111,37 +111,6 @@ mod tests
     use crate::Extraction;
     use crate::Link_Concepts;
 
-    /// Two concepts, so that *the concept its own extraction named* is a distinction rather than a
-    /// single value every answer would satisfy.
-    fn Two_Concepts() -> [&'static str; 2]
-    {
-        return ["entropy", "enthalpy"];
-    }
-
-    /// One extraction per concept, each asserting something.
-    fn Extractions_Naming_Two_Concepts() -> Vec<Extraction>
-    {
-        return Two_Concepts()
-            .iter()
-            .map(|name| return An_Extraction(name, "It is extensive."))
-            .collect();
-    }
-
-    /// One complete extraction and one missing a half, which is the pair the refusal is stated
-    /// over: a stage that refused everything would satisfy the refusal half on its own.
-    fn One_Complete_And_One_Half_Stated() -> Vec<Extraction>
-    {
-        return vec![
-            An_Extraction("entropy", "It is non-decreasing."),
-            An_Extraction("entropy", " \t "),
-        ];
-    }
-
-    fn An_Extraction(concept: &str, claim: &str) -> Extraction
-    {
-        return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
-    }
-
     #[test]
     fn Test_Link_Concepts_Should_Refuse_An_Extraction_Missing_A_Half()
     {
@@ -166,6 +135,18 @@ mod tests
              and the count of what was refused disagree"
         );
         assert_eq!(linked.Claims().len(), 1, "the refused extraction produced a claim");
+    }
+
+    /// One complete extraction and one missing a half, which is the pair the refusal is stated
+    /// over: a stage that refused everything would satisfy the refusal half on its own.
+    ///
+    /// Directly under the refusal test, because that test is the only one that asks for it.
+    fn One_Complete_And_One_Half_Stated() -> Vec<Extraction>
+    {
+        return vec![
+            An_Extraction("entropy", "It is non-decreasing."),
+            An_Extraction("entropy", " \t "),
+        ];
     }
 
     #[test]
@@ -203,5 +184,32 @@ mod tests
                 "a claim is attached to a concept other than the one its own extraction named"
             );
         }
+    }
+
+    /// One extraction per concept, each asserting something.
+    ///
+    /// Under the test that asks for it, and above the pair it is built from, so the shared region
+    /// below reads from the general down to the specific.
+    fn Extractions_Naming_Two_Concepts() -> Vec<Extraction>
+    {
+        return Two_Concepts()
+            .iter()
+            .map(|name| return An_Extraction(name, "It is extensive."))
+            .collect();
+    }
+
+    /// Two concepts, so that *the concept its own extraction named* is a distinction rather than a
+    /// single value every answer would satisfy.
+    ///
+    /// Both tests name both halves, so this belongs under neither of them and sits in the shared
+    /// region with `An_Extraction` below it.
+    fn Two_Concepts() -> [&'static str; 2]
+    {
+        return ["entropy", "enthalpy"];
+    }
+
+    fn An_Extraction(concept: &str, claim: &str) -> Extraction
+    {
+        return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
     }
 }

@@ -27,7 +27,10 @@ fn Test_Named_Should_Carry_The_Name_Exactly_As_The_Extractor_Gave_It()
     // linking derives it, and the stage that decides what is one concept would be handed a name
     // whose shape it did not decide — which is exactly the difference `ReadingProtocol` says has
     // to stay visible, and `ConceptName` says has to stay visible *here*.
-    let spaced = Spaced_And_Tight().first().copied().expect("the pair");
+    // Taken by pattern rather than by position, so that nothing here has to promise the pair is
+    // present: the fixture's return type fixes its length, and a binding of a fixed-length array
+    // has no case to fail in.
+    let [spaced, _] = Spaced_And_Tight();
 
     assert_eq!(
         ConceptName::Named(spaced).Text(),
@@ -43,8 +46,7 @@ fn Test_Text_Should_Hand_Back_What_Was_Carried()
     // half is the one that matters: if the type collapsed whitespace, the two halves of this
     // fixture would be one value and the identity of every concept in the graph would be derived
     // from text nobody said.
-    let spaced = Spaced_And_Tight().first().copied().expect("the pair");
-    let tight = Spaced_And_Tight().last().copied().expect("the pair");
+    let [spaced, tight] = Spaced_And_Tight();
 
     assert_eq!(ConceptName::Named(tight).Text(), tight);
     assert_ne!(

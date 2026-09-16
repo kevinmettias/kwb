@@ -131,26 +131,7 @@ mod tests
     use crate::Link_Concepts;
     use crate::Normalize_Concepts;
 
-    /// Two passages naming one concept: one content identity, two mentions, so that a merge is a
-    /// number this fixture can state rather than a difference between two fixtures.
-    fn Mentions_Of_One_Concept() -> Vec<Extraction>
-    {
-        return vec![
-            An_Extraction("entropy", "It is non-decreasing."),
-            An_Extraction("entropy", "It is extensive."),
-        ];
-    }
-
-    /// Two concepts that are not one concept, which is the control: without it a stage that
-    /// grouped everything would satisfy the assertion below.
-    fn Distinct_Mentions() -> Vec<Extraction>
-    {
-        return vec![
-            An_Extraction("entropy", "It is non-decreasing."),
-            An_Extraction("enthalpy", "It is extensive."),
-        ];
-    }
-
+    /// The one thing both fixtures are built from, and the smallest piece either of them states.
     fn An_Extraction(concept: &str, claim: &str) -> Extraction
     {
         return Extraction::New(ConceptName::Named(concept), ClaimText::Stated(claim));
@@ -181,6 +162,18 @@ mod tests
         );
     }
 
+    /// Two concepts that are not one concept, which is the control: without it a stage that
+    /// grouped everything would satisfy the assertion above.
+    ///
+    /// Under the test that asks for it, which is the only one that does.
+    fn Distinct_Mentions() -> Vec<Extraction>
+    {
+        return vec![
+            An_Extraction("entropy", "It is non-decreasing."),
+            An_Extraction("enthalpy", "It is extensive."),
+        ];
+    }
+
     #[test]
     fn Test_Normalize_Concepts_Should_Drop_No_Claim_When_It_Groups()
     {
@@ -207,5 +200,18 @@ mod tests
             "the mention that was folded in was not counted, so the number does not say how much \
              of the input was decided to be a duplicate"
         );
+    }
+
+    /// Two passages naming one concept: one content identity, two mentions, so that a merge is a
+    /// number this fixture can state rather than a difference between two fixtures.
+    ///
+    /// Both tests ask for it -- the first to assert that it merges, the second to assert that
+    /// merging costs no claim -- so it belongs under neither and sits here.
+    fn Mentions_Of_One_Concept() -> Vec<Extraction>
+    {
+        return vec![
+            An_Extraction("entropy", "It is non-decreasing."),
+            An_Extraction("entropy", "It is extensive."),
+        ];
     }
 }

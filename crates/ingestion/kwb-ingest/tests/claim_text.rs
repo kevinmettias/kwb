@@ -42,8 +42,10 @@ fn Test_Text_Should_Hand_Back_What_Was_Carried()
     // that folded case would report the pair below as one claim, and a claim is the thing two
     // books asserting one thing are supposed to meet at — a folding here would make them meet at
     // the wrong one.
-    let shouted = Same_Text_Two_Ways().first().copied().expect("the pair");
-    let quiet = Same_Text_Two_Ways().last().copied().expect("the pair");
+    // Taken by pattern rather than by position, so that nothing here has to promise the pair is
+    // present: the fixture's return type fixes its length, and a binding of a fixed-length array
+    // has no case to fail in.
+    let [shouted, quiet] = Same_Text_Two_Ways();
 
     assert_eq!(ClaimText::Stated(shouted).Text(), shouted);
     assert_ne!(
