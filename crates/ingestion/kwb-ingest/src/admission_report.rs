@@ -1,7 +1,5 @@
 //! Stage three: admit what survived, and report only what can be seen.
 
-use core::num::NonZeroUsize;
-
 use kwb_model::ContentIdentity;
 
 use kwb_domain::Assertion;
@@ -10,7 +8,6 @@ use kwb_domain::KnowledgeGraph;
 use kwb_domain::Publication;
 use kwb_domain::Scope;
 use kwb_domain::Standing;
-use kwb_domain::Versioned;
 use kwb_store::Document;
 use kwb_store::DocumentStore;
 use kwb_store::StoreError;
@@ -204,6 +201,8 @@ impl AdmissionReport
     #[must_use]
     pub fn Published_Into(&self, graph: &KnowledgeGraph) -> KnowledgeGraph
     {
+        use kwb_domain::Versioned;
+
         let mut published = graph.clone();
 
         for concept in self.normalized.Concepts()
@@ -258,6 +257,9 @@ impl AdmissionReport
 /// [`Coverage::Unmet`], because the source was admitted and only the reading did not happen.
 pub fn Admit_Source(
     source: Vec<u8>,
+    // A reader crosses as a trait object because this crate names `ExtractionStrategy` and never an
+    // implementation of it: the choice belongs to the caller, and a type parameter would make every
+    // caller's reader part of this function's own type.
     reader: Option<&dyn ExtractionStrategy>,
     needed: ReadingKind,
     store: &mut DocumentStore,
@@ -299,6 +301,8 @@ pub fn Admit_Source(
 /// [`ExtractionError::NotRead`] when no reader was offered at all, and
 /// [`ExtractionError::ReaderFailed`] when the reading turns out to be about another document.
 fn Ask_The_Reader(
+    // Taken as a trait object for the reason `Admit_Source` takes one: this function asks a reader
+    // a question, and which reader it is has already been decided by the caller.
     reader: Option<&dyn ExtractionStrategy>,
     needed: ReadingKind,
     document: &Document,
@@ -414,6 +418,8 @@ fn Assertions_Citing(normalized: &Normalized, source: &Written, scope: &Scope) -
 /// A reader that was never asked has no scope to offer, and [`Scope::Unstated`] is what that
 /// is. This spelled it `Scope::Named("")` until `KWB-50`, which is how a blank `--scope`
 /// came to record the same thing as no `--scope` at all.
+// Taken as a trait object for the reason `Admit_Source` takes one: asking a reader for its scope
+// is a question put to whichever reader the caller supplied.
 fn Scope_Of(reader: Option<&dyn ExtractionStrategy>) -> Scope
 {
     return reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
@@ -439,6 +445,8 @@ fn Scope_Of(reader: Option<&dyn ExtractionStrategy>) -> Scope
 /// and foreclosed two thirds of a book while reporting full coverage.
 fn Coverage_Of_Reading(found: usize) -> Coverage
 {
+    use core::num::NonZeroUsize;
+
     // The source. A reading happened, so the material exists and was looked at, and `Coverage`
     // requires that to be non-zero precisely so this cannot be asserted without being true.
     let examined = NonZeroUsize::MIN;

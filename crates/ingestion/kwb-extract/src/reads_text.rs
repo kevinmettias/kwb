@@ -1,35 +1,20 @@
 //! Reading born-digital text, one passage at a time.
 
 use kwb_domain::Scope;
-use kwb_ingest::ClaimText;
-use kwb_ingest::ConceptName;
 use kwb_ingest::Extraction;
-use kwb_ingest::ExtractionLineage;
 use kwb_ingest::ExtractionError;
 use kwb_ingest::ExtractionStrategy;
 use kwb_ingest::ProposedReading;
-use kwb_ingest::ReaderName;
 use kwb_ingest::ReadingKind;
-use kwb_ingest::ReadingProtocol;
-use kwb_ingest::SourceLocation;
 use kwb_model::ContentIdentity;
 use kwb_platform_xvpe::inference::AnswerValue;
-use kwb_platform_xvpe::inference::ContentBlock;
 use kwb_platform_xvpe::inference::InferenceRequest;
 use kwb_platform_xvpe::inference::InferenceStrategy;
 use kwb_platform_xvpe::inference::ModelIdentifier;
-use kwb_platform_xvpe::inference::ModelRole;
 use kwb_platform_xvpe::inference::ResponseSchema;
-use kwb_platform_xvpe::inference::SchemaField;
 use kwb_platform_xvpe::inference::SchemaNode;
-use kwb_platform_xvpe::reading::FidelityThresholds;
-use kwb_platform_xvpe::reading::PageNumber;
-use kwb_platform_xvpe::reading::PageProfile;
-use kwb_platform_xvpe::reading::PageText;
 use kwb_platform_xvpe::reading::Passage;
-use kwb_platform_xvpe::reading::PassageBudget;
 use kwb_platform_xvpe::reading::PassageSplitter;
-use kwb_platform_xvpe::reading::SectionBoundary;
 
 /// What this reader does, recorded on every reading it produces.
 ///
@@ -240,6 +225,11 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         passage: &Passage,
     ) -> Result<ProposedReading, ExtractionError>
     {
+        use kwb_ingest::ExtractionLineage;
+        use kwb_ingest::ReaderName;
+        use kwb_ingest::ReadingProtocol;
+        use kwb_ingest::SourceLocation;
+
         let passage_text = passage.Text();
         let request = Request_For(&self.model, passage_text);
 
@@ -277,6 +267,9 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
 #[must_use]
 pub(crate) fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRequest
 {
+    use kwb_platform_xvpe::inference::ContentBlock;
+    use kwb_platform_xvpe::inference::ModelRole;
+
     let role = ModelRole::Named(0, "extractor");
     let instructions = INSTRUCTIONS.to_owned();
     let passage_text = passage.to_owned();
@@ -311,6 +304,8 @@ pub(crate) fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRe
 #[must_use]
 pub(crate) fn Propositions_Schema() -> ResponseSchema
 {
+    use kwb_platform_xvpe::inference::SchemaField;
+
     let proposition = SchemaNode::Record {
         description: "one proposition the passage asserts".to_owned(),
         fields: vec![
@@ -347,6 +342,13 @@ pub(crate) fn Propositions_Schema() -> ResponseSchema
 /// owns. The splitter is XVPE's, so what a passage *is* stays measured there.
 fn Passages_Of(text: &str) -> Vec<Passage>
 {
+    use kwb_platform_xvpe::reading::FidelityThresholds;
+    use kwb_platform_xvpe::reading::PageNumber;
+    use kwb_platform_xvpe::reading::PageProfile;
+    use kwb_platform_xvpe::reading::PageText;
+    use kwb_platform_xvpe::reading::PassageBudget;
+    use kwb_platform_xvpe::reading::SectionBoundary;
+
     let characters = u32::try_from(text.chars().count()).unwrap_or(u32::MAX);
     let number = PageNumber::From_Zero_Based(0);
     let profile = PageProfile::New(characters, 0, 0);
@@ -436,6 +438,9 @@ fn Proposed_From(answer: &AnswerValue) -> Result<Vec<Extraction>, ExtractionErro
 /// [`ExtractionError::ReaderFailed`] when the record carries no textual `concept` or `claim`.
 fn Proposed_Of(proposition: &AnswerValue) -> Result<Extraction, ExtractionError>
 {
+    use kwb_ingest::ClaimText;
+    use kwb_ingest::ConceptName;
+
     let Some(concept) = proposition.Field("concept").and_then(AnswerValue::As_Text)
     else
     {
@@ -522,6 +527,8 @@ mod tests
         } = schema.Root()
         else
         {
+            // A `let ... else` requires its else block to diverge, so the panic is the divergence
+            // the destructuring needs rather than a failure this test chose to give up on.
             panic!("the schema's root is not a sequence of propositions");
         };
         assert_eq!(
@@ -534,6 +541,8 @@ mod tests
         let SchemaNode::Record { fields, .. } = items.as_ref()
         else
         {
+            // The other half of the same divergence: one element of the sequence was destructured,
+            // and the panic is what a shape that is not a record leaves this block to do.
             panic!("a proposition is not a record of fields");
         };
         let required: Vec<&str> = fields
