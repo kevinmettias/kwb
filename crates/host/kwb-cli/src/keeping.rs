@@ -211,7 +211,7 @@ mod tests
     use std::path::PathBuf;
 
     /// A directory nobody else is using, named for the test that asked for it.
-    fn Temporary(test: &str) -> PathBuf
+    fn Temporary_Directory(test: &str) -> PathBuf
     {
         let root = std::env::temp_dir().join(format!("kwb-cli-keeping-{test}"));
         if root.exists()
@@ -226,7 +226,7 @@ mod tests
     /// Built through `Admit_Source` because that is the only door an `AdmissionReport` comes out
     /// of — there is no public constructor — and because the publications `Record_Into` is about to
     /// count have to be the ones the pipeline really produces for there to be anything to assert.
-    fn Admission(root: &str) -> AdmissionReport
+    fn Admission_Report_At(root: &str) -> AdmissionReport
     {
         let statements = vec![Extraction::New(
             ConceptName::Named("entropy"),
@@ -266,7 +266,7 @@ mod tests
         // for: `kwb-store` names `ContentStoreStrategy` and never an implementation of it, so the
         // implementation is named here — and it has to be the durable one when a root was named,
         // or `--store` keeps nothing and the run reports that it did.
-        let root = Temporary("store-for");
+        let root = Temporary_Directory("store-for");
         let named = root.display().to_string();
 
         let store = Store_For(Some(named.as_str())).expect("a writable temporary root");
@@ -293,7 +293,7 @@ mod tests
         // Beside the root and not where the caller said, because `--store` names one place and
         // both halves live in it. That is what lets `history` find the log from the same flag the
         // admission wrote it under, which is a property no signature states.
-        let root = Temporary("log-for");
+        let root = Temporary_Directory("log-for");
         let named = root.display().to_string();
 
         let log = Log_For(Some(named.as_str())).expect("a writable temporary root");
@@ -312,7 +312,7 @@ mod tests
         // folds, `Replay_Records` refuses a record naming something no earlier record published,
         // and a reader that sorted or reversed the lines would make every replay fail on a log
         // that is perfectly good.
-        let log = FileRecordLog::At(Temporary("records-of").join("publications.log"))
+        let log = FileRecordLog::At(Temporary_Directory("records-of").join("publications.log"))
             .expect("a writable temporary log");
         log.Append("first").expect("a writable temporary log");
         log.Append("second").expect("a writable temporary log");
@@ -344,7 +344,7 @@ mod tests
         // The fold itself, on a log this repository really wrote: the concept the record published
         // is the concept the graph has to hold. A reader that opened the log and answered an empty
         // graph would satisfy the test above and fail this one, which is why both exist.
-        let root = Temporary("known-so-far");
+        let root = Temporary_Directory("known-so-far");
         std::fs::create_dir_all(&root).expect("a writable temporary directory");
         std::fs::write(
             root.join("publications.log"),
@@ -369,7 +369,7 @@ mod tests
         // is the same mistake. So both halves are asserted at once, because the defect this guards
         // is a version that read the root for one of them and not the other — which each of the
         // tests above would pass on its own.
-        let root = Temporary("kept-at");
+        let root = Temporary_Directory("kept-at");
         let named = root.display().to_string();
 
         let kept = Kept_At(Some(named.as_str())).expect("a writable temporary root");
@@ -418,9 +418,9 @@ mod tests
         // asserted is that the count the run is about to print is already in the log. One record
         // per publication and not one per run, because it is the transitions that are recorded
         // (`D-014`) and a single record per run would lose the graph's middle.
-        let root = Temporary("record-into");
+        let root = Temporary_Directory("record-into");
         let named = root.display().to_string();
-        let report = Admission(&named);
+        let report = Admission_Report_At(&named);
         let log = Log_For(Some(named.as_str()))
             .expect("a writable temporary root")
             .expect("a log under a root that was named");
@@ -440,9 +440,9 @@ mod tests
         // The half that keeps a run without `--store` working: nothing to record into is not a
         // failure, and a version that refused here would make every in-memory run exit `1` on a
         // command line the help leads with.
-        let root = Temporary("record-into-nowhere");
+        let root = Temporary_Directory("record-into-nowhere");
         let named = root.display().to_string();
-        let report = Admission(&named);
+        let report = Admission_Report_At(&named);
 
         assert_eq!(Record_Into(None, &report, None), Ok(()));
     }
