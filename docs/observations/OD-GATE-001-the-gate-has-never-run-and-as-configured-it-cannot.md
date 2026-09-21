@@ -11,6 +11,8 @@ tags:
 relations:
   - target: D-005
     type: relates-to
+  - target: OD-GATE-002
+    type: relates-to
 ---
 
 # Six pushes have run the gate and no step has ever executed, and independently of that the gate as configured cannot resolve the dependency D-007 adopts
@@ -101,3 +103,16 @@ It proposes no remedy. Restoring the gate needs an account change, and then a de
 granting continuous integration read access to a private repository — which is a credential
 decision with consequences beyond this workspace, and the maintainer's to make rather than a
 session's. This observation stays `open` until something acts on it.
+
+## Referenced By
+
+
+*Written by hand, and checked by `tests/contract` in both directions: a declared relation with
+no entry here fails, and an entry here that nothing declares a relation to fails too. Either
+end may be a record or an observation, since `KWB-86`. A relation is declared in the
+frontmatter of the document that makes it; this is the other end, so that a reader of this
+record can reach the ones that answer, amend or build on it. Before `KWB-38`, 24 of 27
+relations were reachable from one side only — which is how three records came to assert things
+this repository had stopped doing.*
+
+- `OD-GATE-002`
