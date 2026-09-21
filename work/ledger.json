@@ -5871,6 +5871,11 @@
           "holder": "fable",
           "reason": "OD-GATE-002 is complete at a6b8573: the measurement, both causes, the re-attribution of the contract failures to a stale literal, and a census of the blindness class that found one latent instance in the shared source reader. KWB-108, KWB-109 and KWB-110 hold the three repairs. finish never reached the predicate because the gate's lint step is red, which is this observation's subject.",
           "abandoned_at": 1789963810
+        },
+        {
+          "holder": "fable",
+          "reason": "OD-GATE-002 is complete: the measurement, both causes, the re-attribution of the contract failures, the census of the blindness class with its one latent instance, and what came back clean. KWB-108, KWB-109 and KWB-110 hold the repairs. finish is blocked by the gate's lint step, which is this observation's own subject.",
+          "abandoned_at": 1790011398
         }
       ],
       "displaced": [],
