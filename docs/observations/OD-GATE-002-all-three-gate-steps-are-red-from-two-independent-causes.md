@@ -1,9 +1,9 @@
 ---
 id: OD-GATE-002
 type: observation
-title: All three gate steps are red from two independent causes, and the one that matters is a guard that stopped reaching its subject
+title: All three gate steps are red, and two of the three failures are guards that went stale against the tree they watch
 status: open
-version: 1
+version: 2
 authority: observation
 tags:
   - gate
@@ -13,7 +13,7 @@ relations:
     type: relates-to
 ---
 
-# All three gate steps are red from two independent causes, and the one that matters is a guard that stopped reaching its subject
+# All three gate steps are red, and two of the three failures are guards that went stale against the tree they watch
 
 `OD-GATE-001` ran every step of `gate.yml` by hand on 2026-09-13 and recorded a table in which
 all three pass. That table is the load-bearing part of its argument — *"the gap is not that the
@@ -28,24 +28,48 @@ observation's own commit.
 | Test | `cargo test --workspace --no-fail-fast` | three targets failed: `kwb-contract-tests` `boundaries`, `kwb-contract-tests` `projections`, `kwb-domain` `one_liveness` |
 | Contract | `cargo test -p kwb-contract-tests --no-fail-fast` | two targets failed: `boundaries`, `projections` |
 
-This observation exists because the table above is not one finding. It is two, they have nothing
-to do with each other, and reading the first as the whole of it would leave the second to be
-found again later.
+This observation exists because the table above is not one finding, and because the obvious
+reading of it is wrong. Four failures across three steps resolve into **one ordinary defect and
+two guards that stopped seeing the tree they watch** — and the two guards went blind in the same
+commit, to the same structural sweep, by two different mechanisms.
 
-## Cause one: a crate joined the workspace and the job was not finished
+## Cause one: a crate's own source, and a path literal that did not learn about it
 
 `tests/guards` became a workspace member at `386a432`, on 2026-09-15 — two days after
-`OD-GATE-001`'s table was measured. It arrived without a band in its manifest and without a row
-in `README.md`'s table, and its own source trips three findings the workspace sets to warn at
-clippy's pedantic level and the gate raises to deny: `missing_panics_doc` on `Crate_Sources`,
-and `must_use_candidate` on `Crate_Sources` and on `Mutating_Public_Methods`.
+`OD-GATE-001`'s table was measured. Its source trips three findings the workspace sets to warn
+at clippy's pedantic level and the gate raises to deny: `missing_panics_doc` on `Crate_Sources`,
+and `must_use_candidate` on `Crate_Sources` and on `Mutating_Public_Methods`. That is the Lint
+step, and it is a straightforward defect in the crate.
 
-Three gate classes, one crate, one commit. `Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table`
-and `Test_Every_Crate_Should_Declare_Which_Band_It_Is_In` both report the same one-element list,
-`["guards"]`, which is what makes the attribution certain rather than inferred.
+**The two contract failures are not.** They read as the same defect — a crate that joined
+without a band or a README row — and they are not that at all. Reading them that way is easy
+and it is wrong, which is worth saying because getting it wrong sends the repair to `README.md`,
+where there is nothing to fix.
 
-This is the ordinary kind of breakage. It is visible the moment anything runs, it names itself,
-and it would have been caught by the first push had a push been able to run anything.
+`Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table` and
+`Test_Every_Crate_Should_Declare_Which_Band_It_Is_In` both report `["guards"]`, and both take
+their member list from `Member_Name_On` in `tests/contract/src/lib.rs`, which refuses two paths
+by literal:
+
+```rust
+if path == "tests/contract" || path == "tests/integration"
+```
+
+Its stated reason covers exactly this case — *"the two test crates are refused here [...] because
+they are a property of what a member is for this reader: `tests/contract` asserts the tables and
+`tests/integration` is its sibling, so neither is a row in one."* `tests/guards` is a third test
+crate, reached only through `dev-dependencies`, and by that reason it is not a row in the table
+either.
+
+Two things follow. `README.md` is **correct as it stands**: its bands table is projected from the
+manifests, and both tests that check the projection itself pass. And the list refuses
+`tests/integration`, which is not a workspace member and not a directory — `tests/` holds
+`contract` and `guards` and nothing else. So the literal is stale in both directions at once: it
+excludes something that does not exist and fails to exclude the thing that does.
+
+What looked like a crate arriving unfinished is a hardcoded path list that did not learn about a
+new sibling. That is a guard going stale against the tree, which is cause two's family, not this
+one's.
 
 ## Cause two: a guard reports zero and calls it a measurement
 
@@ -64,7 +88,12 @@ non-recursive `read_dir`. The top level of that directory holds four files: `epi
 The decomposition sweep that moved it is the same sweep that landed `tests/guards`. Nothing
 about the liveness rule changed; what changed is where the file sits.
 
-### Why this is the one that matters
+### Why this is the worse of the two blind guards
+
+Both went blind to the same sweep, and the difference is what each one does when blind. The path
+literal in cause one produces a **false positive**: it names a crate that is fine, loudly, and
+the failure is unmissable even though its message points at the wrong repair. This one produces
+the other kind.
 
 The guard states its own reason for existing, and it is not a style preference:
 
@@ -115,10 +144,14 @@ stopped had nothing to do with why.
 
 ## What this observation does not do
 
-It proposes no remedy and fixes nothing. `KWB-103` holds cause one's clippy third. The band and
-README row are the same cause but not the same territory — `README.md` is reserved by `KWB-101`,
-and the bands table is projected from crate manifests, so whoever holds that path fixes both by
-declaring the band and re-rendering. Cause two has no item yet.
+It proposes no remedy and fixes nothing. `KWB-103` holds the clippy findings, which are the only
+part of this that is a defect in a crate rather than in something watching one. `KWB-109` holds
+the stale path literal and `KWB-108` the non-recursive scan.
+
+`README.md` needs no change, and saying so is the point of recording this rather than leaving the
+failure to be read at face value: its bands table is projected from the manifests, and both tests
+that check that projection pass. An item pointed at `README.md` here would have edited a correct
+file to satisfy a guard that was wrong, which is how a stale guard converts into a real defect.
 
 It also does not revise `OD-GATE-001`. That table was true on 2026-09-13 and a measurement
 outlives the decision it informed; what it lacked was any way for a reader to learn it had been
