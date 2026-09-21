@@ -1,5 +1,5 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "items": [
     {
       "id": "KWB-1",
@@ -5620,6 +5620,151 @@
           "kwb-contract-tests"
         ],
         "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-102",
+      "title": "The board carried no widened field, so every ledger verb refused it",
+      "why": "OD-LEDGER-039 added LedgerItem::widened at schema 6 with no serde default, deliberately, so that a newer build meeting an older file is stopped per field rather than silently accepting a row missing it. Nomos migrated its own board in that commit and this one was not migrated, so every nomos build since 2026-09-14 refused this file outright and no work verb ran here. Nothing in this repository reported it: the only in-repo reader of the board reads it as text, so the gate stayed green on a file the tool that manages it would not parse. This item is written after the repair it records, which is the only order available, because no verb that could add an item could parse the board it would be added to.",
+      "done_when": "Every item in work/ledger.json carries a widened field, nomos work validate exits 0 against it, and stripping that field back off reproduces the previous file byte-for-byte so that nothing else changed. schema_version is not hand-edited.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "work/ledger.json"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "nomos",
+          "work",
+          "validate"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "The repair is committed at e1e9766 and nomos work validate exits 0 against the migrated board, which is this item's whole done_when. finish never reached that predicate: it runs the gate's own lint step first and that step is red at HEAD in kwb-source-guards, outside this item's territory. KWB-103 holds that failure. Re-claim and finish this once the gate is green; the work itself needs nothing further.",
+          "abandoned_at": 1789979957
+        }
+      ],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-103",
+      "title": "The gate's lint step has never executed, and the first time it ran it was red",
+      "why": "OD-GATE-001 measured six workflow runs that completed in four or five seconds with empty steps arrays, on an account billing condition, so no gate step has ever executed against this repository. nomos work finish derives its lint step from gate.yml and runs it before any item predicate, which makes it the first enforcement that step has ever had here. It exited 101 at HEAD: kwb-source-guards trips three findings the workspace sets to warn at clippy pedantic and the gate raises to deny, on Crate_Sources and Mutating_Public_Methods in tests/guards/src/lib.rs. Until that is green no item can be finished through the ledger at all, because finish refuses before it reaches a predicate. KWB-102 is the first item to hit this and its repair is already committed at e1e9766.",
+      "done_when": "cargo clippy --workspace --all-targets -- -D warnings exits 0 over the workspace. The three findings are answered in the crate's own voice rather than silenced, and any suppression carries the justification this repository already requires of one. nomos work finish then reaches an item's predicate instead of refusing before it.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/guards"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "clippy",
+          "--workspace",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-104",
+      "title": "Domain vocabulary has one semantic authority, generalizing D-011 B7 from relation algebra",
+      "why": "D-011 B7 decided that a relation's algebra belongs to its kind rather than to a registry consulted by convention, so a graph algorithm cannot receive a relation whose algebra it has not checked. That is one instance of a wider rule this repository has not stated. The prototype paid for its absence: YAML packs and hand-written IDomainModule classes each declared the same discipline, and a drift test was written to compensate for two descriptions of one thing. Deciding the rule before the first package exists costs a record; deciding it after costs a migration. D-011 Part C holds the pack format downstream, so this decides authority and names no carrier.",
+      "done_when": "A new record generalizes D-011 B7 from relation algebra to domain vocabulary: one authoritative declaration owns entity kinds, relation kinds and the rest of the declarative vocabulary, and executable validators, inference providers, extractors, projections, generated code and documentation refer to it by stable identity rather than redeclaring what they consume. It states that the carrier, serialization, package shape and loading mechanism remain undecided, and says generalizes rather than amends, because D-011's decision is unchanged. D-011 gains the reciprocal relates-to relation and a Referenced By section, with no amendment section and no version bump, and the new record carries its own Referenced By. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-017-domain-vocabulary-has-one-semantic-authority.md",
+          "docs/records/D-011-what-the-type-kernel-and-the-relation-vocabulary-must-guarantee.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-105",
+      "title": "Nothing stops executable code introducing a second authority for domain vocabulary",
+      "why": "KWB-104 states the rule and a record is not a guard. This repository proves a structural guard by injecting what it must reject rather than by a green run over the current corpus, which is why the relation reader is exercised against a synthetic D-900 rather than trusted because the real records happen to pass. A vocabulary guard written before the first domain package exists would otherwise pass over an empty set and report a protection nobody has, which is the shape D-011 B5 refuses: a default that reports success until somebody remembers to say otherwise is not an unfinished feature, it is a false one. What this guard proves today is not that the package system has one authority. It is that the mechanism which will enforce that invariant is non-vacuous before there is anything for it to judge.",
+      "done_when": "tests/contract carries a guard that fails when code references a vocabulary identity nothing declares, and fails when a second independent authority for the same vocabulary is introduced. Both failures are demonstrated inside the test by synthetic fixtures, so the guard cannot pass vacuously while no domain package exists, and a reader can see which injected input produces which refusal. cargo test -p kwb-contract-tests passes.",
+      "kind": "Validation",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-104"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
       },
       "verified": null,
       "abandoned": [],
