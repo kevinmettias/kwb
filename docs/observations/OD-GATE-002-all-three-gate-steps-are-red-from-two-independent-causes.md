@@ -100,7 +100,7 @@ The guard states its own reason for existing, and it is not a style preference:
 > The prototype had the rule in four places — a Postgres global query filter, an in-memory
 > repository, a JSON repository and a partial unique index — and the providers came to disagree
 > about which concepts exist.
-
+>
 > `IX_Concepts_CanonicalName_Unique_Active` was created filtering only on
 > `Status <> 'Deprecated'` and corrected three weeks later to also filter on
 > `ValidUntil IS NULL`. **For three weeks the index enforced half the rule while the code
@@ -115,6 +115,38 @@ defensive — it would have passed, silently, for as long as the file stayed whe
 `OD-GATE-001` named this shape in its closing paragraph, as an analogy for the gate itself:
 *"the same shape as a guard whose probe never reached its subject, and the reason that shape
 keeps earning its own items on this board."* It is no longer an analogy.
+
+## What else was checked, and the one latent instance it found
+
+Two guards blinded by one sweep is a class, not a coincidence, so the class was censused rather
+than left for the next accident to find. Both mechanisms were searched across the workspace on
+2026-09-21.
+
+**Path literals selecting what a guard looks at.** One, and it is the one above. No other test
+compares a path against `tests/…` or `crates/…` by literal.
+
+**Non-recursive `read_dir` over a source tree.** Beyond the liveness guard's own copy, one:
+`kwb_source_guards::Crate_Sources`, the shared reader, which takes a crate's manifest directory
+and reads `src` at a single level. Two guards are built on it — `kwb-store`'s one-door test and
+`kwb-retrieval`'s read-only test — and both pair it with `Mutating_Public_Methods` to assert that
+**no** public method takes `&mut self`.
+
+Both of those crates' `src` directories are flat today, so neither guard is currently blind. This
+is a hazard rather than a failure, and it is recorded because it is the dangerous polarity of the
+same defect:
+
+| guard | asserts | what partial blindness does |
+|---|---|---|
+| liveness | the count is exactly one | fails loudly, as it did |
+| one door, read only | the count is zero | **passes** |
+
+The reader does carry a floor — `assert!(!sources.is_empty(), "no sources were scanned, so this
+test proves nothing")` — and that floor catches a scan that found *nothing*. It cannot catch a
+scan that found the top level and missed a subdirectory, which is exactly what a file split
+produces, and `kwb-domain`, `kwb-ingest` and others already hold subdirectories under `src`. The
+arrangement this reader assumes is one the workspace has already stopped keeping.
+
+`KWB-110` holds it.
 
 ## How long, and what was running in the meantime
 
