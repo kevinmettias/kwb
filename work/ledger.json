@@ -5731,7 +5731,13 @@
         "timeout_seconds": 1800
       },
       "verified": null,
-      "abandoned": [],
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "D-017 is written and committed at 5630996, with D-011's reciprocal relation and Referenced By section, no amendment and no version bump. The item's predicate was run by hand and every record guard passes; the two failures in kwb-contract-tests are one pre-existing cause in tests/guards, which declares no band and has no README row. finish never reached the predicate because the gate's lint step is red at HEAD, which KWB-103 holds. Re-claim and finish once the gate is green; the record itself needs nothing further.",
+          "abandoned_at": 1789980249
+        }
+      ],
       "displaced": [],
       "declined": null,
       "widened": []
