@@ -5777,6 +5777,129 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "KWB-106",
+      "title": "OD-GATE-001 measured the gate green by hand, and it went red two days later with nothing to report it",
+      "why": "OD-GATE-001 ran all three gate.yml steps by hand on Linux and recorded a table in which Lint is clean, Test is 210 passed, and Contract exits 0. Its argument rests on that table: the gap is not that the gate is wrong, run by hand it is green, the gap is that a file has been standing in for a check. Two days later 386a432 made tests/guards a workspace member without a band or a README row, and the crate also trips three pedantic findings the gate raises to deny. Lint and Contract have both been red since, so the table now reads as current and is false. Thirty-three commits landed after it while the suite was red, and none of them went through the ledger: the last revision the board records as verified is d034196, forty-two commits back. This is the mechanism OD-GATE-001 named, producing its first casualty rather than describing a risk.",
+      "done_when": "A new observation records what is red at HEAD, the commit and date the breakage entered, that a single crate is the cause of all three gate classes, and the count of commits that landed after it outside the ledger. OD-GATE-001 gains the reciprocal relation and a Referenced By section so that a reader of its table reaches the measurement that supersedes it, and its own version does not move, because nothing in it was wrong when it was written. cargo test -p kwb-contract-tests passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/observations/OD-GATE-002-the-gate-went-red-two-days-after-it-was-measured-green.md",
+          "docs/observations/OD-GATE-001-the-gate-has-never-run-and-as-configured-it-cannot.md"
+        ],
+        "patterns": []
+      },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by KWB-107, which states the finding the measurement actually supports: two independent causes, and the more instructive one is a guard that stopped reaching its subject rather than a crate that joined the workspace unfinished."
+        }
+      },
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "Measurement falsified this item's own done_when before any of it was written. It asserts that a single crate is the cause of all three gate classes. Running the Test step found a third, independent failure: kwb-domain's Test_The_Crate_Should_Define_Liveness_Exactly_Once reports 0 definitions where it requires 1, because its Crate_Sources reads only the top level of src by a non-recursive read_dir and the decomposition sweep moved Is_Current into src/epistemic/standing.rs. Two causes, not one. Re-authored as KWB-107.",
+          "abandoned_at": 1789980654
+        }
+      ],
+      "displaced": [],
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1789980654
+      },
+      "widened": []
+    },
+    {
+      "id": "KWB-107",
+      "title": "All three gate steps are red, from two independent causes, and one of them is a guard that stopped reaching its subject",
+      "why": "OD-GATE-001 ran all three gate.yml steps by hand on Linux on 2026-09-13 and recorded a table in which Lint is clean, Test is 210 passed and Contract exits 0. Its argument rests on that table: the gap is not that the gate is wrong, run by hand it is green, the gap is that a file has been standing in for a check. All three steps are red at HEAD, measured 2026-09-21, and the table now reads as current while being false. Two causes, not one. First, tests/guards joined the workspace at 386a432 on 2026-09-15 with no band and no README row, and its own source trips three pedantic findings the gate raises to deny. Second, and worse, kwb-domain's liveness guard reports 0 definitions where it requires 1: its Crate_Sources reads only the top level of src by a non-recursive read_dir, and the decomposition sweep moved Is_Current into src/epistemic/standing.rs, out of its view. That guard exists because the prototype kept the liveness rule in four places and an index enforced half of it for three weeks while nothing failed. It now counts zero copies of the rule it was built to protect, and the only reason anybody knows is that it asserts exactly one rather than at most one. Thirty-three commits landed after 386a432 while the suite was red, and the last revision the board records as verified is d034196, forty-two commits back.",
+      "done_when": "A new observation records what is red at HEAD step by step, both causes separately, the commit and date the first entered, and the count of commits that landed after it outside the ledger. It states which of the two is the more serious and why: a crate joining unfinished is visible the moment anything runs, and a probe that no longer reaches its subject reports success in the shape of a number nobody reads. OD-GATE-001 gains the reciprocal relation and a Referenced By section so a reader of its table reaches the measurement that supersedes it, and its version does not move, because nothing in it was wrong when it was written. cargo test -p kwb-contract-tests passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/observations/OD-GATE-002-all-three-gate-steps-are-red-from-two-independent-causes.md",
+          "docs/observations/OD-GATE-001-the-gate-has-never-run-and-as-configured-it-cannot.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [
+        {
+          "holder": "fable",
+          "reason": "OD-GATE-002 is written and committed at aaecdd4, with OD-GATE-001's reciprocal relation and Referenced By section and no version bump. Every document guard passes; the two remaining contract failures are cause one itself, which KWB-103 and the README holder own. finish never reached the predicate because the gate's lint step is red at HEAD, which is the subject of this observation. Re-claim and finish once the gate is green.",
+          "abandoned_at": 1789980792
+        }
+      ],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-108",
+      "title": "The liveness guard reads one directory level and the rule it protects moved below it",
+      "why": "Test_The_Crate_Should_Define_Liveness_Exactly_Once reports 0 definitions where it requires 1. Its local Crate_Sources reads CARGO_MANIFEST_DIR/src with a single non-recursive read_dir, so it sees epistemic.rs, graph.rs, lib.rs and versioning.rs and nothing below them, and Is_Current now lives at src/epistemic/standing.rs. The guard exists because the prototype kept the liveness rule in four places and a partial unique index enforced half of it for three weeks while nothing failed. It is now enforcing none of it. The only reason this surfaced is that it asserts the count is exactly one; at most one would have passed silently for as long as the file stayed where it is, which is the more defensive-looking spelling. OD-GATE-002 records the measurement.",
+      "done_when": "The guard finds the liveness definition wherever in the crate's sources it lives, so that moving or splitting a file cannot silence it, and Test_The_Crate_Should_Define_Liveness_Exactly_Once passes against the real tree. The repair is proved in both directions inside the test: a fixture carrying a second definition still fails, and the count of real definitions is shown to come from the file that actually holds Is_Current rather than from an empty scan that happens to sum to one. cargo test -p kwb-domain passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/tests/one_liveness.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }
