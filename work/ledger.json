@@ -5861,6 +5861,11 @@
           "holder": "fable",
           "reason": "OD-GATE-002 is written and committed at aaecdd4, with OD-GATE-001's reciprocal relation and Referenced By section and no version bump. Every document guard passes; the two remaining contract failures are cause one itself, which KWB-103 and the README holder own. finish never reached the predicate because the gate's lint step is red at HEAD, which is the subject of this observation. Re-claim and finish once the gate is green.",
           "abandoned_at": 1789980792
+        },
+        {
+          "holder": "fable",
+          "reason": "OD-GATE-002 is at version 2, committed at 264c0b1. The revision re-attributed the two contract failures from an unfinished crate to a stale path literal in the member reader, which means README.md needs no change and KWB-109 now holds that repair. Every document guard passes; the two remaining contract failures are the stale literal itself. finish never reached the predicate because the gate's lint step is red, which is this observation's own subject.",
+          "abandoned_at": 1789963683
         }
       ],
       "displaced": [],
@@ -5891,6 +5896,40 @@
           "test",
           "-p",
           "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-109",
+      "title": "The member reader refuses test crates by name, and the names are stale in both directions",
+      "why": "Member_Name_On in tests/contract/src/lib.rs decides what counts as a workspace member by comparing against two path literals, tests/contract and tests/integration. tests/integration is not a workspace member and not a directory; tests/ holds contract and guards. tests/guards is a test crate reached only through dev-dependencies and is not a row in the bands table by the reader's own stated reason, but the literal does not name it, so two contract tests report it as a member missing a band and a README row. README.md is correct and its projection tests pass. The failure therefore points at a file with nothing wrong in it, which is how a stale guard turns into a real defect: the obvious repair is to edit the correct file until the wrong guard is satisfied. OD-GATE-002 records the measurement.",
+      "done_when": "The member reader decides what a member is by a property rather than by an enumeration of paths, so that a test crate added later cannot silently become a row in the bands table and a path that no longer exists cannot silently keep being refused. Test_Every_Workspace_Member_Should_Appear_In_The_Readme_Table and Test_Every_Crate_Should_Declare_Which_Band_It_Is_In both pass with README.md unchanged. The property is proved in both directions inside the test: a fixture member list carrying a test crate excludes it, and one carrying a real crate still admits it, so the rule is not satisfied by a scan that finds nothing. cargo test -p kwb-contract-tests passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/contract/src/lib.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
           "--no-fail-fast"
         ],
         "timeout_seconds": 1800
