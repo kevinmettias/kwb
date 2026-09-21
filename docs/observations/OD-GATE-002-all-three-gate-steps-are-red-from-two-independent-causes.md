@@ -148,6 +148,22 @@ arrangement this reader assumes is one the workspace has already stopped keeping
 
 `KWB-110` holds it.
 
+**What came back clean, so that it is not searched again.** The bands table's own collector,
+`Collect_Rows` in `tests/contract/tests/projections.rs`, walks directories recursively and is not
+an instance. The remaining `read_dir` sites read a store, a fixture directory or `docs/`, which
+are directories whose contents *are* the subject rather than a tree that might have grown a
+level.
+
+One adjacent conflation was found and is deliberately not an item. `Member_Name_On` returns a
+member's **directory basename** and that value is compared against a **package name** taken from
+a manifest. All twelve crates under `crates/` have a directory named exactly as the package is,
+and nothing enforces that — it holds by convention. `tests/guards` is the one place the two
+diverge, `guards` against `kwb-source-guards`, which is part of why it surfaces here at all. It
+is left unlisted because its failure mode is the safe one: a crate whose directory and package
+disagreed would be reported loudly as missing from a table it is in, not passed over. A reader
+who fixes `KWB-109` by taking each member's package name from its own manifest closes this at the
+same time, which is the reason to know about it.
+
 ## How long, and what was running in the meantime
 
 Thirty-three commits landed after `386a432` and before this was measured, with the suite red
