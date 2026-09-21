@@ -16,6 +16,8 @@ relations:
     type: relates-to
   - target: D-010
     type: relates-to
+  - target: D-017
+    type: relates-to
 ---
 
 # What the type kernel and the relation vocabulary must guarantee, for all twenty-one kinds
@@ -271,3 +273,16 @@ as the choices being disjoint, and the difference is where two packs come to dis
 the fix belongs to a vocabulary this repository has not designed. What carries across is the
 lesson — that the constraint surface was shaped by the one incident that prompted it, and so
 reached two properties out of twelve.
+
+## Referenced By
+
+
+*Written by hand, and checked by `tests/contract` in both directions: a declared relation with
+no entry here fails, and an entry here that nothing declares a relation to fails too. Either
+end may be a record or an observation, since `KWB-86`. A relation is declared in the
+frontmatter of the document that makes it; this is the other end, so that a reader of this
+record can reach the ones that answer, amend or build on it. Before `KWB-38`, 24 of 27
+relations were reachable from one side only — which is how three records came to assert things
+this repository had stopped doing.*
+
+- `D-017`
