@@ -5866,6 +5866,11 @@
           "holder": "fable",
           "reason": "OD-GATE-002 is at version 2, committed at 264c0b1. The revision re-attributed the two contract failures from an unfinished crate to a stale path literal in the member reader, which means README.md needs no change and KWB-109 now holds that repair. Every document guard passes; the two remaining contract failures are the stale literal itself. finish never reached the predicate because the gate's lint step is red, which is this observation's own subject.",
           "abandoned_at": 1789963683
+        },
+        {
+          "holder": "fable",
+          "reason": "OD-GATE-002 is complete at a6b8573: the measurement, both causes, the re-attribution of the contract failures to a stale literal, and a census of the blindness class that found one latent instance in the shared source reader. KWB-108, KWB-109 and KWB-110 hold the three repairs. finish never reached the predicate because the gate's lint step is red, which is this observation's subject.",
+          "abandoned_at": 1789963810
         }
       ],
       "displaced": [],
@@ -5930,6 +5935,39 @@
           "test",
           "-p",
           "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-110",
+      "title": "The shared source reader is non-recursive, and the two guards built on it assert an absence",
+      "why": "kwb_source_guards::Crate_Sources reads manifest_directory/src with a single non-recursive read_dir, the same shape that blinded kwb-domain's liveness guard in KWB-108. Two guards are built on it: kwb-store's one-door test and kwb-retrieval's read-only test, both of which pair it with Mutating_Public_Methods to assert that no public method takes &mut self. Measured 2026-09-21, both crates' src directories are flat, so neither guard is blind today and this is a latent hazard rather than a live failure. It is the dangerous polarity of the same defect. The liveness guard requires a count of exactly one, so losing sight of the tree made it fail loudly; these require a count of zero, so losing sight of part of the tree makes them pass. The crate's own assert that sources is not empty catches total blindness and cannot catch partial blindness, which is the case a file split produces. kwb-domain, kwb-ingest, kwb-retrieval and the rest already hold subdirectories under src, so the arrangement this reader assumes is one the workspace has already stopped keeping.",
+      "done_when": "Crate_Sources reads every .rs file under the crate's src at any depth, so that splitting a file into a subdirectory cannot narrow what a guard built on it sees. The behaviour is proved by a fixture tree carrying a source below the top level, which the reader must return and which a non-recursive read would miss, so the test fails if the recursion is removed. kwb-store's one-door test and kwb-retrieval's read-only test still pass and still fail when given a mutating method. This shares tests/guards/src/lib.rs with KWB-103, whose clippy findings sit on the very functions this changes, so one holder should take both in one pass and do this one first: the panics documentation KWB-103 owes Crate_Sources describes the surface this item rewrites. cargo test --workspace passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "tests/guards/src/lib.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
           "--no-fail-fast"
         ],
         "timeout_seconds": 1800
