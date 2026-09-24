@@ -5982,6 +5982,78 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "KWB-111",
+      "title": "Normalize_Text deletes a line break standing alone between two words, so a reflowed line is an edit after all",
+      "why": "Fold_Character asks is_control before is_whitespace. A line feed, a tab, a carriage return and U+0085 are both, so they are deleted rather than collapsed: measured 2026-09-24 by running kwb-model, Normalize_Text(\"a\\nb\\tc\\r\\nd\") returns \"abcd\". That contradicts the function's own contract (a reflowed line, a changed line ending, or a model that indents differently is not an edit) and fuses two words into one token, so two readings of one sentence that differ only in where a line broke derive two claim identities. Test_Reflowed_Text_Should_Not_Change_Identity passes on the defect because its fixture's line break is followed by two spaces, which supply the run the deleted break should have. XVPE's xvpe-content-identity, generalized from this crate byte for byte on 2026-09-24, asks whitespace first; the seven identities it pins agree with this crate because none of their inputs holds control-class whitespace standing alone. No stored identity moves: every stored text is already a normalizer output, which holds no control character and no doubled space, and the corrected function returns such text unchanged, so every published log replays to the same addresses. What changes is only a future admission of raw text with a lone line break, which will now derive the identity its reflowed twin always had.",
+      "done_when": "Fold_Character asks is_whitespace before is_control, so every Unicode White_Space character including U+0009-U+000D and U+0085 joins the pending run, and every other control character, the unit separator among them, is still removed. A test normalizes \"a\\nb\", \"a\\tb\", \"a\\r\\nb\" and \"a\\u{85}b\" to \"a b\", and was shown to fail with the two checks put back in their present order. Test_Reflowed_Text_Should_Not_Change_Identity gains a case whose line break has no neighbouring space. A test asserts Normalize_Text is the identity function on its own output for every input the crate's tests use, which is the argument that no stored identity moves. Test_Normalize_Should_Strip_Control_Characters and the field-boundary forgery test pass unmodified. Forbidden: folding case; adding any normalization beyond the order of the two checks; rewriting, re-deriving or migrating any stored record; merging an identity derived before the fix with one derived after it, which would be a merge on a resemblance D17 says needs evidence. cargo test --workspace passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-model/src/derivation.rs",
+          "crates/kernel/kwb-model/src/tests.rs",
+          "crates/kernel/kwb-model/tests/derivation.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-112",
+      "title": "kwb-mcp names five tools and speaks no protocol, while the adopted XVPE revision already ships the MCP handshake",
+      "why": "kwb-mcp is an MCP host that prints 'No transport is wired': its tools are reachable only as command-line arguments, so no agent can call them, which is the only reason an MCP host exists. At the revision kwb-platform-xvpe already pins (8ff98a8fd), and unchanged since, XVPE ships xvpe-remote-call (ToolCatalogStrategy, ToolDescriptor, ToolAnswer) and xvpe-remote-call-backend-json (Serve_Tools: line-framed JSON-RPC 2.0 with initialize, tools/list, tools/call and ping, protocol version 2024-11-05). Nomos's nomos-mcp serves its own catalogue exactly this way, ported down on 2026-09-10 so that no product writes the handshake twice. Under D-135 protocol code with no knowledge semantics is XVPE's, and under the ecosystem-substrate placement rule (f:/repos/xvpe/docs/plans/programs/ecosystem-substrate) a product keeps its catalogue and adopts the wire. The cost is measurable and is not zero: the JSON backend depends on serde and serde_json, so the Cargo.lock closure grows, and D-007's amendment says the closure is what an adoption is measured against.",
+      "done_when": "kwb-platform-xvpe adopts xvpe-remote-call and xvpe-remote-call-backend-json at the same rev as its other four crates, so the single-rev guard in tests/contract holds, and re-exports only what kwb-mcp uses. kwb-mcp implements ToolCatalogStrategy over the existing TOOLS registry: every descriptor's name and sentence is projected from TOOLS rather than restated, and every call is answered by the same Answer_Tool_Call the command-line path uses, so the two surfaces cannot disagree about what a tool says. kwb-mcp serves over stdio through Serve_Tools when asked to, and its existing command-line form keeps working. A test drives initialize, tools/list and tools/call over in-memory lines and asserts tools/list names exactly the tools in TOOLS and a call's text equals what the command line prints for the same tool and store. kwb-retrieval's read-only test passes unmodified. The packages the closure gained are listed in a D-007 amendment. Forbidden: a second tool registry beside TOOLS; any tool with a write path; naming an XVPE crate anywhere but kwb-platform-xvpe; a path dependency on XVPE; moving the rev. cargo test --workspace passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-mcp",
+          "crates/platform/kwb-platform-xvpe",
+          "Cargo.toml",
+          "Cargo.lock",
+          "docs/records/D-007-no-path-dependency-on-xvpe-and-the-reason-is-not-that-xvpe-is-broken.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }
