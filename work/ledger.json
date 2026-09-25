@@ -6139,6 +6139,41 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "KWB-115",
+      "title": "A visitor to the GitHub repository cannot tell what KWB is for, because the page GitHub shows is the workspace authority written for agents",
+      "why": "The owner asked for the repository to be presentable to recruiters and other visitors, who should come away knowing the goals of the project. The root README.md is the authority AGENTS.md routes to for what exists, its tables are generated and checked by tests/contract, and it opens with record identifiers a visitor cannot use; rewriting it for visitors would weaken that authority or copy it. GitHub shows .github/README.md in preference to the root README.md, so a visitor page can live there and leave README.md exactly as it is. The page is prose about what KWB means and is for, which is the design phase: it was authored at docs/github-landing-page.md in the commit that added this item. Placing it at .github/README.md is outside the design phase write territory, and that placement is all this item is.",
+      "done_when": "The file .github/README.md exists and is byte-identical to docs/github-landing-page.md as committed alongside this item, renamed there through git so the draft no longer exists and its history follows it. No other file changes: README.md, AGENTS.md, docs/records and every crate are untouched. The predicate resolves every relative link and repository path the page cites from its new location. Forbidden: rewording, re-wrapping or reformatting any line of the page (a content change is a design question and goes back to the design phase as a new item); editing README.md; adding a route to the page in AGENTS.md; creating a directory under docs. The predicate deliberately reaches nothing in tests/contract, because no test reads .github/README.md; the loose file under docs is not a directory, so the docs-directory routing guard never saw it and does not see its removal.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          ".github/README.md",
+          "docs/github-landing-page.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "C:/Users/kmett/.claude/tools/doc-ref-check/doc-ref-check.exe",
+          "-repo",
+          ".",
+          "-docs",
+          ".github"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }
