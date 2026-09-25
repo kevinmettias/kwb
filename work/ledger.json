@@ -6054,6 +6054,91 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "KWB-113",
+      "title": "Move the XVPE pin from 8ff98a8fd to c700bcf83, measured to change nothing this workspace compiles or resolves, and carrying the content identity kwb-model was generalized into",
+      "why": "D-018 decides the adoption this prepares and holds the measurement below. kwb-platform-xvpe pins four XVPE crates at 8ff98a8fd. XVPE's origin/dev stands at c700bcf83, which carries xvpe-content-identity (since 73f6de03f): kwb-model's derivation, generalized into XVPE's foundations on 2026-09-24, reproducing seven identities this repository published through two independent SHA-256 implementations. Every adoption that follows needs that revision (KWB-114 first), and a bump taken on its own is the one whose effect reads cleanly: D-007's amendment says a bump is measured against the Cargo.lock closure, not the crates the manifest names. Measured 2026-09-24 on a copy of HEAD 4b14f8f exported with git archive, all four pins moved to c700bcf83: the workspace compiles with no source change; Cargo.lock resolves the same 56 packages, none gained, lost or re-versioned; cargo test --workspace passes 436 and fails 3 (one_liveness, the README member table, the band declaration) -- the same 3 that fail in an unbumped copy of the same export, so none is the bump's; the board already carries a red gate as KWB-107 through KWB-110. KWB-112 forbids moving the rev inside its own scope and edits the same manifest, so this follows it.",
+      "done_when": "Every XVPE dependency in kwb-platform-xvpe, including any KWB-112 added, pins rev c700bcf83, so Test_Every_Xvpe_Dependency_Should_Pin_The_Same_Commit holds at the new commit. Cargo.lock's package set, compared by name and version, is the one it had before the bump, which is what D-018 measured; a set that differs is a stop, reported with every package gained, lost or re-versioned, because it means D-018 is wrong and amending it is not this item's decision. No source file changes. cargo test --workspace passes; this item depends on KWB-108 and KWB-109 because the three tests red at HEAD 4b14f8f are theirs, and it must not be the one that turns them green. Forbidden: adopting any XVPE crate not already adopted; a path dependency; a rev other than c700bcf83, since a later one needs its own measurement; editing anything but kwb-platform-xvpe's manifest and Cargo.lock.",
+      "kind": "Cleanup",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe/Cargo.toml",
+          "Cargo.lock"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-108",
+        "KWB-109",
+        "KWB-112"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-114",
+      "title": "kwb-model derives through XVPE's content identity, so one derivation and one normalizer serve both products, and the refusal SHA-256 owes is surfaced rather than wrapped",
+      "why": "D-018 decides this item and holds what was measured. kwb-model's Derivation, ContentIdentity, Exclusion, Sealed, IdentityError and Normalize_Text were generalized into XVPE's xvpe-content-identity on 2026-09-24, which reproduces seven identities this repository published through two independent SHA-256 implementations. Two copies of one derivation drift, and KWB-111 is that drift already measured: the normalizer here deletes a lone line break XVPE's collapses. Under D-135 an identity scheme carries no knowledge semantics -- its definition never mentions a claim, a concept or a source -- so the scheme is XVPE's, and the kinds and fields this repository derives under it stay here. Measured 2026-09-24 against XVPE c700bcf83: the public surfaces match name for name -- the same items, the same methods, IdentityError with the same two variants, the same 64-character lowercase rendering, so a KnowledgeReferenceId (Nomos D-137) keeps its value and its shape; no crate here names Derivation as a type. One difference decides this item's size. XVPE's Seal returns Result<Sealed, InputTooLong>, because SHA-256 is defined only for messages under 2^64 bits and a streaming derivation can be fed past that; kwb-model's Seal returns Sealed, and past that bound sha2 wraps the length, which would give two different inputs one identity. This repository denies panic paths, so the refusal can only be propagated: Claim::About, Concept::Named, Assertion::By and kwb-store's Document::Of seal, and 51 files across eight crates call them or Seal (23 production call sites of the four constructors, about 209 in tests). Adopting xvpe-content-identity into kwb-platform-xvpe adds exactly two packages to Cargo.lock at c700bcf83 -- xvpe-content-identity and xvpe-algorithms-hashing; everything beneath them already arrives through xvpe-collections-persistent -- and sha2, which only kwb-model uses, leaves.",
+      "done_when": "kwb-platform-xvpe adopts xvpe-content-identity at the rev its other XVPE crates pin, behind a cargo feature that enables that crate and nothing else, while every XVPE crate it already adopts moves behind its default features so each existing consumer keeps what it has. kwb-model depends on kwb-platform-xvpe with default features off and that one feature on, so its own closure gains no clock, inference, chunker or persistent map, and it keeps every public name it has -- Derivation, ContentIdentity, Exclusion, Sealed, IdentityError, Normalize_Text, IDENTITY_BYTES, IDENTITY_CHARACTERS -- as re-exports of XVPE's, plus InputTooLong; it holds no SHA-256, normalizer or derivation of its own, and sha2 leaves both its manifest and the workspace's. InputTooLong is propagated: Claim::About, Concept::Named, Assertion::By and Document::Of return Result, and each production caller passes it with ? to the nearest function that already returns a Result, giving any function between them a Result where it has none; a test builds its fixtures through a helper that expects with a named message. No pinned identity changes: no hex string, fixture log or golden file is edited, and Test_Replay_Records_Should_Hold_What_The_Original_Held and KWB-111's tests pass unmodified. Cargo.lock gains exactly the two packages D-018 measured and loses sha2 with whatever only sha2 brought; a different delta is a stop, reported with the packages, because it means D-018 is wrong. cargo test --workspace passes. Forbidden: unwrap, expect or panic outside tests to discharge InputTooLong; a sentinel, zero or wrapped identity for an over-long input; any change to what an identity renders as; a second derivation or normalizer left beside XVPE's; naming an XVPE crate anywhere but kwb-platform-xvpe; a path dependency; moving the rev.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-model",
+          "crates/kernel/kwb-store",
+          "crates/domain/kwb-domain",
+          "crates/ingestion/kwb-ingest",
+          "crates/ingestion/kwb-extract",
+          "crates/retrieval/kwb-retrieval",
+          "crates/host/kwb-cli",
+          "crates/host/kwb-mcp",
+          "crates/platform/kwb-platform-xvpe",
+          "Cargo.toml",
+          "Cargo.lock",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-111",
+        "KWB-113"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }
