@@ -6174,6 +6174,46 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "KWB-116",
+      "title": "The publication log keeps its lines through XVPE's record log, and a torn last line is refused instead of replayed as a publication nobody made",
+      "why": "D-019 decides this and holds the clause-by-clause measurement. kwb-platform-std's FileRecordLog is the donor of xvpe-record-log and still keeps its own std::fs copy, so the two drift: at c700bcf83 XVPE's log refuses an empty record and a line break where this one trusts the domain, and reports a last line with no terminator as a torn tail where this one returns it as a record. That last difference is a defect here, not a style: Records() hands the fragment to Replay_Records, and a line cut inside its trailing field still parses -- as a different time, or at the untimed arity with a shortened last field (record_time.rs Timestamped_Fields) -- so a crash mid-append publishes something nobody published. Bytes already on disk are compatible: both sides write record plus LF, skip a blank line and drop a CR before the terminator. Measured 2026-09-25 at c700bcf83: adopting the log adds exactly xvpe-record-log, xvpe-file-system and xvpe-file-system-backend-system, none third-party, all at the rev kwb-platform-xvpe already pins. The store half is not this item: XVPE's store counted a directory as held until a fix XVPE made the same day, and it needs its own pin move once that fix is published (D-019).",
+      "done_when": "kwb-platform-xvpe adopts xvpe-record-log, xvpe-file-system and xvpe-file-system-backend-system at the rev its other XVPE crates pin, behind one cargo feature that enables those three and nothing else, not among its defaults; kwb-platform-std depends on kwb-platform-xvpe with default features off and that feature on, so its closure gains no clock, inference, chunker or persistent map. kwb-platform-std's FileRecordLog keeps its name, At(path) -> Result<Self, StorageError> and its RecordLogStrategy impl, and keeps its lines through xvpe-record-log's FileRecordLog over the system file system; no std::fs, OpenOptions, BufReader or writeln! remains in file_record_log.rs. At still creates the log's directory and an empty file, through the injected file system rather than std::fs, so a store root holds publications.log after At exactly as it does today. Every XVPE refusal maps to StorageError::Refused with a doing that names the operation; a refusal kind XVPE adds later maps to Refused too, never a panic. The five tests in kwb-platform-std/tests/file_record_log.rs pass unmodified. New tests there, each written to fail first against the std::fs implementation where it can: a log whose last line lacks its terminator makes Records() Refused, and the refusal's text names how many complete records precede the fragment; Append of a record holding a line feed or a carriage return is Refused and leaves the file's bytes unchanged; a log file written byte for byte as today's implementation writes it, plus a CRLF-terminated line and a blank line, reads back the records today's implementation reads. Cargo.lock gains exactly those three packages and nothing else; a different delta is a stop, reported with the packages, because it means D-019's measurement is wrong. README.md's band and dependency statements match the new same-band edge. cargo test --workspace passes. Forbidden: XVPE's Close_Torn_Tail, or any other way of terminating, keeping or dropping a torn tail, since D-019 leaves repair undecided; mapping a torn tail to Ok; naming an xvpe_ crate anywhere but kwb-platform-xvpe; behaviour in kwb-platform-xvpe beyond re-exports; changing kwb-platform's RecordLogStrategy or StorageError; moving the log's path or file name; editing a test outside kwb-platform-std/tests/file_record_log.rs; unwrap, expect or panic outside tests; a path dependency; moving the rev; adopting xvpe-content-store, which is the store half's own item.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/platform/kwb-platform-std/Cargo.toml",
+          "crates/platform/kwb-platform-std/src/file_record_log.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log.rs",
+          "Cargo.lock",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-114"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }

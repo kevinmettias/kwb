@@ -328,3 +328,4 @@ relations were reachable from one side only — which is how three records came 
 this repository had stopped doing.*
 
 - `D-015`
+- `D-019`
