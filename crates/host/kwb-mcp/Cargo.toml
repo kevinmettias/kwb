@@ -1,0 +1,53 @@
+[package]
+name = "kwb-mcp"
+version = "0.1.0"
+description = "The MCP host: the read-only tool surface an agent speaks to."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# A library as well as a binary, so the tool surface can be tested. A dispatcher
+# nothing could call from a test would be a surface whose promise is unchecked,
+# which is the defect it exists to prevent.
+# The band this crate sits in, which decides which bands it may depend on. Read by
+# `tests/contract`, which projects `README.md`'s bands table from these rather than from a
+# second list -- `KWB-75`. Cargo ignores `package.metadata`; it is the place a manifest
+# offers for exactly this.
+[package.metadata.kwb]
+band = "10"
+
+[lib]
+name = "kwb_mcp"
+path = "src/lib.rs"
+
+[[bin]]
+name = "kwb-mcp"
+path = "src/main.rs"
+
+[dependencies]
+# A read-only surface names the read-only query types and nothing that can write.
+kwb-domain = { workspace = true }
+kwb-platform = { workspace = true }
+kwb-platform-std = { workspace = true }
+kwb-retrieval = { workspace = true }
+
+# The catalogue seam and the line framing that serves it, reached through the one crate
+# permitted to name XVPE. This crate names none: `KWB-112` puts the wire in XVPE under
+# `D-135` and keeps the tool list here, which is `D-012`'s split stated one layer up.
+kwb-platform-xvpe = { workspace = true }
+
+# Reading this crate's own tool arguments, and nothing else.
+#
+# The seam above hands a catalogue JSON *text* -- deliberately, so the layer that routes a
+# call carries no document model -- and the catalogue is the only thing that knows what its
+# tools take. So the decoding happens here, in the one place that can be wrong about it, and
+# it is one optional string field rather than a schema-shaped type.
+#
+# It is also what makes the tool arguments real: without a reader, the five tools would be
+# reachable over stdio and answer `{}` or `{"argument":"..."}` as a search query, so the
+# transport would exist and reach nothing. `KWB-112` is where that was found.
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

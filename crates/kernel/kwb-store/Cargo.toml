@@ -1,0 +1,31 @@
+[package]
+name = "kwb-store"
+version = "0.1.0"
+description = "The content-addressed document store; one write door."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# The band this crate sits in, which decides which bands it may depend on. Read by
+# `tests/contract`, which projects `README.md`'s bands table from these rather than from a
+# second list -- `KWB-75`. Cargo ignores `package.metadata`; it is the place a manifest
+# offers for exactly this.
+[package.metadata.kwb]
+band = "1"
+
+[dependencies]
+kwb-model.workspace = true
+# The durable seam D-014 decided. The store names the port, never an implementation.
+kwb-platform.workspace = true
+
+# An implementation of the port, for tests only. The crate itself names the port and
+# never an implementation -- choosing one is a composition root's job.
+[dev-dependencies]
+kwb-platform-std.workspace = true
+# Reading this crate's own source, for the one-write-door guard. A dev-dependency, so the crate
+# itself still declares no edge it does not use.
+kwb-source-guards.workspace = true
+
+[lints]
+workspace = true

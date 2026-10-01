@@ -1,0 +1,63 @@
+//! The epistemic reasoning surface.
+//!
+//! One crate for claims, concepts, argumentation, evidence, coverage and the derivation
+//! ledger, mirroring the .NET prototype's single `Domain` project rather than
+//! pre-splitting along lines nothing has yet grown into. The prototype's own shared
+//! shape — every reasoning node carries its sources, its chunks, what it was derived
+//! from, a confidence, and a review state — is read as the actual invariant worth
+//! keeping, not the C# interfaces (`IEpistemicNode`, `IEdge`) that expressed it.
+//!
+//! The universal type kernel — a discipline-neutral type and relation hierarchy that
+//! domain packs specialize — is this crate's first real design question, and `D-011`
+//! states what it has to guarantee before anything here declares a type. Read that
+//! record first. It is requirements rather than a vocabulary, deliberately: `D-004`
+//! holds the kernel because the prototype's evidence for it is thin, while listing the
+//! relation algebra as operationally validated, so the two halves are not equally safe
+//! to build on and `D-011` says which is which.
+//!
+//! Three things from it are worth knowing before reading any further into this crate.
+//! The relation vocabulary has **twenty-one** kinds, not the nine discovery
+//! discriminations a plan is tempted to name. They are **not** mutually exclusive, so
+//! something has to decide which one wins when several fit. And a universal kind can
+//! currently commit its specializations on three of the algebra's twelve properties,
+//! which is why `D-011` asks for a constraint surface that reaches all of them — the
+//! missing one that matters most is that transitivity can be forbidden and cannot be
+//! required, so the property that makes `Identity` safe to feed to a union-find is the
+//! one the vocabulary cannot assert.
+//!
+//! # What is here now
+//!
+//! `KWB-4`: [`Concept`], [`Claim`] and [`Coverage`]. `KWB-23`: [`Assertion`] and
+//! [`Scope`], which are where a source and a domain attach — a claim has neither, and
+//! `D-010` is why. `KWB-24`: [`Standing`] and [`KnowledgeGraph`], where state
+//! lives and where the **one** liveness expression is applied.
+//!
+//! The two reads off a graph — [`CurrentKnowledge`] and [`EveryVersion`] — are different
+//! types rather than one type with a flag, because `D19-B` is what a forgettable filter
+//! costs. `KWB-25` connects `kwb-ingest` to it, so admission's output reaches something. The first two rest on `kwb-model`'s
+//! identity and on its two exclusions; the third is the anti-data-loss primitive the
+//! admission pipeline cannot be built safely without, which is why it comes before `KWB-5`
+//! rather than with it.
+//!
+//! Nothing else is implemented yet, and the universal kernel above is deliberately not.
+
+#![forbid(unsafe_code)]
+
+mod epistemic;
+mod graph;
+mod versioning;
+
+pub use epistemic::assertion::Assertion;
+pub use epistemic::claim::Claim;
+pub use epistemic::concept::Concept;
+pub use epistemic::coverage::Coverage;
+pub use epistemic::scope::Scope;
+pub use epistemic::standing::Standing;
+pub use graph::knowledge_graph::KnowledgeGraph;
+pub use graph::publication::Publication;
+pub use graph::publication::Replay_Records;
+pub use graph::replay_error::ReplayError;
+pub use versioning::current_knowledge::CurrentKnowledge;
+pub use versioning::every_version::EveryVersion;
+pub use versioning::record_time::Published_At;
+pub use versioning::versioned::Versioned;

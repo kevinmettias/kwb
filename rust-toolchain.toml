@@ -1,0 +1,22 @@
+# Pinned to the floor this workspace is measured on rather than to a floating channel name,
+# matching how `D-007` pins the commit of every crate it adopts: reproducibility that depends on
+# whatever rustup happened to default to on a given machine is not reproducibility. `D-016`
+# records the decision and the alternatives it refused.
+#
+# 1.87.0 is the first version that builds this workspace at all. 1.85.0 and 1.86.0 fail, and the
+# floor is imported rather than set here — `kwb-contracts`, `kwb-model` and `kwb-platform` still
+# compile on 1.85, and what raises it is `xvpe-collections-map`, reached through
+# `kwb-platform-xvpe`, using `integer_sign_cast`. `KWB-90` measured that and corrected the
+# `rust-version` this file now agrees with. It moves when that pin moves.
+#
+# Measured green on 1.87.0, 1.88.0 and 1.98.0: `cargo clippy --workspace --all-targets --
+# -D warnings` clean and 210 tests passing on each.
+#
+# `rustfmt` is deliberately absent from `components`, and its absence is the point rather than an
+# oversight. `cargo fmt --all --check` reports 864 sites where stable rustfmt collapses this
+# workspace's Allman braces; there is no `rustfmt.toml` here to prevent it, and stable rustfmt
+# cannot express the style in any case — XVPE pins nightly for `brace_style = "AlwaysNextLine"`
+# for exactly this reason. The gate needs `clippy`. Nothing here needs `rustfmt`.
+[toolchain]
+channel = "1.87.0"
+components = ["clippy"]

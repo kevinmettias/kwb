@@ -1,0 +1,109 @@
+[package]
+name = "kwb-platform-xvpe"
+version = "0.1.0"
+description = "The one crate permitted to name XVPE. Adopts the persistent map, the wall clock, the passage splitter and the inference surface, each by git reference and commit SHA. `D-007`, `D-012`."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# The only XVPE edge in this workspace, and it is a git reference pinned to a
+# commit. `D-007` is why it is not a `path`: a path edge binds this repository's
+# reproducibility to another repository's working tree, and that tree moved by
+# five crates in a day -- drift the caller never touched, which defeated a
+# deterministic replay inside XVPE itself. A commit SHA is the difference
+# between adopting a body of work and adopting whatever that work becomes.
+#
+# `D-012` is why it is this crate: persistent structures return a new version
+# that shares most of its nodes with the previous one, and the old version stays
+# valid and independently queryable. That is what makes a which-world read a
+# matter of which value you hold rather than a filter you could forget.
+#
+# Bumping the `rev` is a decision, not maintenance. What changed between two
+# commits of another repository is exactly what a pinned dependency exists to
+# make visible.
+# The band this crate sits in, which decides which bands it may depend on. Read by
+# `tests/contract`, which projects `README.md`'s bands table from these rather than from a
+# second list -- `KWB-75`. Cargo ignores `package.metadata`; it is the place a manifest
+# offers for exactly this.
+[package.metadata.kwb]
+band = "1p"
+
+# The persistent map and vector `D-012` adopts, and the only edge in this file that changes a
+# default.
+#
+# `default-features = false` is deliberate and it is load-bearing. This crate and
+# `xvpe-collections-map` both carry `#![cfg_attr(not(feature = "std"), no_std)]`, so the setting
+# compiles them freestanding, and `xvpe-collections-map` gates `StandardHashMap` behind `std`, so
+# it also keeps a type off the surface this workspace sees. Measured at this commit by
+# `cargo tree -f "{p} [{f}]"`: all three collections crates resolve to no features at all.
+#
+# Unlike `xvpe-clock` below, nothing protects it. That setting is guarded by construction --
+# `pub use xvpe_clock::HostedWallClock as SystemClock` in `src/lib.rs` stops compiling the moment
+# the clock's defaults go off. Deleting this line compiles cleanly, turns `std` on and adds
+# `StandardHashMap`, and nothing here names that type, so nothing fails. The asymmetry is written
+# down because it is real, not because it is wanted: a test asserting this file contains a line it
+# is this file's job to contain would prove nothing a reader of the line does not already know.
+# `KWB-98`, and `D-007` carries the measurement.
+[dependencies.xvpe-collections-persistent]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "c700bcf83"
+default-features = false
+
+[lints]
+workspace = true
+
+# The wall clock, adopted rather than designed. `D-135`: code with no knowledge-domain
+# semantics is proposed in XVPE the first time it is written, and a clock is the clearest
+# case there is -- its definition never mentions a claim, a concept or a source. Declaring a
+# second clock port in `kwb-platform` would be a rival authority for something XVPE already
+# owns, which is the defect this repository has spent six items removing.
+#
+# `default-features` stays on, deliberately. `HostedWallClock` is behind `std`, and without it
+# this crate would adopt a port with no implementation -- measured at this commit, proved by
+# naming the types rather than by this manifest listing the crate. The cost is `web-time`,
+# which `D-012` already measured as arriving through `xvpe-clock` and accepted.
+[dependencies.xvpe-clock]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "c700bcf83"
+
+# Reading a source, and asking something about what it says. `D-135` again: neither has
+# knowledge-domain semantics -- a chunker cuts text and an inference strategy turns a question
+# into an answer, and neither definition mentions a claim, a concept or a source. `KWB-59`
+# measured both at this commit and proved them by naming a type from each; zero third-party
+# packages enter, and neither crate carries a provider, which is what makes the quarantine the
+# extractor sits behind separable rather than aspirational.
+[dependencies.xvpe-corpus-text]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "c700bcf83"
+
+[dependencies.xvpe-ai-inference]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "c700bcf83"
+
+# Answering a caller that did not compile against this program, and the JSON-RPC 2.0 line
+# framing that carries it. `D-135` a third time, and the clearest case of it: an envelope, a
+# correlation id, a notification rule and a tool listing are a wire format, and no part of any
+# of them mentions a claim, a concept or a source. The catalogue -- which five tools exist and
+# what each one means -- stays `kwb-mcp`'s, which is the split `KWB-112` makes and the same one
+# `D-012` records for the persistent map.
+#
+# What this edge costs is measured rather than assumed, and it is not zero: the backend is the
+# one crate in this tree entitled to parse JSON, so `serde` and `serde_json` enter the closure
+# with it. `D-007` carries the measurement and the packages it gained.
+#
+# `xvpe-primitives` is named here rather than left to arrive transitively, because `kwb-mcp`
+# implements a trait that requires naming the determinism triple's three types, and a
+# re-export of a crate this manifest does not declare would make the quarantine depend on a
+# resolution rather than on a decision.
+[dependencies.xvpe-remote-call]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "c700bcf83"
+
+[dependencies.xvpe-remote-call-backend-json]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "c700bcf83"
+
+[dependencies.xvpe-primitives]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "c700bcf83"

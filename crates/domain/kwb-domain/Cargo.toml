@@ -1,0 +1,29 @@
+[package]
+name = "kwb-domain"
+version = "0.1.0"
+description = "Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# The band this crate sits in, which decides which bands it may depend on. Read by
+# `tests/contract`, which projects `README.md`'s bands table from these rather than from a
+# second list -- `KWB-75`. Cargo ignores `package.metadata`; it is the place a manifest
+# offers for exactly this.
+[package.metadata.kwb]
+band = "2"
+
+[dependencies]
+kwb-model = { workspace = true }
+# Versioned concept state is adopted rather than written (D-012), and this is the
+# only crate in the workspace permitted to name XVPE (D-007).
+kwb-platform-xvpe = { workspace = true }
+
+# Reading this crate's own source, for the one-definition-of-liveness guard. A dev-dependency, so
+# the crate itself still declares no edge it does not use.
+[dev-dependencies]
+kwb-source-guards.workspace = true
+
+[lints]
+workspace = true

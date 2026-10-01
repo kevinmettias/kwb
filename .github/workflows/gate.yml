@@ -1,0 +1,25 @@
+# The gate. `nomos work finish` reads this file and derives the Lint step from it, so the
+# step named `Lint` must carry a bare command: the deriver splits on whitespace and refuses
+# shell metacharacters rather than reintroducing a parser between what is written and what
+# runs. Keep it one command, and keep the name exactly `Lint`.
+name: gate
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace --no-fail-fast
+
+      - name: Contract
+        run: cargo test -p kwb-contract-tests --no-fail-fast
