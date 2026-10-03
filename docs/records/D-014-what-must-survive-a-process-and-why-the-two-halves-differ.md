@@ -3,7 +3,7 @@ id: D-014
 type: decision
 title: What must survive a process, and why the two halves are not the same question
 status: accepted
-version: 4
+version: 5
 authority: canonical-normative-record
 tags:
   - storage
@@ -316,6 +316,17 @@ the demonstration.
 `KWB-96` names the general form. Nothing in this repository notices that the pin has moved, and
 until that item no record mentioned `8ff98a8fd` at all.
 
+## Amendment: The Condition Was Met By The Record Log, Not The Journal, 2026-10-03
+
+XVPE's substrate program records this record's condition as met, and XVPE named it among the
+records its placement rule contradicts. `D-026` answers it: **the condition is met, by a different
+mechanism than the one this record measured.** The condition was a write that reports failure. XVPE
+closed it with `xvpe-record-log`, whose write fails visibly, and `D-019` adopted that log for the
+publications. So the publication log is kept through XVPE, as the placement rule wants, and this
+record's refusal of `xvpe-event-journal` stands and is no longer needed: the event journal stays an
+observability record, which is what its failure contract makes it, and nothing here asks it to be
+anything else.
+
 ## Referenced By
 
 
@@ -330,3 +341,4 @@ this repository had stopped doing.*
 - `D-015`
 - `D-019`
 - `D-023`
+- `D-026`

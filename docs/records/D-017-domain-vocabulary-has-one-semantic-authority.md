@@ -3,7 +3,7 @@ id: D-017
 type: decision
 title: Domain vocabulary has one semantic authority, and executable code refers to it rather than restating it
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - domain
@@ -134,6 +134,19 @@ stays correct. This generalizes it. `D-011`'s version does not move, and the rel
 two records is `relates-to` rather than `amends`, which in this repository has one use and means
 a later decision modifying an earlier one's content.
 
+## Amendment: The Authority's Home Follows The Owner's Placement Rule, 2026-10-03
+
+This record decided that a vocabulary has one authority and named no repository for it. XVPE named
+it among the records its placement rule contradicts, and `D-026` answers: **where the authority
+lives follows the rule.** A vocabulary whose definition names no concept has its authority in XVPE,
+and this repository re-exports it through `kwb-platform-xvpe` — `D-020` did exactly that for
+`Coverage`. A vocabulary of the knowledge graph — what a source claims about a concept, at what scope,
+with what standing — has its authority here. The one-authority rule itself is unchanged.
+
+`D-026` also settles the case XVPE's claim kernel raised: its proposition, unit assertion and
+occurrence are the miners' vocabulary *beneath* this repository's claim and assertion, not a second
+declaration of them, and admission is the one mapping between the two.
+
 ## Referenced By
 
 
@@ -146,3 +159,4 @@ relations were reachable from one side only — which is how three records came 
 this repository had stopped doing.*
 
 - `D-011`
+- `D-026`

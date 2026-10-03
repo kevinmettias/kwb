@@ -3,7 +3,7 @@ id: D-004
 type: decision
 title: Observation proceeds, and a decision whose answer depends on an open reconciliation does not
 status: accepted
-version: 4
+version: 5
 authority: canonical-normative-record
 tags:
   - prototype
@@ -357,6 +357,18 @@ The entry stays *pending*, for the reason version 3 gave and this correction doe
 instrument can answer the question and has not yet answered it at scale. What changes is that
 answering it needs a run, not a bump.
 
+## Amendment: Where A Held Subject Lives Is Decided; When It Is Decided Is Not, 2026-10-03
+
+The owner's placement rule (2026-09-24, quoted in `D-026`) sends generalizable domain logic to XVPE
+and keeps knowledge-graph logic here, and XVPE named this record's held items as needing an explicit
+answer. `D-026` gives it: **the rule decides where each held subject will live once its hold lifts,
+and nothing about when.** The mechanisms whose definitions name no concept — how a unit's assertion
+is derived, corroboration's counting rule, evidence and grounding, the base adjudication verdicts —
+will be XVPE's, adopted here through `kwb-platform-xvpe`; binding a claim to a concept, standing and
+merges, the relation catalogue, the publication log and retrieval stay here. Every hold still lifts
+on this record's own revision trigger — the reference miner's measurements — and on nothing else,
+which is why the lists above are not re-sorted by this amendment.
+
 ## Alternatives Considered
 
 **Blocking all design work until both reconciliations close** was rejected: it would stop
@@ -392,3 +404,4 @@ this repository had stopped doing.*
 - `D-021`
 - `D-024`
 - `D-025`
+- `D-026`

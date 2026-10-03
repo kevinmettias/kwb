@@ -3,7 +3,7 @@ id: D-006
 type: decision
 title: A derivation declares what it was derived from, and staleness is computed rather than stored
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - derivation
@@ -241,6 +241,25 @@ not treated as an edit.
 answer *is this stale* but not *which input moved*, which is what loop step 9 needs and what
 makes a repair targeted rather than a full recompute.
 
+## Amendment: The Definition Is This Record's; A Shared Mechanism May Cache A Mark That Agrees With It, 2026-10-03
+
+XVPE named this record as contradicting Nomos's push invalidation, whose fact store writes an
+`invalidated_at` mark on each dependent. XVPE's register answers the question
+(`q-substrate-staleness-model`, answered 2026-09-24 from the owner's own design conversations, at the
+owner's request): staleness is **defined** by comparing recorded inputs — this record — and
+propagated marks are a permitted **physical strategy** that must agree with that definition. `D-026`
+takes that answer, and it narrows rule 2 rather than reversing it:
+
+- **What *stale* means is never a stored flag.** That is rule 2, and it binds the authority.
+- **A shared mechanism may cache a mark** as an execution strategy, provided a test holds the mark
+  equal to the comparison, and the comparison wins wherever they differ. Rule 2 forbade the mark
+  because a mark nothing checks falls out of step with what it describes; a mark a test holds equal
+  to the comparison does not.
+- **This repository's own implementation keeps computing on read.**
+- **Rule 6 is unchanged here**: a cycle in `derived-from` is a defect this repository's write path
+  refuses. Nomos accepts cycles among facts computed from facts (`OD-ANALYSIS-003`); that is Nomos's
+  decision about Nomos's facts, and nothing here asks it to change.
+
 ## Referenced By
 
 
@@ -254,3 +273,4 @@ this repository had stopped doing.*
 
 - `D-009`
 - `D-010`
+- `D-026`
