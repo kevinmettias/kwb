@@ -7649,6 +7649,737 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "KWB-144",
+      "title": "A closure's --because is recorded raw, so one control character in the reason makes the store unreplayable for every later command",
+      "why": "Measured 2026-10-03 at 17f82cf with the debug kwb and kwb-mcp this workspace builds, against scratch stores outside the repository; docs/corpus/core-invariant-audit.md holds the finding as F2. kwb retire entropy --store S --because <a, U+001F, b> exits 0 and appends a retirement whose reason splits into two fields; every later kwb admit and kwb history on S then exits 1 with 'the publication log cannot be replayed: not a publication record', and the store stays unusable until its log is edited by hand. A line feed in the reason does the same across two physical lines. A reason of one U+0001 is accepted as the evidence D17 requires, because closing.rs tests reason.trim().is_empty() and trim keeps control characters. The cause: closing.rs copies closing.because into the Standing unnormalized (the two because: closing.because.to_owned() sites), while publication.rs states that every text a domain type keeps is normalized, so no field a record carries holds the separator or a newline, and the record joins its fields unescaped on that guarantee. KWB-50 fixed the same shape for --scope.",
+      "done_when": "closing.rs passes --because through kwb_model::Normalize_Text before it builds the Standing, for retire and for supersede alike, records the normalized text, and refuses a reason that normalizes to nothing with exit 2 and the message an empty reason gets today. A new test file crates/host/kwb-cli/tests/closing_reason.rs drives the built binary on scratch stores whose directory names carry std::process::id(). For each of the reasons a<U+001F>b, first<LF>second, first<CR><LF>second, a<U+0085>b, <TAB>leading, and a<U+2028>b: a retire and a supersede each exit 0; kwb admit of a second file and kwb history on the same store then exit 0; and the closing record in the store's publications.log carries, as its reason field, kwb_model::Normalize_Text of the argument -- compared through the function rather than a literal, so KWB-111's change to lone line breaks does not move the test. For the reasons <U+0001> and <U+0001><U+0007>, retire and supersede exit 2 and the log's bytes are unchanged. The test was shown to fail with the normalization removed, and closing.rs was restored byte-identically. Forbidden: changing the publication record's format, field order or separator; escaping instead of normalizing; editing kwb-domain or kwb-model; repairing, migrating or rewriting a log already written; recording a reason that differs from Normalize_Text of the argument; unwrap, expect or panic outside tests. cargo test -p kwb-cli passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src/closing.rs",
+          "crates/host/kwb-cli/tests/closing_reason.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-145",
+      "title": "A closure is published without a time, so history --as-of reports a supersession as in force before it happened",
+      "why": "Measured 2026-10-03 at 17f82cf with the debug kwb and kwb-mcp this workspace builds, against scratch stores outside the repository; docs/corpus/core-invariant-audit.md holds the finding as F10. Two concepts were admitted at second T1 and one superseded into the other two seconds later. Every admission record ends in T1; the supersession record ends at its last field with no time. kwb history --as-of T1 then answers 'through 7 of 7', one concept current -- the supersession counted as in force at a moment before it was made. closing.rs appends publication.Record(None), and history.rs keeps every untimed record in an --as-of answer (Published_At(record).is_none_or(...)). KWB-64 gave publications a time so that --as-of could be asked at all; closures were left out of it.",
+      "done_when": "retire and supersede record their publication with the instant the run read from the same SystemClock kwb admit reads, so every closing record carries a time. A new test file crates/host/kwb-cli/tests/closing_time.rs drives the binary on scratch stores whose names carry std::process::id(): each closure's recorded instant lies inside the window bracketing the command, as composition_seam.rs brackets an admission's; and after an admission at one second and a supersession at a later second, kwb history --as-of the admission's second reports the superseded concept current, and --as-of the closure's second reports it closed. The test was shown to fail with Record(None) restored, and closing.rs restored byte-identically. Forbidden: changing a record's arity or field order beyond the trailing time admissions already carry; changing how history reads a log written before this item, untimed closures included, which is a decision of its own; a clock other than the one admit uses; unwrap, expect or panic outside tests. cargo test -p kwb-cli passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src/closing.rs",
+          "crates/host/kwb-cli/tests/closing_time.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-144"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-146",
+      "title": "No test runs kwb retire or kwb supersede to success, so the closure paths are held only by their refusals",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): closing.rs's unit tests cover the refusals -- no --because, an extra argument, an unknown concept -- and no test in crates/host/kwb-cli/tests closes a concept and reads the result back. A closure is the one operation D17 governs, so a regression in what it records would reach the log with every test green. The behaviour was measured by hand with the built binary: retire and supersede exit 0, and kwb-mcp merge_losers then lists the loser with its successor and reason.",
+      "done_when": "A new test file crates/host/kwb-cli/tests/closing_success.rs drives the built binary on scratch stores whose names carry std::process::id(), with reasons free of control characters. Retiring a published concept exits 0 and the log replays it retired with the given reason. Superseding a published concept into another published concept exits 0, and kwb-mcp <store> merge_losers lists the loser with that successor and reason. Superseding into a concept nobody published exits non-zero and leaves the log's bytes unchanged. Superseding a concept into itself is refused and leaves the log unchanged, including when the two names differ only in surrounding whitespace. Each mutation was performed and caught, then restored byte-identically: removing the self-supersession check in closing.rs turns the self-supersession case red, and removing the published-successor check turns the unpublished-successor case red. Forbidden: editing anything under src; asserting what a supersession cycle, re-closing a closed concept, closing an unpublished concept, merging into a closed concept, or a later admission of a closed concept should do, which KWB-159 decides; asserting what happens to a closed concept's claims, which KWB-127 decides; modifying an existing test. cargo test -p kwb-cli passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/tests/closing_success.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-147",
+      "title": "An extraction whose concept or claim is only control characters passes Is_Complete, so a concept with an empty name and a claim with empty text are published as a yield",
+      "why": "Measured 2026-10-03 at 17f82cf with the debug kwb and kwb-mcp this workspace builds, against scratch stores outside the repository; docs/corpus/core-invariant-audit.md holds the finding as F3. kwb admit a.txt --store S --says <U+0001> <U+0007> exits 0 reporting coverage yielded, concepts 1, claims 1, refused 0, and appends a concept record with an empty name -- identity 33a3fadedd23c4975691c8335c14a35f4918fe4a20ebe1acda35eef5310646fe, the identity of the empty string -- and a claim with empty text. extraction.rs's Is_Complete asks trim().is_empty(), and trim keeps control characters; the derivation removes them, so the text the completeness check accepted is not the text the identity is derived from. The same path takes a model's answer once a reader is composed: {\"concept\":\"\\u0007\",\"claim\":\"\\u0000\"} would be admitted as knowledge. A blank --says, by contrast, is refused and counted.",
+      "done_when": "Is_Complete holds only when both halves are non-empty after kwb_model::Normalize_Text. A new test file crates/ingestion/kwb-ingest/tests/control_only_extraction.rs: an extraction is incomplete when its concept or its claim is <U+0001>, <U+001F>, <U+0000><U+0007>, <U+0001> <U+0007>, or any mixture of control characters and whitespace; it is complete for a<U+0001> and <U+0001>a; and linking counts each incomplete extraction as refused and admits nothing from it. A new test file crates/host/kwb-cli/tests/control_only_says.rs drives the binary: kwb admit with --says <U+0001> <U+0007> reports concepts 0, claims 0, refused 1 and the coverage a blank --says gets today, and the store's log holds no concept and no claim record. Both were shown to fail with trim() restored, and extraction.rs restored byte-identically. Forbidden: folding case; changing Normalize_Text or any identity; dropping an incomplete extraction without counting it as refused; changing the coverage a blank --says gets, so kwb-ingest's existing admission tests pass unmodified; unwrap, expect or panic outside tests. cargo test -p kwb-ingest -p kwb-cli passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest/src/extractor/extraction.rs",
+          "crates/ingestion/kwb-ingest/tests/control_only_extraction.rs",
+          "crates/host/kwb-cli/tests/control_only_says.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-148",
+      "title": "kwb history, retire, supersede and kwb-mcp create a store at any path they are given, so a mistyped path reads as an empty corpus and a closure can be recorded in one",
+      "why": "Measured 2026-10-03 at 17f82cf with the debug kwb and kwb-mcp this workspace builds, against scratch stores outside the repository; docs/corpus/core-invariant-audit.md holds the finding as F11. kwb history --store ./corpsu exits 0 printing 'through 0 of 0'; kwb-mcp ./corpsu2 merge_losers exits 0 printing (nothing); kwb retire x --store ./corpsu3 --because r exits 0, prints 'closed x', and records the closure of a concept nobody published. All three directories exist afterwards. FileRecordLog::At creates the log's directory and opens with create(true), and kwb-mcp and kwb-cli's keeping.rs open every store through it. history.rs's own comment says that reporting zero concepts there would be true of the value and false about the corpus, and prototype-incidents.md's D19-B is that blindness must be loud. Only admit has a reason to create a store.",
+      "done_when": "kwb-platform-std's FileRecordLog gains an opening that refuses a log that does not exist and creates nothing, beside At, which is unchanged. kwb history, kwb retire, kwb supersede and every kwb-mcp entry that reads a store open through it, so a store that does not exist is refused with exit 1 naming the path, before anything is written; kwb admit keeps opening through At. New tests: crates/platform/kwb-platform-std/tests/file_record_log_existing.rs (the new opening refuses a missing file and a missing directory and creates neither; it opens an existing empty log and reads back what At wrote); crates/host/kwb-cli/tests/missing_store.rs and crates/host/kwb-mcp/tests/missing_store.rs spawn each of kwb history, kwb retire, kwb supersede, kwb-mcp <path> and kwb-mcp <path> merge_losers against a path that does not exist, and require a non-zero exit with the path still absent afterwards; and kwb admit against a missing path still creates its store and exits 0. The hosts' tests were shown to fail with the hosts opening through At again. Forbidden: changing what admit does; changing the log's path or file name; changing RecordLogStrategy or StorageError; deciding what kwb-mcp --serve does when given no store at all, which KWB-126 owns; unwrap, expect or panic outside tests. cargo test -p kwb-platform-std -p kwb-cli -p kwb-mcp passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-std/src/file_record_log.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log_existing.rs",
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/missing_store.rs",
+          "crates/host/kwb-mcp/src",
+          "crates/host/kwb-mcp/tests/missing_store.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-116"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-platform-std",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-mcp",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-149",
+      "title": "An argument that is not Unicode, or a closed standard output, makes kwb and kwb-mcp panic, so a refusal arrives as exit 101",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F13). D-018 says a panic is a panic path, which this workspace denies. Both binaries read their arguments with std::env::args(), whose iterator the standard library documents as panicking on an argument that is not valid Unicode; and every report is printed with println!, which the standard library documents as panicking when writing to standard output fails -- a closed pipe. For kwb admit the records are already appended when the report prints, so a run that succeeded reports a crash.",
+      "done_when": "Both binaries read their arguments through std::env::args_os and refuse an argument that is not valid Unicode with exit 2, naming its position. Every report is written through a handle whose write failure becomes a refusal with exit 1 rather than a panic, and records already appended stay appended. New test files crates/host/kwb-cli/tests/refusal_not_panic.rs and crates/host/kwb-mcp/tests/refusal_not_panic.rs: an argument that is not Unicode (on Windows an OsString from the lone wide unit 0xD800, elsewhere from the byte 0xFF) gives exit 2 and no panic message on standard error; kwb admit run with standard output connected to a pipe whose reading end is already closed exits with a code other than 101, and the store's log holds the run's records. The first was shown to fail with std::env::args() restored. Forbidden: changing the text of any report or message; catch_unwind or a panic hook; changing the exit code of an existing refusal; unwrap, expect or panic outside tests. cargo test -p kwb-cli -p kwb-mcp passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/refusal_not_panic.rs",
+          "crates/host/kwb-mcp/src",
+          "crates/host/kwb-mcp/tests/refusal_not_panic.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-mcp",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-150",
+      "title": "One identity in this repository is pinned to a literal, so a change to the derivation scheme passes every test but one",
+      "why": "D-002: the same claim always renders the same identifier, and the identifier never changes meaning once cited; Nomos D-137 takes that value as a KnowledgeReferenceId. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): the only literal identity in any test is the concept address a0503586...652c in kwb-cli/tests/history.rs. Every other identity test compares two derivations made through kwb_model, so changing derivation.rs's separator, a tag, the kind header, a field name, or the order of the fields in claim.rs or assertion.rs moves both sides together and stays green. KWB-114 moves the derivation to XVPE and promises that no identity changes; this item makes that promise checkable for every kind, after it lands. The nineteen values in the done_when were computed on 2026-10-03 twice, independently -- through this workspace's Concept::Named, Claim::About, Assertion::By and Document::Of, and by a separate SHA-256 over the layout derivation.rs documents -- and all nineteen agreed.",
+      "done_when": "Two new test files, crates/domain/kwb-domain/tests/golden_identity.rs for concepts, claims and assertions and crates/kernel/kwb-store/tests/golden_identity.rs for documents, assert that the rendered identity of each of these inputs equals its literal, with the input written beside each literal: concept 'entropy' a05035869b31af055b5b16060404ea98130701b0b0e5a25be8a78c01427a652c; concept 'Entropy' 376b5084c88d36d18f3ee828ccc8118b9bcc6ae62bbbdcae490527da7d5b07fe; concept '  entropy  ' a05035869b31af055b5b16060404ea98130701b0b0e5a25be8a78c01427a652c; concept '\\u{e9}nergie' ef53c55576b992fd967c6e21030c8765c91626d640460b474c37a950f2f42dde; concept 'e\\u{301}nergie' d54b4d70c0a4e588b9a86852178e984246559cd5a743d3b1478d6d734c8e25f3; concept '\\u{71b5}' ae78e4702320ca1d191358cbbe15765ed8c003161db6169cf342d38430d7e5b3; concept '\\u{1f600}' 0fa27912a74d66967a2453dda03cd5d9a9107b2e75f9f4896acc58bef990b88c; concept 'a  b' 716610248153dd004b1480e858b6302bd6494fc81dee040e32403522ce35a513; concept '' 33a3fadedd23c4975691c8335c14a35f4918fe4a20ebe1acda35eef5310646fe; claim about concept 'entropy' with text 'It never decreases in an isolated system.' 1bfc49de32daddec7899d30fb6aed897e7ca1a94315c104577859d4bf08b26be; the same claim with text 'It  never decreases   in an isolated system.  ' 1bfc49de32daddec7899d30fb6aed897e7ca1a94315c104577859d4bf08b26be; claim about concept 'entropy' with text '' 08a156ce2b83460ec62acfd5884aaf036f573f2d03cce3d6573d48f36b45a662; assertion of the first claim by source 33f28a20d372ccc7775c9ab43af6b06a7698ae6ddddeb86c4fd4c28800d7f97e (the rendered identity of the document b'entropy\\n') with Scope::Unstated() 87191271a55ac66169cf090afa879e78f5ce0375bbc7ae975bf6c46316aecdbd, and with scope 'physics' 5758532cc73cd47f04481ee30af2994a0a2fd6502b5f6a7844ec4d7b7f107946; document b'' 967753c480cd2750542e4b6113d31956d6811898026073ad2fd1b81925abb914; document b'\\x00' 0c8845564fa4a7690e1d3727fbf0c2aae5a7c1e41ac7d834cb372b76d1e78dde; document b'\\x1f' 3903add507d238e292768f1ec2a2a0cb8ad8a0c18433e0b9c0dddeaa44b4dda4; document b'\\xff\\xfe' 5cfe5a9a77ed142141167a263bbdf22f4feba37b46b20f388d6d52a34463f0e6; document b'entropy\\n' 33f28a20d372ccc7775c9ab43af6b06a7698ae6ddddeb86c4fd4c28800d7f97e. The two whitespace variants that share a literal are asserted equal to it, not to each other, and the decomposed spelling's distinct literal pins today's behaviour, which only a record may change. Each file was shown to go red under a mutation inside this workspace and restored byte-identically: swapping the two field calls in claim.rs (claim and assertion literals), changing concept.rs's canonical-name field name (every concept, claim and assertion literal), and changing document.rs's document kind name (every document literal). Forbidden: computing an expected value at test time through kwb_model, kwb_domain, kwb_store or any XVPE crate; an input holding control-class whitespace standing alone, which is KWB-111's subject; editing a literal -- if one disagrees, stop and abandon with the input and both values, because an identity has moved; editing anything under src. cargo test -p kwb-domain -p kwb-store passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/tests/golden_identity.rs",
+          "crates/kernel/kwb-store/tests/golden_identity.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-114"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-store",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-151",
+      "title": "No test cuts a publication log at every byte, so what a crash mid-append publishes is held at one offset",
+      "why": "D-019: a torn tail is a refusal, because a crash mid-append would otherwise publish something nobody published. KWB-116 makes Records() refuse a log whose last line lacks its terminator and tests one such log. A crash can stop a write at any byte, including inside a multi-byte character, and at 17f82cf a cut inside a trailing field replays as a shorter name or a different time (KWB-116's why; docs/corpus/core-invariant-audit.md, F16). Once the refusal exists, the property worth holding is that no cut anywhere yields a record that was never written.",
+      "done_when": "A new test file crates/platform/kwb-platform-std/tests/file_record_log_truncation.rs appends records holding ASCII, two-, three- and four-byte characters through FileRecordLog, and for every byte offset k from 0 to the file's length reads a copy truncated to k bytes: when k falls just after a line terminator, Records() returns exactly the complete records before it; at every other offset Records() is refused, and the refusal names how many complete records precede the fragment; no offset yields a record that was not appended. A new test file crates/host/kwb-cli/tests/torn_log.rs writes a log with the built binary -- two admissions, a supersession and a retirement -- and for every offset applies the same reading, then requires Replay_Records over each accepted prefix to equal replaying the same number of written records, compared on every version: value, standing, reason, successor and time; and with the log cut inside a record, kwb admit, kwb retire, kwb supersede and kwb history each exit 1 and leave the log's bytes unchanged. Every offset is covered; none is sampled. Two mutations in the adapter were each performed, caught and restored byte-identically: mapping a torn tail to Ok without the fragment, and mapping it to Ok with the fragment kept. Forbidden: terminating, keeping, dropping or repairing a torn tail, which D-019 leaves undecided; editing anything under src; editing KWB-116's tests. cargo test -p kwb-platform-std -p kwb-cli passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-std/tests/file_record_log_truncation.rs",
+          "crates/host/kwb-cli/tests/torn_log.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-116"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-platform-std",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-152",
+      "title": "Replay is compared with what was published only by counts and current identities, so a replay that lost every reason, successor or time would pass",
+      "why": "D-014: the graph becomes durable by replaying what was published. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): kwb-domain/tests/publication.rs compares concept counts and the identities of current claims and assertions; closed versions, reasons, successors and times are never compared, so a replay that recorded every retirement with an empty reason would pass. Three refusals have no test: an assertion naming a claim nobody published, an Unaddressed reference, and an asserted record carrying a reason.",
+      "done_when": "A new test file crates/domain/kwb-domain/tests/replay_fidelity.rs. For every sequence of one to four operations, enumerated exhaustively rather than sampled, over two concept names, two claim texts and two sources -- publish a concept, publish a claim, publish an assertion scoped or unstated, retire a concept, supersede a concept into the other -- applying each publication to a graph through the KnowledgeGraph operations kwb-ingest's admission report calls when it applies an admission live, and replaying the same records through Replay_Records, give graphs equal on every version: value, standing, reason, successor and Published_At time. Replaying the same records twice gives equal graphs, and a log with every record repeated in place replays to the same graph. A refusal table, each case refused with its own ReplayError variant: an assertion before its claim; a claim before its concept; an address of 63 characters, an uppercase address and a non-hexadecimal address, each in a claim record and in an assertion record; an asserted record carrying a reason; a superseded record whose successor does not parse. A sweep that substitutes and that deletes each single byte of a fixture log never panics, and asserts the number of corruptions that replay silently as a different graph, as evidence for KWB-161. The fidelity test was shown to fail when replay records a retirement's reason as a constant, and publication.rs was restored byte-identically. If any case fails, stop and abandon naming the case: the fix is a Correction this item does not authorize. Forbidden: editing anything under src; asserting what a supersession cycle, re-closing or closing an unpublished concept should do beyond live equals replay, which KWB-159 decides; sampling where enumeration is feasible. cargo test -p kwb-domain passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/tests/replay_fidelity.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-114"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-153",
+      "title": "Replay is quadratic in the publication log, so every kwb admit pays seconds per ten thousand records and minutes at a library's size",
+      "why": "D-014 says a replay is linear in publications. Measured 2026-10-03 at 17f82cf in a release build, replaying synthetic logs of concepts that each carry one claim and one assertion: 750 records 4.7 ms, 1,500 15.5 ms, 3,000 121.7 ms, 6,000 464.9 ms, 12,000 2,138.6 ms -- each doubling costs about four times (docs/corpus/core-invariant-audit.md, F26). Read: replay looks up a record's concept and claim by collecting and sorting every version the graph holds (Concept_At and Claim_At in publication.rs, over knowledge_graph.rs's listing), and CurrentKnowledge::Assertions scans a list once per assertion. kwb admit replays the whole log before every admission, and kwb history and kwb-mcp replay it on start, so at the reference library's expected hundreds of thousands of records one admission would wait tens of minutes before reading anything.",
+      "done_when": "Replay finds a record's concept or claim by key in the map the graph already holds instead of listing and sorting every version, and CurrentKnowledge::Assertions answers membership by key; what Replay_Records returns is unchanged. A new test file crates/domain/kwb-domain/tests/replay_growth.rs replays synthetic logs of N and 8N concepts, each with one claim and one assertion, with N chosen so the suite with the old lookup restored still finishes inside the predicate's timeout, and asserts growth at most linear with a stated margin: by counting the lookups replay performs, if the code admits a counter without changing its public surface, or otherwise by the ratio of the two replay times, each the minimum of five runs, staying below 16 where linear is 8 and quadratic 64. Never an absolute time bound. The existing replay tests pass unmodified. The growth test was shown to fail with the old lookup restored, and the source restored byte-identically. Forbidden: changing replay's semantics, refusals or the order of anything it reports; a cache that outlives one call; parallelism; an absolute wall-clock assertion; unwrap, expect or panic outside tests. cargo test -p kwb-domain -p kwb-cli passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/src/graph",
+          "crates/domain/kwb-domain/src/versioning",
+          "crates/domain/kwb-domain/tests/replay_growth.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-114"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-154",
+      "title": "kwb-mcp neighbours does not normalize the name it is asked about, so a trailing space reads as a concept the graph does not hold",
+      "why": "Measured 2026-10-03 at 17f82cf with the debug kwb and kwb-mcp this workspace builds, against scratch stores outside the repository; docs/corpus/core-invariant-audit.md holds the finding as F21. On one store, kwb-mcp <store> neighbours 'oxidation ' answers (nothing) while neighbours 'oxidation' and held_neighbours 'oxidation ' both find the concept. neighbours compares the raw argument with each candidate's canonical name; held_neighbours normalizes it first. A concept's name is normalized when it is published, so the raw comparison can only miss, and an agent told (nothing) has no way to tell a miss from an absence -- prototype-incidents.md's D19-B, blindness must be loud.",
+      "done_when": "neighbours normalizes the asked name through kwb_model::Normalize_Text before comparing it, as held_neighbours does, through one shared function the two tools call. A new test file crates/host/kwb-mcp/tests/name_normalization.rs: for a published concept, neighbours and held_neighbours each find it when asked with a trailing space, a leading space, a doubled inner space and a tab between words, and return the same concept for each spelling. The test was shown to fail with neighbours comparing the raw argument again, and lib.rs restored byte-identically. Forbidden: folding case; changing what either tool prints; changing Normalize_Text; deciding what an empty answer prints, which KWB-126 owns. cargo test -p kwb-mcp passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-mcp/src/lib.rs",
+          "crates/host/kwb-mcp/tests/name_normalization.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-mcp",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-155",
+      "title": "A replayed answer is checked only for shape, so 33 propositions, empty strings and texts holding the record separator all reach admission",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F6). reads_text.rs states that the 32-proposition ceiling is part of the request's schema, so an answer offering more comes back non-conforming and is refused; the same file concedes that ReplayInference returns what was recorded, so a recording carrying a non-conforming answer replays as a valid one. Proposed_From takes any number of propositions, and Proposed_Of checks only that both fields exist and are text. Every test in the crate replays one 48-character passage with well-formed answers, so no adversarial answer has ever been replayed.",
+      "done_when": "Proposed_From refuses an answer carrying more than MAXIMUM_PROPOSITIONS propositions as ReaderFailed, so a reading's whole answer is refused, consistent with how one malformed proposition is refused today. A new test file crates/ingestion/kwb-extract/tests/adversarial_answers.rs replays recorded answers through the same ReplayInference the existing tests use: 33 propositions is refused and 32 is accepted; an answer whose root is text, a record, a number or null; a list of non-records; a record missing claim; a numeric concept; a record with extra fields; empty strings; a proposition repeated; a 10,000-character claim; a claim and a concept holding U+001F and holding a line feed; a recording made for another passage or another model. Each lands as Unmet, or for the empty, control-only and separator cases as whatever admission records for a refused extraction, and in every case the records admission publishes from the result, rendered by Publication::Record, replay through Replay_Records. Shown to fail with the count check removed, and reads_text.rs restored byte-identically. Forbidden: a live network call; re-recording or editing an existing fixture; changing PROTOCOL or the request; deciding grounding, which KWB-128 owns; deciding passage size, which KWB-125 owns; unwrap, expect or panic outside tests. cargo test -p kwb-extract passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-extract/src/reads_text.rs",
+          "crates/ingestion/kwb-extract/tests/adversarial_answers.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-extract",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-156",
+      "title": "Every passage's location says 'characters 0 to 0 of the text', because a page span is formatted as a character range",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F5). reads_text.rs's Where_In formats span.First().Zero_Based() and span.Last().Zero_Based() as character offsets, but a Chunk's Span is a PageSpan, and a text file is chunked as one page, so every reading's location reads characters 0 to 0. D-015 makes a reading's location part of what a reading is; a location that is false for every passage is provenance that cannot be followed.",
+      "done_when": "Where_In renders what the span is -- the pages of the source the passage covers, numbered as a reader would count them -- until a decision under KWB-125 gives passages character ranges. A test in crates/ingestion/kwb-extract/tests/passage_location.rs asserts the location string of a reading of a one-page source, and was shown to fail with the old format restored. Forbidden: inventing character offsets the chunk does not carry; changing PROTOCOL, the request or any identity; deciding how a passage is split, which KWB-125 owns. cargo test -p kwb-extract passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-extract/src/reads_text.rs",
+          "crates/ingestion/kwb-extract/tests/passage_location.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-extract",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-157",
+      "title": "The store's one-door guard counts methods taking &mut self, and the medium is written from &self, so a second write path would pass it",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md). kwb-store/tests/one_door.rs holds the store to one write door by counting public methods that take &mut self, but document_store.rs writes the medium in Persist, which takes &self, and ContentStoreStrategy::Put takes &self. A future public method taking &self that called Persist would write documents past the door and pass the guard.",
+      "done_when": "crates/kernel/kwb-store/tests/one_door.rs gains a guard that, over kwb-store's src, finds .Put( only inside fn Persist and Persist( called only from fn Write, with self-tests of the detector in the manner KWB-44 established: it fires on a fixture holding a second caller and is silent on one without. The guard was shown to fail when a public method taking &self that calls Persist is added to document_store.rs, which was then restored byte-identically. Forbidden: editing anything under src; weakening the existing &mut self guard. cargo test -p kwb-store passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-store/tests/one_door.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-store",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-158",
+      "title": "Tests make scratch directories under fixed names, so two concurrent cargo test runs delete each other's stores",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F24): seventeen sites in thirteen test files join a fixed name to std::env::temp_dir() and clear it before use; only the guards crate adds std::process::id(). Two runs at once -- two sessions, or a gate and a person -- clear each other's scratch stores mid-test, which reads as a flaky store rather than a collision.",
+      "done_when": "Every scratch directory a test makes under the system temporary directory carries std::process::id() in its name, through one helper in kwb-source-guards that every such site calls, and the helper's own test asserts that two names it gives for one label in one process are equal and that the name carries the process id. No test changes what it asserts. Test files added by KWB-144 to KWB-157 already carry the process id and are outside this territory. Forbidden: changing any assertion; deleting a scratch directory a test did not create. cargo test --workspace passes.",
+      "kind": "Cleanup",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src/admission.rs",
+          "crates/host/kwb-cli/src/closing.rs",
+          "crates/host/kwb-cli/src/history.rs",
+          "crates/host/kwb-cli/src/keeping.rs",
+          "crates/host/kwb-cli/tests/composition_seam.rs",
+          "crates/host/kwb-cli/tests/history.rs",
+          "crates/host/kwb-mcp/tests/lib.rs",
+          "crates/host/kwb-mcp/tests/served_session.rs",
+          "crates/kernel/kwb-store/tests/document_store.rs",
+          "crates/kernel/kwb-store/tests/one_door.rs",
+          "crates/platform/kwb-platform-std/tests/directory_content_store.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log.rs",
+          "tests/guards/src/lib.rs",
+          "crates/host/kwb-cli/Cargo.toml",
+          "crates/host/kwb-mcp/Cargo.toml",
+          "crates/platform/kwb-platform-std/Cargo.toml",
+          "Cargo.lock"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-142",
+        "KWB-145",
+        "KWB-148",
+        "KWB-149",
+        "KWB-157"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-159",
+      "title": "A later admission re-asserts a superseded concept, and supersede accepts a cycle, a closed successor and a concept nobody published, because nothing decides what may change a standing",
+      "why": "Measured 2026-10-03 at 17f82cf with the debug kwb and kwb-mcp this workspace builds, against scratch stores outside the repository; docs/corpus/core-invariant-audit.md holds the finding as F1 and F14. After kwb supersede phlogiston --into oxidation --because Lavoisier, kwb-mcp merge_losers lists phlogiston; a later kwb admit of another file that --says phlogiston empties that list, because admission publishes every concept it names as asserted and replay keeps the newest version. A closure that carried evidence is undone by a reading that carried none -- D17 in reverse, and once a model is the reader, by a model's label. Supersede checks only self-supersession and that the successor is published: superseding alpha into beta and then beta into alpha exits 0 twice, after which kwb history reports 0 concepts and 0 claims current; and kwb retire on a store holding no such concept records a closure of it. KWB-127 asks what supersede does to a closed concept's claims; it does not ask what may re-open, cycle or re-close a concept.",
+      "done_when": "A record decides, case by case: what admission does with a reading that names a retired or a superseded concept -- refuse the reading, publish the claim without re-asserting the concept, or another rule, provided it never attaches the claim to the successor by inference, which D18 forbids; whether supersede refuses a cycle of any length, a successor that is itself closed, and the re-closing of a closed concept; what retire and supersede do with a concept nobody published; and how each refusal is reported and counted. For every case it authors the Correction items that implement it, each with a territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes, and one of them turns the audit's F1 scenario and F14 cycle into tests through the built binary. Forbidden: a rule that lets a reading, a model's label or a model's silence change a standing (D17); grouping or closure over a relation not certified transitive (D18); a rule that deletes or rewrites a published record; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-160",
+      "title": "A file at a content address is never compared with its address, so a truncated or foreign file there is answered AlreadyPresent for ever",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F15). DocumentStore answers AlreadyPresent whenever the medium says it holds the address; DirectoryContentStore::Put returns early when a file is already at the destination; Get returns whatever bytes are there. document_store.rs explains why nothing re-reads: the write path guarantees a complete value under a complete address. D-014 names a half-written file under a content address as the one way the store can lie, because nothing downstream re-hashes what it reads -- and a file can be damaged after a correct write, by a disk, a sync tool or a person. XVPE's content store states that it does not re-derive identities either, so after KWB-142 the check is still this repository's to decide. Following a citation (KWB-136) returns those bytes as the document.",
+      "done_when": "A record decides whether DocumentStore re-derives a document's identity from the medium's bytes when it answers AlreadyPresent, when it reads a document, or both; what a mismatch does -- refuse, replace atomically, or set the file aside -- and how it is reported; and what the check costs per write and per read, measured on a scratch store, not estimated. It is consistent with what KWB-143 decides for two processes on one store. It authors the implementation items, among them a Validation item whose tests place a truncated file, a foreign file and a directory at an address and assert the decided outcome. Forbidden: deleting or overwriting a file whose bytes disagree with its address without recording it (D17); taking a file's name as evidence of its content; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-142",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-161",
+      "title": "A publication record carries nothing replay can check it against, and a run's records have no boundary, so a corrupted name replays as another concept and a stopped run leaves uncited claims",
+      "why": "Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F27 and F28). Replay re-derives every record from its text, so a one-byte change inside a concept's name derives a different and perfectly valid concept, and nothing can tell. kwb admit appends a run's records one at a time; a failure or a kill between two of them leaves concepts and claims in the log with no assertion citing them, while the run reports that it failed. D-019 settled the torn tail -- a refusal -- and neither of these is a torn tail: every line is whole. KWB-152's corruption sweep, once it lands, counts how many single-byte corruptions replay silently.",
+      "done_when": "A record, amending D-014 or D-019 where it changes what they say, decides whether a record carries the identity it was derived as, so that replay refuses text that no longer derives it; whether a run's records are bracketed, so that a partial publication is recognisable, and what replay does with one, consistent with D-019's rule that nothing closes a torn tail; the format change each implies; and what each does to a log written before it -- read unchanged, or refused with a reason. It authors the implementation items, each with a territory, a done_when naming what is forbidden and a predicate. Forbidden: rewriting or migrating a log already written; a checksum that is not the identity the record already derives, which would be a second authority for the same fact; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-116",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-162",
+      "title": "Two spellings of one name that render identically derive two identities, and nothing decides which differences of spelling are edits",
+      "why": "Measured 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): the concept named with a precomposed e-acute derives ef53c55576b9...2dde and the same word with e and a combining acute accent derives d54b4d70c0a4...25f3 -- two concepts for one word. PDF text layers and model answers produce both spellings, and ligatures, soft hyphens, zero-width characters, byte-order marks, full-width forms and words hyphenated across a line break besides. Normalize_Text folds whitespace and removes control characters and does nothing else; KWB-111 owns the whitespace controls. D-002 says an identity never changes meaning once cited, so any fold moves cited identities, and Nomos D-137 holds those values as KnowledgeReferenceIds. After KWB-114 the normalizer is XVPE's, so a fold is an XVPE step and a pin move.",
+      "done_when": "A record decides keep or fold, case by case, for this catalogue: NFC against NFD; the order of combining marks; U+200B, U+200C, U+200D, U+FEFF, U+00AD and U+FE0F; the ligature U+FB01; full-width Latin letters; U+037E against the semicolon; Cyrillic letters that resemble Latin ones; U+00A0, U+2028, U+2029 and U+3000; and a word hyphenated across a line break. For every fold it decides what happens to identities already cited, reconciled with D-002 and Nomos D-137, and specifies the XVPE step in XVPE's docs/plans/programs/ecosystem-substrate/kwb-parity.md. It authors a Validation item that pins today's derivation for every case in the catalogue to a literal computed outside the code under test, and a Correction for each fold. Forbidden: folding case, which derivation.rs decides is kept; changing a cited identity without a migration the record states; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-114",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }
