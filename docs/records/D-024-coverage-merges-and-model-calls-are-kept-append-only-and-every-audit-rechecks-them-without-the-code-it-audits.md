@@ -3,7 +3,7 @@ id: D-024
 type: decision
 title: Coverage, merges and model calls are kept append-only, every audit re-checks them without the code it audits, and nothing is repaired by deletion
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - audit
@@ -107,6 +107,49 @@ audit, and the prototype shows what a severity filtered at display time does to 
   reason, and C-25 is that act.
 - A corpus being exhausted, a source's quality, alias merging and readings stay where `D-004`,
   `D-011` and `D-015` hold them.
+
+## Amendment: Every Audit Outcome Has A Code Of Its Own, And C-13's Measurement Can Be Taken On A Copy, 2026-10-03
+
+`KWB-173`, from the audit of `KWB-127`, found two things wrong with what is written above, and both
+are corrected here.
+
+**Rule 3 gave blind and vacuous audits exit 2, which every `kwb` verb already gives a command line it
+could not parse** (`USAGE_EXIT` in `kwb-cli` and `kwb-mcp`). A `kwb audit` with a mistyped store and
+an audit that could see nothing would have exited alike, and a caller branching on the code would read
+one as the other — the conflation this record exists to remove. Measured at `ab7c456`: both binaries
+use 0, 1 and 2 and nothing else. The whole table for `kwb audit`, in one place:
+
+| Outcome | Exit |
+|---|---|
+| clean — something was examined and nothing found | 0 |
+| failed — at least one finding | 1 |
+| a command line that cannot be parsed | 2 |
+| blind — something was eligible and nothing was examined | 3 |
+| vacuous — nothing was eligible | 4 |
+
+**Blind and vacuous do not share a code.** A caller reacts to them differently: blind means the audit
+could not see its input — a broken store, an unreadable log — and is investigated; vacuous means there
+was nothing to check, usually a new, empty store. One code would make every script re-read the output
+to tell them apart.
+
+**`kwb audit all`** reports every audit's verdict with its denominator and exits with the first of
+these that any audit reached: blind (3), failed (1), vacuous (4), clean (0). Blind comes first because
+an audit that could not see may be hiding failures; failed comes before vacuous because a known
+defect outranks an empty check.
+
+**C-13's condition, restated against `D-021`.** The row says the miner's measurements cannot come from
+a scratch copy. That was wrong. The measurement it waits on is the reference miner's comparison, across
+corpora, of a source's self-graded bearing with its independently resolved bearing — `D-004`'s pending
+epistemic-strength model. It reads copies of library books and writes no durable record, which
+`D-021` allows, so **a scratch copy can supply it**. What it needs beyond a copy is runs of the miner
+with a model, which the owner's instruction of 2026-10-03 to the sessions working this — nothing run
+against real data or a live model — withholds for now. So C-13 waits on the owner permitting model
+runs on copies, not on G8, and its hold still lifts only on `D-004`'s own trigger.
+
+**The items this re-authors.** `KWB-167`, `KWB-168` and `KWB-170` carried the colliding code and were
+declined; they return as `KWB-180`, `KWB-181` and `KWB-182` with their original terms and this table.
+`KWB-173` named `KWB-167` as their dependency, and `KWB-167` was declined after `KWB-173` was written,
+so `KWB-181` and `KWB-182` depend on `KWB-180`, its successor.
 
 ## Referenced By
 

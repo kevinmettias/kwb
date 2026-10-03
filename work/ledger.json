@@ -8930,7 +8930,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -8944,7 +8944,31 @@
         ],
         "timeout_seconds": 1800
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ured; 0 filtered out; finished in 1.55s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Blocking waiting for file lock on package cache\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.94s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-9dafe489db4309da.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-eaea05ad7601ae51.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-a14761dc2df1bd9b.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-e4203d18397766d1.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-2ed7918259d0a15b.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1791047536,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "7f64bc7989ee5b2d2af2f2a892318a919f48883c"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
@@ -9225,6 +9249,126 @@
         },
         "revision": "ab7c456e8fe4b2a5ca55aeda617152e9078316e9"
       },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-180",
+      "title": "Nothing here has a finding shape or a computed audit verdict, so an audit could report clean having looked at nothing",
+      "why": "Re-authored under D-024 v2 (KWB-173): the item it replaces gave blind and vacuous exit 2, kwb's USAGE_EXIT. D-024 C-31 decides this. The prototype's finding model computed blind, vacuous, failed and clean, but three of its audits never set an exit code and its merge audit's blindness was an unhandled exception, and a severity filtered at display time while the verdict counted every finding. Every audit D-024 authors -- KWB-168 and KWB-170 -- needs one shape and one verdict before it is written, or each will compute its own.",
+      "done_when": "kwb-domain gains one finding type -- the subject's rendered identity, the check's &'static str name, a reason normalized through kwb_model::Normalize_Text, and the evidence -- and an audit verdict computed from what was eligible, what was examined and the findings: blind when something was eligible and nothing examined, vacuous when nothing was eligible, failed when there is a finding, clean otherwise; and the exit code each verdict maps to: clean 0, failed 1, a command line that cannot be parsed 2 (the verbs' existing USAGE_EXIT), blind 3, vacuous 4 (D-024 v2). Neither type has a Default, and the verdict cannot be constructed except by that computation. A new test file crates/domain/kwb-domain/tests/audit_verdict.rs covers every combination at its boundaries, including a finding with nothing examined, which is blind and not failed, and asserts no verdict maps to 2. Shown to fail with blind computed after failed. Forbidden: a severity; a Default; a verdict a caller can assert; clean when nothing was examined; any verdict exiting 2; unwrap, expect or panic outside tests. cargo test -p kwb-domain passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/src/audit",
+          "crates/domain/kwb-domain/src/audit.rs",
+          "crates/domain/kwb-domain/src/lib.rs",
+          "crates/domain/kwb-domain/tests/audit_verdict.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-181",
+      "title": "No audit re-checks a supersession against the rules D-023 states, so a cycle or a merge into a closed concept already in a log is invisible",
+      "why": "Re-authored under D-024 v2 (KWB-173): the item it replaces gave blind and vacuous exit 2, kwb's USAGE_EXIT. D-024 C-25 decides this. D-023 makes closing apply only to a current concept, into a current successor, and KWB-164 enforces it from now on; logs written before it can hold what it refuses, and a successor can be closed after its losers were merged into it. The prototype's merge audit re-asked the normaliser's own predicate and so could not see a predicate defect; this one checks the records against the rule as the record states it.",
+      "done_when": "kwb audit merges --store <dir> replays publications.log through Records() and, by its own reading of the records rather than any function closing.rs uses, checks every supersession: at the position it was published the superseded concept's latest version was current, the successor was held and current, the two are distinct, and the reason is non-empty after normalization; and against the graph replayed today, the successor is current. Each failure is a finding of KWB-180's shape with its own check name. Eligible is the supersessions in the log, examined those checked, and the verdict and exit code are KWB-180's: clean 0, failed 1, a command line that cannot be parsed 2 (the verbs' existing USAGE_EXIT), blind 3, vacuous 4 (D-024 v2); a log that cannot be read is blind, exit 3, never a panic. kwb audit all runs every audit built and exits with the first of blind 3, failed 1, vacuous 4, clean 0 that any audit reached. README.md shows the audit verb, so both verb guards pass. A new test file crates/host/kwb-cli/tests/audit_merges.rs: a store with valid supersessions exits 0 and prints its denominator; a fixture log written through Publication::Record holding each violation -- a cycle, a merge into a closed successor, a self-supersession, a successor closed since -- fails with that check named and exit 1; a store with no supersession exits 4; a torn log exits 3; a malformed command line still exits 2. Shown to fail with the successor-current check removed. Forbidden: writing, repairing or deleting anything; calling closing.rs's checks; reading the graph through anything but the log; vacuous or blind reported as clean or with each other's code; unwrap, expect or panic outside tests. cargo test -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/audit_merges.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-180",
+        "KWB-164"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-182",
+      "title": "Nothing checks the documents a store holds against the coverage it recorded, so a document never read and a document lost are both silent",
+      "why": "Re-authored under D-024 v2 (KWB-173): the item it replaces gave blind and vacuous exit 2, kwb's USAGE_EXIT. D-024 C-29 decides this. With coverage kept (KWB-166) the store can be held to it: every document the content store holds should have been read, and every coverage record should name a document still held -- one that is not is content lost. The prototype's coverage audit re-ran the stages' own classifier and so confirmed its own write-offs, always exited 0, and its --reopen hard-deleted rows; this one compares two independent stores and never writes.",
+      "done_when": "kwb audit coverage --store <dir> [--protocol <name>] enumerates the documents the content store holds through the store itself, not through admission or the publication log, reads coverage.log, and reports findings of KWB-180's shape: a document with no coverage record; with --protocol, a document read only under another protocol; a coverage record naming a document the store does not hold; a Barren record with nothing examined. Without --protocol the output says the protocol check was not made. Eligible is the documents held; the verdict and exit code are KWB-180's: clean 0, failed 1, a command line that cannot be parsed 2 (the verbs' existing USAGE_EXIT), blind 3, vacuous 4 (D-024 v2) -- blind when the store holds documents and coverage.log cannot be read, vacuous when the store holds none. kwb audit all includes it. A new test file crates/host/kwb-cli/tests/audit_coverage.rs: an admitted store exits 0; a document placed in the store without admission fails as never read, exit 1; a document removed after admission fails as lost; --protocol naming another protocol fails each document as stale; a torn coverage.log exits 3; an empty store exits 4. If the content store offers no way to enumerate what it holds, stop and abandon saying so. Forbidden: writing, reopening or deleting anything; calling admission or any classifier; inferring the documents from the publication log; unwrap, expect or panic outside tests. cargo test -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/audit_coverage.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-166",
+        "KWB-181",
+        "KWB-142"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
       "abandoned": [],
       "displaced": [],
       "declined": null,
