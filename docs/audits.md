@@ -113,3 +113,15 @@ whether a scratch copy could supply it.
 |---|---|---|
 | `KWB-184` | accepted | |
 | `KWB-128` | sent back | `KWB-186`: F19's repeat, implemented now; `KWB-187`: `D-027` names the relation kernel's measurements and says the repeat is no longer owed at K3 |
+
+## 2026-10-03: the eighth audit
+
+`D-027` v2:
+- names, row by row, what each held relation row waits on, and that a scratch copy can supply it
+  once K3 composes reading and model runs are permitted, with none waiting on G8;
+- routes the repeat to `KWB-186`, so `KWB-185` owes only grounding and the failed-run exit;
+- lifts no hold, and sits at version 2 with one amendment.
+
+| item | verdict | carried by |
+|---|---|---|
+| `KWB-187` | accepted | |
