@@ -6869,14 +6869,18 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Claimed",
       "depends_on": [
         "KWB-104",
         "KWB-103",
         "KWB-109"
       ],
       "blocked": null,
-      "claim": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1791045994,
+        "lease_expires_at": 1791074794
+      },
       "verification": {
         "argv": [
           "cargo",
@@ -7406,7 +7410,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Declined by the 2026-10-03 audit as false, not as inconvenient. Its done_when places the visitor page byte-identical to the draft committed alongside it, and that draft has gone false since: KWB-112 made kwb-mcp serve its five tools over MCP, so the page's line that serving them is specified work on the board is wrong, and its figures were September's. KWB-176 corrects the draft. KWB-178 re-authors the placement to place the draft as it stands when claimed, so a later correction no longer needs a decline."
+        }
+      },
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -7423,7 +7431,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1791046759
+      },
       "widened": []
     },
     {
@@ -8669,7 +8680,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Declined by the 2026-10-03 audit of KWB-127, and re-authored by KWB-173. D-024's rule 3 gives clean exit 0, failed 1, and blind or vacuous 2, and kwb-cli's USAGE_EXIT is already 2 (crates/host/kwb-cli/src/main.rs), the code every verb gives a command line it could not parse. So a kwb audit run with a mistyped store and an audit that could see nothing would exit alike, and a caller branching on the code would read one as the other. This item carries that 2 in its done_when. It is declined now, before the record is amended, because KWB-167, the one item it waits on, is ready and would make this claimable first."
+        }
+      },
       "depends_on": [
         "KWB-167",
         "KWB-164"
@@ -8691,7 +8706,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1791046759
+      },
       "widened": []
     },
     {
@@ -8760,7 +8778,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Declined by the 2026-10-03 audit of KWB-127, and re-authored by KWB-173. D-024's rule 3 gives clean exit 0, failed 1, and blind or vacuous 2, and kwb-cli's USAGE_EXIT is already 2 (crates/host/kwb-cli/src/main.rs), the code every verb gives a command line it could not parse. So a kwb audit run with a mistyped store and an audit that could see nothing would exit alike, and a caller branching on the code would read one as the other. This item carries that 2 in its done_when. It is declined now, before the record is amended, because KWB-167, the one item it waits on, is ready and would make this claimable first."
+        }
+      },
       "depends_on": [
         "KWB-166",
         "KWB-168",
@@ -8783,7 +8805,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1791046759
+      },
       "widened": []
     },
     {
@@ -8857,6 +8882,248 @@
           "--no-fail-fast"
         ],
         "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-173",
+      "title": "D-024 gives a blind or vacuous audit exit 2, which kwb already gives a malformed command line, and defers C-13 on a measurement it says no scratch copy can supply",
+      "why": "Goal G4 of D-021, from the audit of KWB-127 on 2026-10-03. D-024's rule 3 gives clean exit 0, failed 1, and blind or vacuous 2, and kwb-cli's USAGE_EXIT is already 2 (crates/host/kwb-cli/src/main.rs), the code every verb gives a command line it could not parse. So a kwb audit run with a mistyped store and an audit that could see nothing would exit alike, and a caller branching on the code would read one as the other. KWB-168 and KWB-170 carried the 2 into their done_when and the same audit declined both. Separately, D-024's C-13 row says the reference miner's measurements cannot come from a scratch copy because grading needs the real corpus, which the owner holds. D-021 says a measurement runs against a copy in a scratch directory, which the owner's words of 2026-09-24 allow, and that the owner's hold covers only a measurement that cannot be taken on a scratch copy. As written, C-13's deferral sends the owner a measurement the loop may be able to take itself.",
+      "done_when": "D-024 gains an Amendment section and the version the record rule requires. The amendment gives blind and vacuous audits an exit code that no kwb binary uses for anything else, and says whether blind and vacuous share it. It states the whole table for kwb audit in one place: clean, failed, blind, vacuous, and a malformed command line. The C-13 row's condition is restated against D-021: it names the measurement it waits on and says, from what that measurement needs, whether a scratch copy of the reference library can supply it, rather than presuming the owner's hold covers it. This item re-authors KWB-168 and KWB-170 as new items with their original terms and the amended exit code, each depending on KWB-167. Forbidden: editing any record but D-024; deciding D-004's held question in order to unblock C-13; any source edit. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-174",
+      "title": "D-025 verdicts rows met that nothing implements, authors no item for them, and leaves G2's remaining work held by nothing on the board",
+      "why": "Goal G2 of D-021, from the audit of KWB-125 on 2026-10-03. KWB-125's done_when asked for an implementation item for every verdict of met or diverges, and for one item that is G2's proof: a PDF, a folder and a text file admitted end to end through replayed answers, offline. D-025 verdicts C-02, C-04, C-10 and C-11 met, deferred to K3, and C-01 met with its composition deferred to K3, and authors one item, KWB-172. The composition items and the proof are to be authored with K3, which is a step in XVPE's docs/plans/programs/ecosystem-substrate/mining-core.md, not an item here. Met is the verdict D-021's closure test reads as done, so these rows read as built when nothing is, and no item on this board names G2's remaining work, so nothing obliges a later pass to author it when K3 lands. The deferral itself is sound: building a reader pipeline before K3 would be wiring it twice. The C-06 row also says the passage budget waits on a measurement on the real corpus, which the owner holds, where D-021 allows a measurement on a scratch copy.",
+      "done_when": "D-025 gains an Amendment section and the version the record rule requires. Every row whose capability waits on K3 is verdicted deferred, naming K3, and the XVPE plan section or revision that defines it, as the condition; met is kept only for what exists at HEAD. The amendment decides how G2's remaining work -- the composition items and the end-to-end proof -- is held on this board until K3 is published, so that an unattended pass can tell it is waiting on XVPE rather than ready to work, and the obligation cannot be lost; it authors whatever item that decision requires. The C-06 condition says whether a scratch copy of the reference library can supply the budget measurement, per D-021. Forbidden: authoring an item that names a K3 surface before K3 is published at a revision on XVPE's origin/dev; building a reader pipeline in this repository; editing any record but D-025; any source edit. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-175",
+      "title": "OD-GATE-002 is open, though every repair it named is Done and the gate it measured red is green",
+      "why": "Goal G0 of D-021. KWB-107's finish flagged it for the audit, and the audit of KWB-107 on 2026-10-03 rules on it. tests/contract says an observation is open until something acts on the finding and closed once something has. OD-GATE-002 measured all three gate steps red on 2026-09-21, from a guard crate's clippy findings and from guards gone stale against the tree they watch. KWB-103, KWB-108, KWB-109 and KWB-110 repaired them, KWB-138 removed the second copy of the source walk that made one repair need two items, and the gate is green at HEAD. The observation still says open, so a reader would believe the gate is red.",
+      "done_when": "OD-GATE-002's status is closed and its version one higher, revised in place as AGENTS.md says an observation is, with no Amendment section. A dated paragraph says what acted on the finding, naming each item, and what was measured at the closing revision. Nothing the observation measured on 2026-09-21 is rewritten. Forbidden: editing any other document; any source edit. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/observations/OD-GATE-002-all-three-gate-steps-are-red-from-two-independent-causes.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-176",
+      "title": "The visitor page says serving the tools over MCP is work on the board, and KWB-112 shipped it",
+      "why": "From the audit of KWB-112 on 2026-10-03. docs/github-landing-page.md, the page KWB-137 was to place at .github/README.md, says the tools run from the command line and serving them over the MCP protocol is specified work on the board. Since KWB-112, kwb-mcp with --serve holds an MCP session on standard input and output. Its figures were measured in September: 22 decision records where there are 25, about 25,600 lines where there are 26,917, and about 440 tests where there are 453. KWB-137 is declined, and KWB-178 places the page as it stands when claimed.",
+      "done_when": "docs/github-landing-page.md says kwb-mcp serves the five tools to an MCP client over standard input and output, through the transport XVPE ships, and no longer says serving them is work on the board. Its figures line carries counts measured at the revision this item lands, and the month. Nothing else in the page changes. Forbidden: editing README.md, which KWB-177 holds; creating .github/README.md, which KWB-178 places; any source edit. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/github-landing-page.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-177",
+      "title": "README.md describes kwb-mcp answering once from the command line and never says it serves its tools over MCP",
+      "why": "From the audit of KWB-112 on 2026-10-03. KWB-112 made kwb-mcp hold an MCP session on standard input and output when given --serve, and left README.md alone because the file was outside its territory, as its commit said. README.md still describes only the one-shot form, so a reader of the authority AGENTS.md routes to for what exists cannot learn that the server exists.",
+      "done_when": "In README.md, immediately after the sentence that ends lists the five it answers., this sentence is added, wrapped at the file's line width like its neighbours: `kwb-mcp <store> --serve` serves the same five tools to an MCP client over standard input and output, answered by the same function as the command line, so the two cannot disagree. Nothing else in README.md changes. Forbidden: rewording the sentence, which is a design question and goes back as a new item; editing any other file; touching crates/. cargo test -p kwb-contract-tests passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-178",
+      "title": "A visitor to the GitHub repository cannot tell what KWB is for, because nothing places the visitor page where GitHub shows it",
+      "why": "Goal G0 of D-021. Successor to KWB-115 and KWB-137, both declined because the draft each would have placed byte-for-byte had gone false, so every correction to the draft meant declining and re-authoring the placement. This item places the draft as it stands when claimed, so a design pass that keeps docs/github-landing-page.md true keeps the placement true with it. The owner asked for the repository to be presentable to recruiters and other visitors, who should come away knowing the goals of the project. The root README.md is the authority AGENTS.md routes to for what exists, its tables are generated and checked by tests/contract, and it opens with record identifiers a visitor cannot use; rewriting it for visitors would weaken that authority or copy it. GitHub shows .github/README.md in preference to the root README.md, so a visitor page can live there and leave README.md exactly as it is. The page is prose about what KWB means and is for, which is the design phase: it is kept at docs/github-landing-page.md and kept true there. Placing it at .github/README.md is outside the design phase write territory, and that placement is all this item is.",
+      "done_when": "The file .github/README.md exists and is byte-identical to docs/github-landing-page.md as it stands at the revision this item is claimed at, renamed there through git so the draft no longer exists and its history follows it. No other file changes: README.md, AGENTS.md, docs/records and every crate are untouched. The predicate resolves every relative link and repository path the page cites from its new location. Forbidden: rewording, re-wrapping or reformatting any line of the page (a content change is a design question and goes back to the design phase as a new item); editing README.md; adding a route to the page in AGENTS.md; creating a directory under docs. The predicate deliberately reaches nothing in tests/contract, because no test reads .github/README.md; the loose file under docs is not a directory, so the docs-directory routing guard never saw it and does not see its removal.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          ".github/README.md",
+          "docs/github-landing-page.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-176"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "C:/Users/kmett/.claude/tools/doc-ref-check/doc-ref-check.exe",
+          "-repo",
+          ".",
+          "-docs",
+          ".github"
+        ],
+        "timeout_seconds": 600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-179",
+      "title": "D-022 finds its audit watermark by commit subject, and a history rewrite deleted every Audited commit, so five finished items read as audited when none was",
+      "why": "From the 2026-10-03 audit, agreed with the design session that wrote f9c51c7. D-022 makes the watermark the newest commit whose subject starts Audited:, falling back to the commit that landed D-022. On 2026-10-01 this repository's history was squashed into one commit, KWB: fresh history, and the reflog shows a reset to refs/reauthored/dev, so rewrites recur. After it no Audited commit existed and the fallback was the squash itself, later than every verified_at before it. KWB-107, KWB-112, KWB-113, KWB-138 and KWB-139, finished after the last audit and before the squash, read as audited, and f9c51c7 recorded Audited: none. A watermark held in commit metadata cannot survive a history rewrite; one held in the tree can.",
+      "done_when": "D-022 gains an Amendment section and the version the record rule requires. The audit's authority becomes a register in the tree, docs/audits.md, which each design pass's audit appends to: the date, the item ids audited, and for each its verdict and any successor item. An item is unaudited when it is Done, its verified_at is later than 1790495654 -- the time D-022 first landed; KWB-122 reached back past it -- and no row of the register names it. That rule reads neither commit subjects nor commit times. The register is created holding every audit made so far: the first, of KWB-103 and KWB-109; the pre-loop audit under KWB-122, of KWB-102, KWB-104 and KWB-122; the second, of KWB-100, KWB-101, KWB-105, KWB-108 and KWB-110; and the third, on 2026-10-03, of KWB-107, KWB-112, KWB-113, KWB-125, KWB-127, KWB-138, KWB-139 and KWB-159, each with its verdict and successor items. The Audited: commit subject may stay as a convention, but nothing reads it as the watermark. D-022's design-pass steps say to read and append the register. Forbidden: a watermark that depends on a commit hash, subject or time; editing any record but D-022; any source edit. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records",
+          "docs/audits.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
       },
       "verified": null,
       "abandoned": [],
