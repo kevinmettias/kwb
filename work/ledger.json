@@ -8644,7 +8644,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Declined by the 2026-10-03 audit of KWB-127, and re-authored by KWB-173. Its done_when maps a blind or vacuous verdict to exit 2, as D-024 rule 3 decided, and kwb-cli USAGE_EXIT is already 2, so a mistyped store and an audit that saw nothing would exit alike. The audit declined KWB-168 and KWB-170 for the same clause and missed it here; xvpe-46, which authored D-024, caught it. Declined now because it is ready and an implementation pass would build the colliding code before KWB-173 amends the record."
+        }
+      },
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -8661,7 +8665,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "fable",
+        "declined_at": 1791047002
+      },
       "widened": []
     },
     {
