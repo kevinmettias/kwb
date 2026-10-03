@@ -9564,6 +9564,81 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "KWB-186",
+      "title": "Two identical --says in one kwb admit run publish the claim and assertion twice, though D-027 decides a repeat is refused and counted",
+      "why": "Goal G5 of D-021, from the audit of KWB-128 on 2026-10-03. docs/corpus/core-invariant-audit.md measured it as F19 and left it unowned: two identical --says in one run append the claim and assertion records twice, five records for one claim. Replay folds them into one claim, so nothing current is wrong, but the log records an assertion the source made once as made twice, and any later count over the log inherits it. D-027 decides the rule: a proposition a source states twice is one claim and one assertion by identity, and within a run the repeat is refused as a repeat and counted, never recorded twice. It routed the rule to the composition owed at K3, but F19 happens today with hand-typed --says and no model, so nothing about it waits on K3.",
+      "done_when": "Within one kwb admit run, an extraction whose assertion identity equals one the run has already published is not published again, and nothing is appended for it. The admission report counts such repeats in a field printed on every run, as D-023 has the count of closed concepts printed, and README.md's admission transcript shows the field, so the guard on the report's fields stays green. A test through the built binary admits one file with the same --says twice and asserts that the log gains exactly the records one --says produces and that the repeat count is 1. A second test admits two different --says of one concept and asserts both are published, so the rule cannot be met by refusing everything after the first. Removing the repeat check fails the first test, shown by mutation and restored byte-for-byte. Forbidden: deduplicating across runs, which replay already folds; refusing a different source's assertion of the same claim, which has its own assertion identity; refusing the whole admission for one repeat; rewriting or deleting any record already in a log; changing any identity derivation. cargo test -p kwb-ingest -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest/src",
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/repeated_assertion.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-187",
+      "title": "D-027 defers the relation kernel's rows on triggers without naming their measurement, and owes at K3 a repeat rule that needs no model",
+      "why": "Goal G5 of D-021, from the audit of KWB-128 on 2026-10-03. KWB-128's done_when, and D-021, ask that a held row be verdicted deferred naming the measurement it waits on and whether a scratch copy can supply it. D-027 does that for C-15, C-18 and C-20, but verdicts C-47 to C-52 and C-54 as lifting on D-011's and D-004's own triggers without naming what either trigger measures or whether a scratch copy could supply it. So a reader cannot tell whether those rows wait on the owner, on the miner or on nothing measurable. Separately, D-027's consequences put the one-source repeat into the composition KWB-185 owes at K3, but the repeat happens today with hand-typed --says (F19), and KWB-186 now implements the rule D-027 decided, without waiting on K3.",
+      "done_when": "D-027 gains an Amendment section and the version the record rule requires. For C-47 to C-52 and C-54 it names the measurement each held subject waits on under D-011 and D-004, and says whether a scratch copy of the reference library can supply it, as the C-15 row already does. It says the one-source repeat is implemented by KWB-186 now, because it needs no model, so KWB-185's composition owes only what does need K3. Forbidden: lifting or deciding any held subject; editing any record but D-027; any source edit. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }

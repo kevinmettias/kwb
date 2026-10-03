@@ -94,3 +94,22 @@ doesnt require running the actual program".
 |---|---|---|
 | `KWB-173` | accepted | |
 | `KWB-174` | sent back | `KWB-184`: the amendment calls C-12's verdict unchanged while moving it from met to diverges; every other row, and `KWB-183`'s hold on G2, is sound |
+
+## 2026-10-03: the seventh audit
+
+Of the two items the sixth audit's sender then finished, by the pass that audited the last two.
+`D-027`'s decisions are sound:
+- grounding per proposition, adopted from XVPE's quote check at K3 rather than written twice;
+- a model's judgement kept as a reading;
+- a run the model caller stops records its unread documents Unmet and exits 1;
+- no hold lifted.
+
+Two things in it go back. `docs/corpus/core-invariant-audit.md` measured F19 with hand-typed
+`--says` and no model, and left it unowned, yet the record routes the repeat rule to the work
+owed at K3. And it defers C-47 to C-52 and C-54 on triggers without naming their measurement or
+whether a scratch copy could supply it.
+
+| item | verdict | carried by |
+|---|---|---|
+| `KWB-184` | accepted | |
+| `KWB-128` | sent back | `KWB-186`: F19's repeat, implemented now; `KWB-187`: `D-027` names the relation kernel's measurements and says the repeat is no longer owed at K3 |
