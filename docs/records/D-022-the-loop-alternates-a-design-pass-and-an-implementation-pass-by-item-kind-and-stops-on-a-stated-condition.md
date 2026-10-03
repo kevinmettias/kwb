@@ -3,7 +3,7 @@ id: D-022
 type: decision
 title: The loop alternates a design pass and an implementation pass by item kind, audits by commit watermark, and stops on a stated condition
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - process
@@ -183,6 +183,54 @@ field. Adding one to a borrowed schema would be a second authority for what Nomo
 - While the gate is red, `nomos work finish` refuses every item before its predicate runs. The
   first implementation passes will therefore be the gate's repairs, `KWB-103` and `KWB-109`, and
   every item authored for `D-021` depends on both.
+
+## Amendment: The audit register is the watermark, because a history rewrite erased every commit that held it, 2026-10-03
+
+This amendment replaces step 2's watermark.
+
+**What happened.** On 2026-10-01 this repository's history was squashed into one commit, and
+the reflog shows a reset to `refs/reauthored/dev`, so history rewrites here are a recurring
+fact. The squash deleted every `Audited:` commit. The rule's fallback, the commit that landed
+this record, became the squash commit itself, which is later than every item finished before
+it. As a result:
+
+- five items finished between the last audit and the squash read as audited: `KWB-107`,
+  `KWB-112`, `KWB-113`, `KWB-138` and `KWB-139`;
+- the next audit recorded that it had nothing to audit.
+
+A watermark kept in commit metadata does not survive the operation most likely to happen to
+commits.
+
+**The register.** `docs/audits.md` is the audit's authority. It is a file in the tree, so a
+rewrite carries it like any other content.
+
+- Each audit appends one section: its date, then one row per item audited.
+- A row gives the item id, its verdict (`accepted` or `sent back`), and the items that carry a
+  defect sent back.
+- A row is never edited or removed. An audit that changes an earlier verdict appends a new row.
+
+**Unaudited, restated.** An item is unaudited when all three of these hold:
+
+- its state is `Done`;
+- its `verified.verified_at` is later than `1790495654`, the time this record first landed on
+  2026-09-27 (`KWB-122` reached back past it);
+- no row of the register names it.
+
+The rule reads no commit subject, hash or time.
+
+**So the design pass's steps read:**
+
+- **Step 2.** Its first sentences become: *The register is `docs/audits.md`. An item is
+  unaudited when it is `Done`, its `verified_at` is later than `1790495654`, and no row of the
+  register names it.* The rest of step 2 stands.
+- **Step 3.** It becomes: *Append the audit's section to the register and commit it.* The
+  subject `Audited: <ids> — <n> accepted, <m> sent back` stays as a convention for a reader of
+  the log, but nothing reads it as the watermark. An audit that found nothing to audit appends
+  nothing, and needs no commit.
+
+**Every other rule in this record stands as written.** The *Why* paragraph on an audit that
+leaves no trace still holds: the register is derivable without any session, as the commit
+watermark was. What it drops is the assumption that history is never rewritten.
 
 ## Referenced By
 
