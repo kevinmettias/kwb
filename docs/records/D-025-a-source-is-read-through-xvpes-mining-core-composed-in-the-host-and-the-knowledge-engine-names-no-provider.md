@@ -3,7 +3,7 @@ id: D-025
 type: decision
 title: A source is read through XVPE's mining core composed in the host, the knowledge engine names no provider, and only fidelity produces Skipped
 status: accepted
-version: 2
+version: 3
 authority: canonical-normative-record
 tags:
   - ingestion
@@ -158,6 +158,21 @@ which it cannot proceed without in any case, so until they are done it reads as 
 ready, and no unattended pass claims it. Once they are done it becomes claimable; a design pass that
 claims it before K3 is published abandons it, naming the condition, because this board has no typed
 blocker a pass can set (`OD-LEDGER-002`). It names no K3 surface, because none is published to name.
+
+## Amendment: C-12 Moved From Met To Diverges, And The Second Amendment Called It Unchanged, 2026-10-03
+
+The second amendment's table lists C-12 among rows it calls *unchanged* and gives its verdict as
+*diverges*. Version 1 verdicted C-12 **met**. So the verdict did change, from met in version 1 to
+diverges in version 2, and *unchanged* was the wrong word; it stays as written above, because an
+amendment corrects a record and does not rewrite one.
+
+Why *diverges* is the verdict: nothing at `HEAD` derives the reading protocol's version — `KWB-172`,
+which does, is not done — and when it is, the version it derives differs from the prototype's. The
+prototype tagged a stage `model@<8 hex>` over its system prompt and schema, and for two stages over the
+schema alone; this repository derives the version through its own derivation from the instructions,
+the schema and the passage and answer budgets, and records the model beside it as the reader rather
+than in it. Same requirement — a prompt change reopens coverage — met by a different mechanism, which
+is what *diverges* means. Nothing else in this record changes.
 
 ## Referenced By
 
