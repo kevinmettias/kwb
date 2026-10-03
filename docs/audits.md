@@ -66,3 +66,18 @@ The first audit under `D-022` as amended, asked for by the pass that wrote the i
 | item | verdict | carried by |
 |---|---|---|
 | `KWB-124` | accepted | follow-up XVPE step X10, written `ready` in XVPE's `kwb-parity.md` |
+
+## 2026-10-03: the fifth audit
+
+By the pass that holds the design lane, of the three items the fourth audit's pass finished, so
+none of them is audited by its author. Each was measured rather than read: `KWB-175`'s five
+acting items are `Done` and its observation reads `closed`, version 3; `KWB-176`'s figures
+reproduce at `0073ae2` — 14 workspace members, 26,917 lines of tracked `.rs`, 25 records, and
+453 tests passing as measured that day; `KWB-179`'s `1790495654` is the reflog time of `905dede`,
+the commit that landed `D-021` and `D-022`.
+
+| item | verdict | carried by |
+|---|---|---|
+| `KWB-175` | accepted | |
+| `KWB-176` | accepted | |
+| `KWB-179` | accepted | |
