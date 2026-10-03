@@ -3,7 +3,7 @@ id: D-027
 type: decision
 title: A claim a model proposes is admitted only on a quote found in its passage, a model's judgement stays a reading, and the rest of the epistemic layer waits on its measurements
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - epistemic
@@ -101,3 +101,37 @@ by model before K3, so there is nothing for it to guard yet; writing it would be
   author G2's composition once K3 is published — with grounding (C-16), the one-source repeat (C-16)
   and the failed run (C-21) added to the composition it must author.
 - `D-025` and `D-026` gain back-links.
+
+## Amendment: Each Held Relation Row Names What It Waits On, And The Repeat Needs No Model, 2026-10-03
+
+`KWB-187`, from the audit of `KWB-128`, found two things the decision above left short. Both are
+corrected here, and no held subject is lifted or decided by it.
+
+**The relation rows, C-47 to C-52 and C-54, each name the measurement they wait on.** `D-011`
+decides the relation algebra's requirements — it is derived from the prototype's pack-load path,
+which ran, and `D-004` lists it as operationally validated — and holds the type half. Its two open
+questions, layer inheritance (A3) and the choice between closing a hierarchy and leaving a remainder
+unclassified (B3), need inputs that do not exist yet: concepts and the relations between them,
+admitted from real sources at scale rather than read off the prototype's packs. Row by row:
+
+| Row | Waits on | A scratch copy? |
+|---|---|---|
+| C-47 | the type half's inputs above, and enumerating this repository's own kinds, which `D-011` rejects doing before them | **yes**: concepts and relations admitted from a scratch copy of the reference library, read through the mining core at K3, supply them — writing no durable record, which `D-021` allows. Beyond a copy it needs K3 and model runs, which the owner's instruction of 2026-10-03 withholds for now |
+| C-48 | a pack format, which `D-017` leaves undecided and which `D-011` puts after the kernel | follows C-47 |
+| C-49 | relations admitted under C-47's kinds, for inference to run over | follows C-47 |
+| C-50 | the same | follows C-47 |
+| C-51 | the same, and the falsifier a negative assertion must carry, which `D-011`'s algebra names and C-47's kinds instantiate | follows C-47 |
+| C-52 | C-47 and C-48: connections across domains need more than one domain's kinds | follows C-47 and C-48 |
+| C-54 | a family certified transitive, which `D-011` B4 says the prototype's vocabulary could not even assert, and C-47's kinds to certify it on | follows C-47 |
+
+So every one of them reduces to one measurement — what a real corpus's admitted relations need of a
+type kernel — that a scratch copy can supply once K3 composes reading and the owner permits model
+runs on copies. None waits on G8.
+
+**The one-source repeat (C-16) needs no model, and is implemented now.** The decision above routed
+the repeat rule through K3 with grounding. It should not have: the audit's F19 measured a repeat with
+hand-typed `--says` and no model at all, so the rule binds the reader this repository already has.
+`KWB-186` implements it now — within one run an assertion already published is not published again,
+and the repeat is counted in the report. `KWB-185`'s composition therefore owes only what needs K3:
+grounding and the failed-run exit, and the repeat for readings a model produces is the same rule
+`KWB-186` builds, applied to them.
