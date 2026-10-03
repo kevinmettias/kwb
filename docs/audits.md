@@ -117,6 +117,7 @@ whether a scratch copy could supply it.
 ## 2026-10-03: the eighth audit
 
 `D-027` v2:
+
 - names, row by row, what each held relation row waits on, and that a scratch copy can supply it
   once K3 composes reading and model runs are permitted, with none waiting on G8;
 - routes the repeat to `KWB-186`, so `KWB-185` owes only grounding and the failed-run exit;
