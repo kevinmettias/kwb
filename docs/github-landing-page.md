@@ -13,8 +13,8 @@
 two sources assert the same thing, KWB stores one claim with two citations, and each citation is
 the content address of the exact document it was read from.
 
-Rust · 14 crates · ~25,600 lines · ~440 tests · 22 decision records
-<sub>(measured September 2026)</sub>
+Rust · 14 crates · ~26,900 lines · ~450 tests · 25 decision records
+<sub>(measured October 2026)</sub>
 
 ---
 
@@ -61,9 +61,9 @@ Two books and two source addresses, but **one claim with two citations**.
 - **A read-only tool surface for AI agents.** Five tools: search, get a concept, show a concept's
   neighbours, and two audit tools that list what was merged away and what it used to hold. Each
   tool declares whether it reads the *current* or the *historical* graph, so an agent cannot ask
-  a historical question of the current state by mistake. The tools run from the command line
-  today. Serving them over the MCP protocol is specified work on the board, reusing the
-  transport XVPE already ships.
+  a historical question of the current state by mistake. They answer from the command line, and
+  `kwb-mcp <store> --serve` serves the same five to an MCP client over standard input and
+  output, through the transport XVPE ships.
 - **A model-backed reader, without a vendor lock.** `kwb-extract` splits a source into passages,
   asks a language model what each passage asserts under a schema, and hands the proposals to the
   same identity pipeline as a hand-typed claim. It is a library, not yet a command. The
