@@ -58,3 +58,11 @@ rows below.
 | `KWB-125` | sent back | `KWB-174` |
 | `KWB-127` | sent back | `KWB-173`; `KWB-167`, `KWB-168` and `KWB-170` declined for it |
 | `KWB-159` | accepted | |
+
+## 2026-10-03: the fourth audit
+
+The first audit under `D-022` as amended, asked for by the pass that wrote the item.
+
+| item | verdict | carried by |
+|---|---|---|
+| `KWB-124` | accepted | follow-up XVPE step X10, written `ready` in XVPE's `kwb-parity.md` |
