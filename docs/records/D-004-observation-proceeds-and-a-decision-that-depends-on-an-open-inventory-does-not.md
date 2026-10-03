@@ -390,3 +390,4 @@ this repository had stopped doing.*
 - `D-011`
 - `D-020`
 - `D-021`
+- `D-024`

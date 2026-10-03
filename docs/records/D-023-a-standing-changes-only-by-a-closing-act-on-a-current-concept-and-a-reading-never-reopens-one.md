@@ -3,7 +3,7 @@ id: D-023
 type: decision
 title: A standing changes only by a closing act on a current concept, and a reading never reopens one
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - domain
@@ -100,3 +100,35 @@ cycle impossible to form without walking anything.
   item.
 - `KWB-127` still decides what closing a concept does to its claims, and this record does not
   presume its answer.
+
+## Amendment: A closed concept can be reopened, by an act that carries a reason, 2026-10-03
+
+The decision above says nothing reopens a closed concept until a record decides an act carrying a
+reason of its own. `D-024` decides it: `kwb reopen <concept> --store <dir> --because <reason>`
+publishes the concept's next version under the standing `Reopened { because }`, which is current to
+every query. So the sentence *nothing reopens a closed concept* now reads *nothing but `kwb reopen`
+reopens a closed concept*, and every other rule here stands as written:
+
+- an admission still never reopens one — reopening is a person's act with a reason, which is the
+  whole of `D17`, and a reading carries none;
+- a reopened concept is current, so the closing rules apply to it again exactly as to an asserted
+  one;
+- reopening a concept that is current, one the graph does not hold, or with a reason that normalizes
+  to nothing is refused, exit 1, the log unchanged;
+- the closing record stays in the log. Reopening adds a version; it removes nothing.
+
+`D-024` also answers what closing does to a concept's claims, which this record left to `KWB-127`:
+nothing. They stay with the concept they were asserted of.
+
+## Referenced By
+
+
+*Written by hand, and checked by `tests/contract` in both directions: a declared relation with
+no entry here fails, and an entry here that nothing declares a relation to fails too. Either
+end may be a record or an observation, since `KWB-86`. A relation is declared in the
+frontmatter of the document that makes it; this is the other end, so that a reader of this
+record can reach the ones that answer, amend or build on it. Before `KWB-38`, 24 of 27
+relations were reachable from one side only — which is how three records came to assert things
+this repository had stopped doing.*
+
+- `D-024`

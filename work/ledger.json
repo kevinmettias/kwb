@@ -6981,7 +6981,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [
         "KWB-103",
         "KWB-109"
@@ -6998,7 +6998,31 @@
         ],
         "timeout_seconds": 1800
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Blocking waiting for file lock on package cache\n    Blocking waiting for file lock on package cache\n    Blocking waiting for file lock on package cache\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.04s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-9dafe489db4309da.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-eaea05ad7601ae51.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-a14761dc2df1bd9b.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-e4203d18397766d1.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-2ed7918259d0a15b.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1791044138,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "1b197ee823accb134d92b45342e0f4c302c0aeb5"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
@@ -8476,6 +8500,296 @@
           "test",
           "-p",
           "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-165",
+      "title": "A reading that examined nothing is recorded Barren with one unit examined, so an absence of reading is stored as evidence of absence",
+      "why": "D-024 C-28 decides this; docs/corpus/core-invariant-audit.md F8 found it. The admission report's Coverage_Of_Reading records Barren with NonZeroUsize::MIN examined whatever the reader read, and Read_The_Right_Document accepts an empty list of readings, so a reader that returned nothing is recorded as having looked at one unit and found nothing there -- D-020's own line, a rule that looked at nothing has no evidence of absence to offer, and the prototype's 1,367 rows. ExtractionStrategy already returns one reading per passage it examined, so the number of readings is the material examined, and no contract change is needed.",
+      "done_when": "The admission report records as material examined the number of readings the reader returned, one per passage under ExtractionStrategy's contract: no reading at all is Unmet, naming as its prerequisite that the reader returned no reading; N readings with no admissible claim is Barren with N examined; a reading run that produced findings is Yielded with the findings counted as today. A new test file crates/ingestion/kwb-ingest/tests/coverage_examined.rs: a strategy returning no reading gives Unmet; three readings proposing nothing admissible give Barren with 3 examined; two readings with claims give Yielded; and a person's blank --says, one reading refused, still gives Barren with 1 examined, so kwb-ingest's existing admission tests pass unmodified. Shown to fail with NonZeroUsize::MIN restored, and the source restored byte-identically. Forbidden: changing ExtractionStrategy's signature or Coverage's type; counting extractions or propositions as material examined; any default outcome; unwrap, expect or panic outside tests. cargo test -p kwb-ingest -p kwb-cli passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest/src/admission_report.rs",
+          "crates/ingestion/kwb-ingest/tests/coverage_examined.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-166",
+      "title": "Coverage is computed per admission and printed, then forgotten, so nothing can tell a source nobody read from one read and found empty",
+      "why": "D-024 C-28 decides this. kwb admit prints coverage and keeps nothing of it, so after the process ends the distinction D-020 built a type to draw -- looked and found nothing, against never looked -- is gone. The prototype kept coverage in a table it overwrote on every re-run and keyed without the model version; D-024 keeps it append-only, beside the publications, through the same record log and its torn-tail refusal (D-019).",
+      "done_when": "kwb admit appends, after its publications, one coverage record to coverage.log in the store root, through the same record-log adapter publications.log uses. The record carries the document's content address, the reading protocol and the reader name the readings' lineage names (empty when no reading happened, never a guessed value), the outcome's rendered name, its count (findings, or material examined), the outcome's &'static str reason where it has one, and the instant from the clock kwb admit already reads. One type renders and parses the record, and parse of render is the identity for every outcome in tests. kwb admit reads coverage.log before appending, so a torn tail there is refused, exit 1, with both logs' bytes unchanged. The admit report prints a coverage-kept line, and README.md's admit transcripts show it so Test_Every_Readme_Admit_Transcript_Should_Show_Every_Field_The_Binary_Prints passes. A new test file crates/host/kwb-cli/tests/coverage_log.rs drives the built binary on scratch stores whose names carry std::process::id(): an admission with --says leaves one Yielded record with its protocol and count; one with no --says leaves one Unmet record; two admissions leave two records in file order; a torn coverage.log is refused as above. Forbidden: coverage as a kind of publication record; editing, replacing or deleting an earlier coverage record; writing coverage before the publications it describes; a free-text reason; any change to publications.log or replay; unwrap, expect or panic outside tests. cargo test -p kwb-ingest -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest/src",
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/coverage_log.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-165",
+        "KWB-116",
+        "KWB-141"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-167",
+      "title": "Nothing here has a finding shape or a computed audit verdict, so an audit could report clean having looked at nothing",
+      "why": "D-024 C-31 decides this. The prototype's finding model computed blind, vacuous, failed and clean, but three of its audits never set an exit code and its merge audit's blindness was an unhandled exception, and a severity filtered at display time while the verdict counted every finding. Every audit D-024 authors -- KWB-168 and KWB-170 -- needs one shape and one verdict before it is written, or each will compute its own.",
+      "done_when": "kwb-domain gains one finding type -- the subject's rendered identity, the check's &'static str name, a reason normalized through kwb_model::Normalize_Text, and the evidence -- and an audit verdict computed from what was eligible, what was examined and the findings: blind when something was eligible and nothing examined, vacuous when nothing was eligible, failed when there is a finding, clean otherwise; and the exit code each verdict maps to, clean 0, failed 1, blind and vacuous 2. Neither type has a Default, and the verdict cannot be constructed except by that computation. A new test file crates/domain/kwb-domain/tests/audit_verdict.rs covers every combination at its boundaries, including a finding with nothing examined, which is blind and not failed. Shown to fail with blind computed after failed. Forbidden: a severity; a Default; a verdict a caller can assert; clean when nothing was examined; unwrap, expect or panic outside tests. cargo test -p kwb-domain passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/src/audit",
+          "crates/domain/kwb-domain/src/audit.rs",
+          "crates/domain/kwb-domain/src/lib.rs",
+          "crates/domain/kwb-domain/tests/audit_verdict.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-168",
+      "title": "No audit re-checks a supersession against the rules D-023 states, so a cycle or a merge into a closed concept already in a log is invisible",
+      "why": "D-024 C-25 decides this. D-023 makes closing apply only to a current concept, into a current successor, and KWB-164 enforces it from now on; logs written before it can hold what it refuses, and a successor can be closed after its losers were merged into it. The prototype's merge audit re-asked the normaliser's own predicate and so could not see a predicate defect; this one checks the records against the rule as the record states it.",
+      "done_when": "kwb audit merges --store <dir> replays publications.log through Records() and, by its own reading of the records rather than any function closing.rs uses, checks every supersession: at the position it was published the superseded concept's latest version was current, the successor was held and current, the two are distinct, and the reason is non-empty after normalization; and against the graph replayed today, the successor is current. Each failure is a finding of KWB-167's shape with its own check name. Eligible is the supersessions in the log, examined those checked, and the verdict and exit code are KWB-167's; a log that cannot be read is blind, exit 2, never a panic. kwb audit all runs every audit built and exits by the worst verdict. README.md shows the audit verb, so both verb guards pass. A new test file crates/host/kwb-cli/tests/audit_merges.rs: a store with valid supersessions exits 0 and prints its denominator; a fixture log written through Publication::Record holding each violation -- a cycle, a merge into a closed successor, a self-supersession, a successor closed since -- fails with that check named; a store with no supersession exits 2 as vacuous; a torn log exits 2 as blind. Shown to fail with the successor-current check removed. Forbidden: writing, repairing or deleting anything; calling closing.rs's checks; reading the graph through anything but the log; vacuous or blind reported as clean; unwrap, expect or panic outside tests. cargo test -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/audit_merges.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-167",
+        "KWB-164"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-169",
+      "title": "A closed concept cannot be reopened, so a merge found wrong by an audit can only be reported, never undone",
+      "why": "D-024 C-25 decides this and amends D-023: kwb reopen publishes a concept's next version under Standing::Reopened { because }, current to every query, and the closing record stays in the log. Because a closure moves no claim (D-024 C-26), reopening restores everything a closure changed -- which the prototype's merge-audit --undo could not, having re-derived and deleted the loser's claims, and which it did by overwriting rows and recording nothing.",
+      "done_when": "Standing gains Reopened { because }, its reason normalized, counted current by the one liveness expression, so the existing liveness guard passes; a publication record renders it under its own standing name with the reason and no successor, and replay reads it back. kwb reopen <concept> --store <dir> --because <reason> publishes the next version of a concept whose latest version is closed, with the instant admit reads; it refuses a current concept and a concept the graph does not hold with exit 1, and a missing reason or one that normalizes to nothing as the closing verbs refuse it, each leaving the log's bytes unchanged. README.md shows the verb. Tests: crates/domain/kwb-domain/tests/reopened_standing.rs (render, parse and replay round-trip; liveness); crates/host/kwb-cli/tests/reopen.rs through the built binary -- supersede then reopen, after which kwb-mcp merge_losers no longer lists the concept, held_neighbours shows it and its claims current, and the log holds both the closing and the reopening; a reopened concept can be retired again; each refusal leaves the log unchanged. Shown to fail with Reopened counted not current. Forbidden: deleting or editing the closing record; reopening through admission; moving or re-deriving any claim; a second liveness expression; unwrap, expect or panic outside tests. cargo test -p kwb-domain -p kwb-cli -p kwb-mcp -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/src/epistemic/standing.rs",
+          "crates/domain/kwb-domain/src/graph",
+          "crates/domain/kwb-domain/src/versioning",
+          "crates/domain/kwb-domain/tests/reopened_standing.rs",
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/reopen.rs",
+          "crates/host/kwb-mcp/src",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-164",
+        "KWB-144"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-mcp",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-170",
+      "title": "Nothing checks the documents a store holds against the coverage it recorded, so a document never read and a document lost are both silent",
+      "why": "D-024 C-29 decides this. With coverage kept (KWB-166) the store can be held to it: every document the content store holds should have been read, and every coverage record should name a document still held -- one that is not is content lost. The prototype's coverage audit re-ran the stages' own classifier and so confirmed its own write-offs, always exited 0, and its --reopen hard-deleted rows; this one compares two independent stores and never writes.",
+      "done_when": "kwb audit coverage --store <dir> [--protocol <name>] enumerates the documents the content store holds through the store itself, not through admission or the publication log, reads coverage.log, and reports findings of KWB-167's shape: a document with no coverage record; with --protocol, a document read only under another protocol; a coverage record naming a document the store does not hold; a Barren record with nothing examined. Without --protocol the output says the protocol check was not made. Eligible is the documents held; the verdict and exit code are KWB-167's: blind when the store holds documents and coverage.log cannot be read, vacuous when the store holds none. kwb audit all includes it. A new test file crates/host/kwb-cli/tests/audit_coverage.rs: an admitted store exits 0; a document placed in the store without admission fails as never read; a document removed after admission fails as lost; --protocol naming another protocol fails each document as stale; a torn coverage.log exits 2 as blind; an empty store exits 2 as vacuous. If the content store offers no way to enumerate what it holds, stop and abandon saying so. Forbidden: writing, reopening or deleting anything; calling admission or any classifier; inferring the documents from the publication log; unwrap, expect or panic outside tests. cargo test -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/audit_coverage.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-166",
+        "KWB-168",
+        "KWB-142"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-171",
+      "title": "kwb-extract asks the model directly, so no request is budgeted, retried or accounted for, and nothing could record what a reading cost",
+      "why": "D-024 C-33 decides this. ReadsText calls InferenceStrategy itself. XVPE's xvpe-ai-pipeline, at the revision KWB-140 pins, has the caller both mining products use -- spend checked before every request, retry classification, per-role tokens, cost and waits -- and its accounting. The prototype's cost ledger dropped records when its buffer filled, summed unreported tokens as zero, made success its zero value, and was never reached by CLI commands.",
+      "done_when": "kwb-platform-xvpe adopts xvpe-ai-pipeline at the rev its other XVPE crates pin, behind a feature of its own as KWB-114 and KWB-116 adopt theirs, and kwb-extract makes every request through its caller: the same request it sends today, so every replay fixture and recording is unchanged and passes unmodified. A spend ceiling, when given, refuses the reading as ReaderFailed, so a whole read is refused as the extraction contract requires. ReadsText exposes, for each request, a call record -- role, model, protocol, document, the outcome's computed name, input, output and cache tokens as reported with an unreported count absent rather than zero, integer cost, and wait -- through one type that renders and parses it, for the host that composes kwb-extract to append to calls.log; KWB-125's composition item carries that append. Cargo.lock gains xvpe-ai-pipeline and what only it brings, and the delta is reported; a third-party package in it is a stop. Tests in crates/ingestion/kwb-extract/tests/call_accounting.rs over replayed answers: one call record per passage, tokens as recorded, an unreported count absent, a scripted failing strategy's attempts counted. Forbidden: changing what a request carries or any fingerprint or recording; storing a prompt or an answer in a call record; zero for an unreported count; a default outcome; a live network call; a path dependency; moving the rev; naming an XVPE crate outside kwb-platform-xvpe; unwrap, expect or panic outside tests. cargo test --workspace passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/ingestion/kwb-extract",
+          "Cargo.lock",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
           "--no-fail-fast"
         ],
         "timeout_seconds": 3600
