@@ -107,3 +107,16 @@ audit, and the prototype shows what a severity filtered at display time does to 
   reason, and C-25 is that act.
 - A corpus being exhausted, a source's quality, alias merging and readings stay where `D-004`,
   `D-011` and `D-015` hold them.
+
+## Referenced By
+
+
+*Written by hand, and checked by `tests/contract` in both directions: a declared relation with
+no entry here fails, and an entry here that nothing declares a relation to fails too. Either
+end may be a record or an observation, since `KWB-86`. A relation is declared in the
+frontmatter of the document that makes it; this is the other end, so that a reader of this
+record can reach the ones that answer, amend or build on it. Before `KWB-38`, 24 of 27
+relations were reachable from one side only — which is how three records came to assert things
+this repository had stopped doing.*
+
+- `D-025`

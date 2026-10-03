@@ -6907,7 +6907,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [
         "KWB-103",
         "KWB-109"
@@ -6924,7 +6924,31 @@
         ],
         "timeout_seconds": 1800
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "t result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n\nrunning 4 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n\nrunning 4 tests\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.01s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-9dafe489db4309da.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-eaea05ad7601ae51.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-a14761dc2df1bd9b.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-e4203d18397766d1.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-2ed7918259d0a15b.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1791045642,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "9d052ff893282802d6c2921f9bfd6199dc49f9e9"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
@@ -8790,6 +8814,46 @@
           "cargo",
           "test",
           "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-172",
+      "title": "The reading protocol is a constant string, so an edit to the instructions or the schema reads as the same protocol and no coverage recorded under the old one goes stale",
+      "why": "D-025 decides this (row C-12). kwb-extract's PROTOCOL is the literal \"read-born-digital-text-v1\", so a change to INSTRUCTIONS, to the answer schema or to the passage budget leaves every reading's lineage naming the protocol it had before, and the coverage D-024 keeps would call a document read under instructions it was never read under. The prototype hashed the schema alone for two of its stages, so an instruction edit changed nothing they recorded, and hand-bumped a number for another.",
+      "done_when": "The protocol a reading's lineage names is \"read-born-digital-text\" at a version derived through kwb_model's Derivation from every text the reader sends that is the same for every passage: INSTRUCTIONS, the answer schema as the JSON Schema text the request carries, the passage budget (characters and pages), the answer token budget and the proposition ceiling. The model is not folded in; it stays the lineage's reader name (D-025). A new test file crates/ingestion/kwb-extract/tests/protocol_version.rs: the version is the same on every call and in every process; changing any one of the inputs above changes it; the passage text and the model do not; and today's version is pinned as a literal, so an unintended change to what the reader sends shows up as a failing test that names it. The existing test that compares a reading's protocol with the constant is updated to the derived value. Shown to fail with the schema left out of the derivation, and the source restored byte-identically. Forbidden: a hand-maintained version string; leaving out any text every request carries; folding in the passage or the model; changing the request, any request fingerprint or any recorded fixture; unwrap, expect or panic outside tests. cargo test -p kwb-extract passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-extract/src/reads_text.rs",
+          "crates/ingestion/kwb-extract/src/lib.rs",
+          "crates/ingestion/kwb-extract/src/tests.rs",
+          "crates/ingestion/kwb-extract/tests/protocol_version.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140",
+        "KWB-114"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-extract",
           "--no-fail-fast"
         ],
         "timeout_seconds": 3600
