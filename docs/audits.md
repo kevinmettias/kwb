@@ -81,3 +81,16 @@ the commit that landed `D-021` and `D-022`.
 | `KWB-175` | accepted | |
 | `KWB-176` | accepted | |
 | `KWB-179` | accepted | |
+
+## 2026-10-03: the sixth audit
+
+Of the two items the fifth audit's pass finished, by the pass that sent them back, so neither is
+audited by its author. `KWB-173`'s new codes were measured against both binaries, which use 0, 1
+and 2 and nothing else, and its re-authored `KWB-180` to `KWB-182` carry the table. Its reading of
+the owner's 2026-10-03 instruction was checked against the instruction itself: "do everything that
+doesnt require running the actual program".
+
+| item | verdict | carried by |
+|---|---|---|
+| `KWB-173` | accepted | |
+| `KWB-174` | sent back | `KWB-184`: the amendment calls C-12's verdict unchanged while moving it from met to diverges; every other row, and `KWB-183`'s hold on G2, is sound |

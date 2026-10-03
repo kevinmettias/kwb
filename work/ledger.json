@@ -7090,14 +7090,18 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Claimed",
       "depends_on": [
         "KWB-124",
         "KWB-103",
         "KWB-109"
       ],
       "blocked": null,
-      "claim": null,
+      "claim": {
+        "holder": "fable",
+        "acquired_at": 1791047899,
+        "lease_expires_at": 1791076699
+      },
       "verification": {
         "argv": [
           "cargo",
@@ -9430,6 +9434,40 @@
           "--no-fail-fast"
         ],
         "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-184",
+      "title": "D-025's amendment calls C-12's verdict unchanged while changing it from met to diverges",
+      "why": "Goal G2 of D-021, from the audit of KWB-174 on 2026-10-03. D-025 version 1 verdicts C-12 met in the form above, with KWB-172 deriving the protocol version. The version-2 amendment's table lists C-07, C-09 and C-12 as unchanged and then gives C-12 as diverges, built by KWB-172. The new verdict is right: KWB-172 is not Done, so met was false at HEAD, and the derived version differs from the prototype's schema-only hash, which is a divergence. But the word unchanged tells a reader the verdict did not move, and it did. The rest of the amendment was audited and is sound.",
+      "done_when": "D-025 gains an Amendment section and the version the record rule requires. The amendment says that C-12 moved from met, in version 1, to diverges, in version 2, and why: KWB-172 is not Done, and the derived version differs from the prototype's. It leaves the version-2 amendment's text as written, because an amendment corrects a record and does not rewrite one. Nothing else in D-025 changes. Forbidden: editing any record but D-025; changing any other row's verdict; any source edit. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
       },
       "verified": null,
       "abandoned": [],
