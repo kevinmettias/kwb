@@ -8988,7 +8988,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -9002,7 +9002,31 @@
         ],
         "timeout_seconds": 1800
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s\n\n\nrunning 5 tests\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Blocking waiting for file lock on package cache\n    Blocking waiting for file lock on package cache\n    Blocking waiting for file lock on package cache\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.19s\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_contract_tests-9dafe489db4309da.exe)\n     Running tests\\boundaries.rs (target\\debug\\deps\\boundaries-eaea05ad7601ae51.exe)\n     Running tests\\commands.rs (target\\debug\\deps\\commands-a14761dc2df1bd9b.exe)\n     Running tests\\literals.rs (target\\debug\\deps\\literals-e4203d18397766d1.exe)\n     Running tests\\projections.rs (target\\debug\\deps\\projections-2ed7918259d0a15b.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1791047629,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "revision": "dcb7e2af1a5a77dba366024204f04d11a89cfa7e"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
@@ -9362,6 +9386,45 @@
           "test",
           "-p",
           "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-183",
+      "title": "G2's composition and its end-to-end proof wait on XVPE publishing K3, and this item is what keeps that obligation on the board",
+      "why": "D-025 v2 (KWB-174) decides it. D-025 defers reading PDFs, folders and web pages by model to XVPE's mining-core step K3 -- KWB's extraction through the core -- which XVPE's docs/plans/programs/ecosystem-substrate/mining-core.md holds as not yet authorable until its surfaces are published at one revision on origin/dev. KWB-125's done_when asked for an item per row it verdicted met or diverges and for G2's proof; D-025 v2 verdicts those rows deferred, and this item is the board's record that their items are owed. It depends on KWB-140 and KWB-171 because no composition can proceed without the pin they set and model calls through xvpe-ai-pipeline. The board has no typed blocker a pass can set (OD-LEDGER-002), so the K3 condition is stated here, in the done_when.",
+      "done_when": "When claimed, first establish whether XVPE has published K3 at a revision on origin/dev: mining-core.md's K3 row authorable, and the surfaces it names present at that revision. If not, abandon this item with a reason naming exactly what is not yet published, and change nothing. If so: author, with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes, (1) the pin move to that revision, measured alone as D-007's amendments require; (2) one composition item for each row D-025 v2 defers to K3 -- folder admission (C-01, C-04), PDF reading through PDFium (C-02), the provider composed in kwb-cli behind a non-default feature with README.md amended to say so (C-10), --record and --replay in the host (C-11), Skipped and Unmet recorded as D-025 decides (C-05), passages split below the page through XVPE step X2 (C-06), and the quality report before spending (C-08), each depending on the pin move; and (3) G2's proof: a PDF, a folder of fixtures and a text file admitted end to end through replayed answers, offline, depending on every composition item. Forbidden: naming a K3 surface before it is published at a revision on XVPE's origin/dev; a reader pipeline in this repository; a live network call in any test; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140",
+        "KWB-171",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
           "-p",
           "kwb-contract-tests",
           "--no-fail-fast"

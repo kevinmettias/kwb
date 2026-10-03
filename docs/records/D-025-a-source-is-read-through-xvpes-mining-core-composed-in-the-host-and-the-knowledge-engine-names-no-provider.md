@@ -3,7 +3,7 @@ id: D-025
 type: decision
 title: A source is read through XVPE's mining core composed in the host, the knowledge engine names no provider, and only fidelity produces Skipped
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - ingestion
@@ -125,3 +125,36 @@ reading is exactly the input that hold waits on.
   offline — is authored with K3, as are the composition items, because every one of them names a
   surface K3 adopts.
 - `D-024`'s coverage record carries the Skipped and Unmet cases above unchanged.
+
+## Amendment: What Waits On K3 Is Deferred, And An Item Holds G2's Remaining Work, 2026-10-03
+
+`KWB-174`, from the audit of `KWB-125`, found that the table above verdicts rows *met* that nothing
+implements, which `D-021`'s closure test reads as done, and that no item on this board holds G2's
+remaining work, so nothing obliges a later pass to author it when K3 lands. Both are corrected here.
+The deferral to K3 itself stands: building a reader pipeline before K3 would wire it twice.
+
+**K3 is defined by XVPE's `docs/plans/programs/ecosystem-substrate/mining-core.md`, step K3** — KWB's
+extraction running through the mining core: the judge seam, the corpus fronts and grounding — which
+that plan holds as not yet authorable until its surfaces are published at one revision on XVPE's
+`origin/dev`. *Met* is now kept only for what exists at this repository's `HEAD`.
+
+| Row | Verdict, amended |
+|---|---|
+| C-01 | **met** for a file: `kwb admit <file>` admits one file's bytes, content-addressed, today. **Deferred** for folders, condition K3, and for web pages, condition XVPE step X3 and its owner question `q-web-snapshot-reader-crate`. |
+| C-02 | **deferred**, condition K3. XVPE step X1 was withdrawn on measurement: PDFium glues about 0.02% of words. |
+| C-03 | **met** for admitting a text or source file's bytes, and for `kwb-extract` reading UTF-8 text as a library; **deferred**, condition K3, for any command reading them by model, since no command reaches `kwb-extract`. |
+| C-04 | **deferred**, condition K3 for folders and X3 for web pages. |
+| C-05 | **deferred**, condition K3, where a page's fidelity becomes known to a reader, and `KWB-166`, which records coverage. The shape decided above — Skipped for a passage needing a page image, Unmet for a document with nothing readable — stands. |
+| C-06 | **deferred**, condition K3 and XVPE step X2. A location true at page grain is `KWB-156`. The budget measurement can be taken on a scratch copy of the reference library — it reads copies and writes no durable record, which `D-021` allows — and needs, beyond a copy, model runs the owner's instruction of 2026-10-03 withholds; it does not wait on G8. |
+| C-08 | **deferred**, condition K3: the report needs the core's fidelity before the first request. |
+| C-10 | **deferred**, condition K3. |
+| C-11 | **met** for replay in tests: `kwb-extract`'s tests answer through XVPE's `ReplayInference`, and a miss is a failure. **Deferred**, condition K3, for the host's `--record` and `--replay`. |
+| C-07, C-09, C-12 | unchanged: C-07 deferred under `D-004`, C-09 deferred to G8, C-12 diverges and is built by `KWB-172`. |
+
+**How G2's remaining work is held.** `KWB-183`, a `Decision` item, carries the obligation: when K3 is
+published at a revision on XVPE's `origin/dev`, author the pin move that brings it in, the composition
+items each deferred row above needs, and G2's end-to-end proof. It depends on `KWB-140` and `KWB-171`,
+which it cannot proceed without in any case, so until they are done it reads as waiting rather than
+ready, and no unattended pass claims it. Once they are done it becomes claimable; a design pass that
+claims it before K3 is published abandons it, naming the condition, because this board has no typed
+blocker a pass can set (`OD-LEDGER-002`). It names no K3 surface, because none is published to name.
