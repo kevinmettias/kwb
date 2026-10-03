@@ -2,8 +2,8 @@
 id: OD-GATE-002
 type: observation
 title: All three gate steps are red, and two of the three failures are guards that went stale against the tree they watch
-status: open
-version: 2
+status: closed
+version: 3
 authority: observation
 tags:
   - gate
@@ -205,7 +205,33 @@ It also does not revise `OD-GATE-001`. That table was true on 2026-09-13 and a m
 outlives the decision it informed; what it lacked was any way for a reader to learn it had been
 superseded, which the relation between these two documents now supplies.
 
-This observation stays `open` until something acts on it.
+This observation stayed `open` until something acted on it, and the next section records what did.
+
+## Closed, 2026-10-03
+
+Every finding above has been acted on, and the gate this observation measured red is green.
+
+| finding | acted on by |
+|---|---|
+| clippy's three findings in `tests/guards/src/lib.rs` | `KWB-103`, which answered them without a suppression |
+| `Member_Name_On`'s stale path literal | `KWB-109`, which refuses every member under `tests/`: a property rather than a list |
+| the liveness guard's one-level scan | `KWB-108` |
+| the shared reader's one-level scan, the latent instance | `KWB-110` made it descend. `KWB-138` then removed the liveness guard's own copy, so the walk exists once, and repaired the depth test's second assertion, which could not fail |
+
+Measured at `0073ae2` on Windows:
+
+| step | command | result |
+|---|---|---|
+| Lint | `cargo clippy --workspace --all-targets -- -D warnings` | exit 0 |
+| Test | `cargo test --workspace --no-fail-fast` | exit 0: 89 targets, 453 tests, none failed |
+| Contract | `cargo test -p kwb-contract-tests --no-fail-fast` | passes within the run above, and as `KWB-175`'s predicate |
+
+One thing recorded above remains as it was. The conflation of a member's directory name with its
+package name was not closed in passing: `KWB-109` keyed the refusal on where a crate lives rather
+than on its manifest's package name. Its failure mode is still the safe one, and it is still
+not an item.
+
+`KWB-175` closed this observation, from the audit that ruled on `KWB-107`.
 
 ## Referenced By
 
