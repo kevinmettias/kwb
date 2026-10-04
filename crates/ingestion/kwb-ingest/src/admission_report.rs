@@ -288,7 +288,7 @@ pub fn Admit_Source(
     let normalized = Normalize_Concepts(linked);
 
     return Ok(AdmissionReport {
-        coverage: Coverage_Of_Reading(normalized.Linked().Claims().len()),
+        coverage: Coverage_Of_Reading(normalized.Linked().Claims().len(), reading.len()),
         normalized,
         source: Some(source),
         refusal: None,
@@ -414,31 +414,20 @@ fn Scope_Of(reader: Option<&dyn ExtractionStrategy>) -> Scope
     return reader.map_or_else(Scope::Unstated, ExtractionStrategy::Scope);
 }
 
-/// The outcome of an admission whose reading **happened**, derived from what it found.
+/// Coverage from what survived admission and how many passage readings were returned.
 ///
-/// # The material examined is the source, and there is exactly one of it
-///
-/// This used to count *extractions* as the material, and map zero of them to
-/// [`Coverage::Unmet`]. That was right while a caller handed in a prepared list, because an
-/// empty list really did mean nothing had been offered. With a reader it is wrong, and wrong in
-/// the direction that matters: a reader that read the source and proposed nothing **did examine
-/// it**, and calling that a prerequisite unsatisfied throws away the one outcome `D17` needs —
-/// evidence of absence.
-///
-/// So the units are now consistent. `examined` is material, the material is the source, and one
-/// source was read. `found` is what survived linking and normalization.
-///
-/// A reading that did *not* happen never reaches here: [`Admit_Source`] returns [`Coverage::Unmet`]
-/// directly for a refusal, which is what keeps a reader's failure from ever being recorded as
-/// the source having nothing in it. The prototype recorded 1,367 rows of exactly that confusion
-/// and foreclosed two thirds of a book while reporting full coverage.
-fn Coverage_Of_Reading(found: usize) -> Coverage
+/// An empty list establishes no examination, so it is `Unmet` rather than evidence of
+/// absence. Each returned reading represents one examined passage under the extraction
+/// contract. Proposals and sources are different units and cannot stand in for that count.
+fn Coverage_Of_Reading(found: usize, readings: usize) -> Coverage
 {
     use core::num::NonZeroUsize;
 
-    // The source. A reading happened, so the material exists and was looked at, and `Coverage`
-    // requires that to be non-zero precisely so this cannot be asserted without being true.
-    let examined = NonZeroUsize::MIN;
+    let Some(examined) = NonZeroUsize::new(readings)
+    else
+    {
+        return Coverage::Unmet { prerequisite: "the reader returned no reading" };
+    };
 
     return Coverage::Of_Run(found, examined);
 }
