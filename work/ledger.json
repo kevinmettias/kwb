@@ -8065,7 +8065,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -8081,7 +8081,34 @@
         ],
         "timeout_seconds": 3600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\admission_report-17ce0a091b88bec7.exe)\n     Running tests\\claim_text.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\claim_text-313e881e0ebbd853.exe)\n     Running tests\\concept_name.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\concept_name-474abdd548f16d42.exe)\n     Running tests\\control_only_extraction.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\control_only_extraction-e06ef2525b6543cc.exe)\n     Running tests\\extraction.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\extraction-2254c2a48a595baa.exe)\n     Running tests\\extraction_error.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\extraction_error-b757bd95f3a3714e.exe)\n     Running tests\\extraction_lineage.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\extraction_lineage-5924ac57c0a3d846.exe)\n     Running tests\\linked.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\linked-31323ff887581d0a.exe)\n     Running tests\\normalized.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\normalized-45e1807217533bc9.exe)\n     Running tests\\proposed_reading.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\proposed_reading-cc08e6d016afebdb.exe)\n     Running tests\\reader_name.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\reader_name-074bf396e93ff388.exe)\n     Running tests\\reading_kind.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\reading_kind-3d0750050ad96a49.exe)\n     Running tests\\reading_protocol.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\reading_protocol-25af628ee4c59f67.exe)\n     Running tests\\source_location.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\source_location-b7723273d5214613.exe)\n     Running tests\\stated.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\stated-216c8957bca48d8b.exe)\n   Doc-tests kwb_ingest\n",
+        "verified_at": 1791097651,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "796bd6d35050ce29572d6535b532487377c131ca"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,

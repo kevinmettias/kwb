@@ -35,7 +35,7 @@ impl Extraction
         };
     }
 
-    /// Whether this extraction carries both halves of what it claims to be.
+    /// Whether both offered halves remain nonempty after canonical normalization.
     ///
     /// An extraction missing either side is refused rather than admitted with an empty
     /// field, which is the shape of the prototype's `ReplaceAllAsync` incident: an
@@ -44,7 +44,7 @@ impl Extraction
     #[must_use]
     pub fn Is_Complete(&self) -> bool
     {
-        return !self.concept_name.Text().trim().is_empty()
-            && !self.claim_text.Text().trim().is_empty();
+        return !kwb_model::Normalize_Text(self.concept_name.Text()).is_empty()
+            && !kwb_model::Normalize_Text(self.claim_text.Text()).is_empty();
     }
 }
