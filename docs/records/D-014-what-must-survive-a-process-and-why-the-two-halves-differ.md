@@ -3,7 +3,7 @@ id: D-014
 type: decision
 title: What must survive a process, and why the two halves are not the same question
 status: accepted
-version: 5
+version: 6
 authority: canonical-normative-record
 tags:
   - storage
@@ -326,6 +326,51 @@ publications. So the publication log is kept through XVPE, as the placement rule
 record's refusal of `xvpe-event-journal` stands and is no longer needed: the event journal stays an
 observability record, which is what its failure contract makes it, and nothing here asks it to be
 anything else.
+
+## Amendment: What Is Kept Must Survive The Machine, Not Only The Process, 2026-10-03
+
+This record decided what must survive *a process*, and it does: a record `kwb admit` appends is in
+the operating system's hands before the call returns, so a killed process loses nothing it
+reported. It never asked what survives **the machine** — a power cut, or the operating system
+stopping — and the answer, measured, is: whatever the operating system had got round to.
+
+**The measurement.** `FileRecordLog::Append` writes the line and calls `flush()`, and its comment
+says that keeps the record from being *left to the operating system's convenience*. It does not.
+`std::fs::File` is unbuffered, and its `flush` is `Ok(())` on both platforms — read at the
+toolchain's own source, `library/std/src/sys/fs/windows.rs:660` and `unix.rs:1754`. Nothing calls
+`sync_data`. So every publication reaches the disk when the operating system decides, and after a
+power cut each file keeps whatever prefix it had reached, **independently of every other file**.
+
+**Why it matters now and not before.** With one log, a power cut can lose the last few
+publications of a run that reported success — `D19`'s report outrunning the work, through the
+machine instead of the program. `D-024` adds `coverage.log` beside `publications.log`, and
+`KWB-166` rightly forbids writing coverage before the publications it describes. That is *program*
+order, and across a power cut it is not *disk* order: a coverage record saying a document was read
+with N findings can survive while those findings do not. `KWB-182`'s audit enumerates documents
+against coverage and is forbidden from reading the publication log, so nothing would notice, and a
+document recorded as read would never be read again. **That is lost content with a clean audit.**
+XVPE's miners had the same hole on 2026-10-03, between a unit's claim record and the ledger line
+settling it, and closed it there first.
+
+**Decided: an append is durable before it reports success.** `FileRecordLog::Append` returns `Ok`
+only once the record survives a power cut — through XVPE's `RecordLogStrategy::Make_Durable`,
+added to `xvpe-record-log` on 2026-10-03 over a new `FileSystemStrategy::Make_Durable` (a
+`sync_data`, and on unix the directory too), and reached through `D-019`'s adapter rather than
+written here, as `D-135` places it. Cross-file order then follows from program order, so
+`KWB-166`'s rule holds on the disk as well as in the code, and every log `D-024` adds inherits it
+without its author having to know.
+
+**Not decided: the cost.** One sync per record is unmeasured here; on Windows a sync can take
+milliseconds. *Settled by* measuring an admission's syncs against its reading time. If they
+dominate, the remedy is a port operation that appends one admission's records and makes them
+durable once before returning — **never a sync each caller must remember to make**, which is the
+shape that fails the first time a new log forgets it.
+
+**Until then, which is the window this amendment names.** `KWB-188` implements this after
+`KWB-116` adopts the record log and a pin move carries `Make_Durable`; neither exists at this
+record's writing. Until it lands, a power cut can leave a coverage record whose publications were
+lost. That is accepted for the window rather than closed by holding `KWB-166`, because a coverage
+log with this gap is still more than the nothing that exists today.
 
 ## Referenced By
 

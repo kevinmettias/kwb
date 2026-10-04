@@ -7968,12 +7968,16 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Claimed",
       "depends_on": [
         "KWB-144"
       ],
       "blocked": null,
-      "claim": null,
+      "claim": {
+        "holder": "codex-release-loop",
+        "acquired_at": 1791096669,
+        "lease_expires_at": 1791111069
+      },
       "verification": {
         "argv": [
           "cargo",
