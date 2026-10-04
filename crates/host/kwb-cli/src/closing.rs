@@ -3,8 +3,7 @@
 //! # Why one file for two verbs
 //!
 //! The verbs differ in exactly one thing — whether there is a successor — and that difference is
-//! a field on [`Closing`]. Everything else is shared: both read the same flags, both refuse the
-//! same three ways, both apply a transition to the graph that was already there, and both record
+//! a field on [`Closing`]. Everything else is shared: both read the same flags, both refuse invalid closing acts under D-023, both apply a transition to the graph that was already there, and both record
 //! it before reporting it. Written twice, the second copy would be the one that forgot to record.
 
 use std::process::ExitCode;
@@ -172,10 +171,15 @@ struct Applied
 ///
 /// # Errors
 ///
-/// The complaint `D17` produces when it refuses this closure.
+/// A concept not held or already closed under D-023, or the complaint D17 produces for an invalid successor.
 fn Applied_To(closing: &Closing, known: &KnowledgeGraph) -> Result<Applied, String>
 {
     let concept = Concept::Named(closing.name);
+    if !Is_Held_By(known, &concept)
+    {
+        return Err(format!("nothing published a concept named {} to close", closing.name));
+    }
+    Refuse_If_Closed(known, &concept, closing.name)?;
     let standing = Closing_Standing(closing, known, &concept)?;
 
     let after = known.With_Concept(Versioned::Asserted(concept.clone()).Closed(standing.clone()));
@@ -216,7 +220,7 @@ fn Closing_Standing(
 ///
 /// # Errors
 ///
-/// A concept that would supersede itself, and a successor nothing published.
+/// A concept that would supersede itself, and a successor not held or already closed under D-023.
 fn Merged_Into(
     successor: &str,
     closing: &Closing,
@@ -234,6 +238,8 @@ fn Merged_Into(
     {
         return Err(format!("nothing published a concept named {successor} to merge into"));
     }
+
+    Refuse_If_Closed(known, &into, successor)?;
 
     return Ok(Standing::Superseded {
         by: into.Identity(),
@@ -255,6 +261,27 @@ fn Is_Held_By(known: &KnowledgeGraph, into: &Concept) -> bool
         .any(|candidate| return candidate.Value().Identity() == into.Identity());
 }
 
+/// Refuse a held concept whose latest standing is closed, preserving its earlier evidence.
+///
+/// Presence is checked separately by each caller. Only the domain's liveness predicate decides
+/// whether a held standing is current, so the host does not introduce a second definition.
+///
+/// # Errors
+///
+/// A retired or superseded concept, naming that standing so the refusal can be acted on.
+fn Refuse_If_Closed(known: &KnowledgeGraph, concept: &Concept, name: &str) -> Result<(), String>
+{
+    let held = known.Every_Version().Concepts();
+    if let Some(held) = held.into_iter().find(|held| return held.Value().Identity() == concept.Identity())
+    {
+        if !held.Standing().Is_Current()
+        {
+            let standing = if held.Standing().Superseded_By().is_some() { "superseded" } else { "retired" };
+            return Err(format!("a concept named {name} is already {standing}"));
+        }
+    }
+    return Ok(());
+}
 /// Record the closure, when there is a log to record it in.
 ///
 /// # Errors

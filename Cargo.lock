@@ -115,6 +115,7 @@ version = "0.1.0"
 dependencies = [
  "kwb-domain",
  "kwb-ingest",
+ "kwb-mcp",
  "kwb-model",
  "kwb-platform",
  "kwb-platform-std",

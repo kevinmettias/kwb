@@ -8846,11 +8846,13 @@
         "resolution": "File",
         "paths": [
           "crates/host/kwb-cli/src/closing.rs",
-          "crates/host/kwb-cli/tests/closing_preconditions.rs"
+          "crates/host/kwb-cli/tests/closing_preconditions.rs",
+          "crates/host/kwb-cli/Cargo.toml",
+          "Cargo.lock"
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [
         "KWB-159",
         "KWB-145"
@@ -8867,11 +8869,45 @@
         ],
         "timeout_seconds": 3600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "_Should_Both_Be_Published ... ok\ntest Test_One_Assertion_Repeated_Should_Append_Only_One_Claim_And_Citation_And_Count_The_Repeat ... ok\ntest Test_One_Assertion_Offered_In_A_Later_Run_Should_Not_Be_Refused_As_An_In_Run_Repeat ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s\n\n\nrunning 1 test\ntest Test_Print_Usage_Should_Label_The_First_Usage_Line_And_Align_The_Rest_Under_It ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n   Compiling kwb-cli v0.1.0 (F:\\repos\\kwb\\crates\\host\\kwb-cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.29s\n     Running unittests src\\main.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb-495ffae65d351b8d.exe)\n     Running tests\\closing_preconditions.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\closing_preconditions-fba27feb13ff2118.exe)\n     Running tests\\closing_reason.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\closing_reason-e054c21113e67d2d.exe)\n     Running tests\\closing_time.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\closing_time-0b35325f461f9c31.exe)\n     Running tests\\composition_seam.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\composition_seam-51ac273004d25515.exe)\n     Running tests\\control_only_says.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\control_only_says-cff1ae952f7e9d39.exe)\n     Running tests\\help.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\help-e6d2ce0a52b88d35.exe)\n     Running tests\\history.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\history-86024cbb27c1fa5c.exe)\n     Running tests\\repeated_assertion.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\repeated_assertion-123f17a02e0e7b47.exe)\n     Running tests\\usage.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\usage-89d29e3d8116f023.exe)\n",
+        "verified_at": 1791138450,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "71acf060e923b0ad8e1c9db6d6cc10319dec4a09"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
-      "widened": []
+      "widened": [
+        {
+          "holder": "codex-release-loop",
+          "added": [
+            "crates/host/kwb-cli/Cargo.toml",
+            "Cargo.lock"
+          ],
+          "widened_at": 1791138169
+        }
+      ]
     },
     {
       "id": "KWB-165",

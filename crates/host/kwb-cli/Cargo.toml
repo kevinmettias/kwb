@@ -34,5 +34,9 @@ kwb-platform-std = { workspace = true }
 # this root composes in arrives through the one crate permitted to name XVPE.
 kwb-platform-xvpe = { workspace = true }
 
+[dev-dependencies]
+# Closure regressions re-read the actual agent query surface after replaying the CLI log.
+kwb-mcp = { workspace = true }
+
 [lints]
 workspace = true
