@@ -16,6 +16,11 @@ use super::*;
 fn Sealed_Claim(concept: &str, text: &str, scope: Option<&str>, source: &str) -> Sealed
 {
     let _ = source;
+    for input in [concept, text, scope.unwrap_or("")]
+    {
+        let normalized = Normalize_Text(input);
+        assert_eq!(Normalize_Text(&normalized), normalized, "normalizing stored fixture text changed its value");
+    }
 
     let derivation = Derivation::Of("claim")
         .With_Text("concept", concept)
@@ -93,6 +98,8 @@ fn Test_Reflowed_Text_Should_Not_Change_Identity()
     let plain = Sealed_Claim("entropy", "Entropy is non-decreasing in an isolated system.", None, "x");
 
     assert_eq!(flowed.Identity(), plain.Identity());
+    let lone_break = Sealed_Claim("entropy", "Entropy is non-decreasing\nin an isolated system.", None, "x");
+    assert_eq!(lone_break.Identity(), plain.Identity());
 }
 
 #[test]
@@ -403,4 +410,21 @@ fn Test_A_Byte_Field_Should_Be_Recorded_As_Included()
     let sealed = Derivation::Of("document").With_Bytes("content", b"z").Seal();
 
     assert_eq!(sealed.Included(), ["content"]);
+}
+
+#[test]
+fn Test_Whitespace_Should_Keep_Word_Boundaries_And_Normalized_Output_Should_Be_Fixed()
+{
+    let inputs = ["a\nb", "a\tb", "a\r\nb", "a\u{85}b", "a\u{b}b", "a\u{c}b", "a\u{2028}b", "a\u{2029}b"];
+    for text in inputs
+    {
+        let normalized = Normalize_Text(text);
+        assert_eq!(normalized, "a b", "whitespace joined words in {text:?}");
+        assert_eq!(Normalize_Text(&normalized), normalized, "stored normalized text must keep its identity");
+    }
+    for text in ["", "a\u{1f}b", "a\0b", "  a   b  ", "  Polish   notation  BVH  ", "Entropy", "entropy"]
+    {
+        let normalized = Normalize_Text(text);
+        assert_eq!(Normalize_Text(&normalized), normalized, "normalizing existing text changed {text:?}");
+    }
 }

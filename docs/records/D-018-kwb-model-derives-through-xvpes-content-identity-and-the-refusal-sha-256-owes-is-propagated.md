@@ -3,7 +3,7 @@ id: D-018
 type: decision
 title: kwb-model derives through XVPE's content identity, and the refusal SHA-256 owes is propagated rather than wrapped
 status: accepted
-version: 1
+version: 2
 authority: canonical-normative-record
 tags:
   - identity
@@ -111,3 +111,26 @@ here as there.
 **Adopt the scheme without the pin moving alone.** Refused: `D-007`'s amendment measures a bump
 against the lock closure, and a bump folded into an adoption is one whose effect cannot be
 told from the adoption's.
+
+## Amendment: canonical whitespace also governs queries (2026-10-04)
+
+`KWB-111`'s normalization correction applies to retrieval as well as derivation.
+Whitespace takes precedence over the control category: a tab, line feed, carriage
+return or next-line character separates words. Non-whitespace controls, including
+the field separator, are removed. Case remains significant.
+
+A query uses the same normalizer as stored claim text, so `isolated\tsystem` and
+`isolated\nsystem` now find the same claim as `isolated system`. The old retrieval
+regression explicitly required deleting the tab and joining those words; that
+expectation preserved the defect rather than the shared vocabulary contract. It
+is replaced by regressions for both whitespace and a non-whitespace control.
+
+The correction leaves normalized stored text fixed. No historical record or
+identity is rewritten, merged or migrated. New raw input containing a lone break
+now derives the identity its reflowed spelling already had. The source exclusion,
+case sensitivity and field-boundary forgery constraints remain in force.
+
+The preceding statement that neither implementation item edits this record is
+superseded for `KWB-111` by this amendment, because its previously observed
+retrieval consequence requires an explicit semantic ruling. The separate adoption
+measurement and refusal obligations remain unchanged.

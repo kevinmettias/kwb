@@ -6335,11 +6335,13 @@
         "paths": [
           "crates/kernel/kwb-model/src/derivation.rs",
           "crates/kernel/kwb-model/src/tests.rs",
-          "crates/kernel/kwb-model/tests/derivation.rs"
+          "crates/kernel/kwb-model/tests/derivation.rs",
+          "crates/retrieval/kwb-retrieval/tests/one_vocabulary.rs",
+          "docs/records/D-018-kwb-model-derives-through-xvpes-content-identity-and-the-refusal-sha-256-owes-is-propagated.md"
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -6352,7 +6354,31 @@
         ],
         "timeout_seconds": 1800
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "lease-loop\\targets\\kwb\\debug\\deps\\kwb_platform_xvpe-8127cdd7d0226c06.exe)\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_retrieval-35a5ce9a94babd61.exe)\n     Running tests\\current_queries.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\current_queries-1e3baae4749cc87c.exe)\n     Running tests\\historical_queries.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\historical_queries-2891d9145a62969a.exe)\n     Running tests\\one_vocabulary.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\one_vocabulary-edae9f5774bfe8b7.exe)\n     Running tests\\read_only.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\read_only-c595a7196ffd89a3.exe)\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_source_guards-ce51c80a93d53639.exe)\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_store-0da8ea51a0edf53c.exe)\n     Running tests\\document.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\document-67cb7a653f8c8657.exe)\n     Running tests\\document_store.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\document_store-a86eaab5cfa5cc18.exe)\n     Running tests\\messages.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\messages-14a246da7eb24f7c.exe)\n     Running tests\\one_door.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\one_door-5238bca60fbec701.exe)\n     Running tests\\written.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\written-a9d2add5f4ac527b.exe)\n   Doc-tests kwb_contract_tests\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_extract\n   Doc-tests kwb_ingest\n   Doc-tests kwb_mcp\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_platform_xvpe\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_source_guards\n   Doc-tests kwb_store\n",
+        "verified_at": 1791099210,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "2e3d2cf3f6cecad16878aa7b7eda3b3074d26237"
+      },
       "abandoned": [
         {
           "holder": "deepseek",
@@ -6362,7 +6388,16 @@
       ],
       "displaced": [],
       "declined": null,
-      "widened": []
+      "widened": [
+        {
+          "holder": "codex-release-loop",
+          "added": [
+            "crates/retrieval/kwb-retrieval/tests/one_vocabulary.rs",
+            "docs/records/D-018-kwb-model-derives-through-xvpes-content-identity-and-the-refusal-sha-256-owes-is-propagated.md"
+          ],
+          "widened_at": 1791098887
+        }
+      ]
     },
     {
       "id": "KWB-112",

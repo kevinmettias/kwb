@@ -156,31 +156,17 @@ fn Test_A_Query_Should_Be_Matched_By_The_Models_Own_Normalization()
 }
 
 #[test]
-fn Test_A_Control_Character_In_A_Query_Should_Be_Stripped_And_Not_Read_As_A_Space()
+fn Test_Query_Whitespace_Should_Separate_Words_While_Other_Controls_Should_Be_Stripped()
 {
-    // The two halves held apart on purpose, because this is the pair a normalizer written here
-    // would get wrong in the same direction. Splitting the raw query on whitespace -- the obvious
-    // implementation, and the one that looks more forgiving -- would treat a tab as a break and
-    // match, and would treat a no-break space as one too, so both of these would come out the same
-    // way. They do not, and the whole reason the search reaches for `Normalize_Text` rather than
-    // doing its own splitting is that a query must be read the way the claim's text was read.
-    //
-    // The tab case is the surprising one and it is asserted rather than excused: a tab between two
-    // words makes ONE word, because `Normalize_Text` removes control characters outright so that a
-    // value cannot forge a field boundary. A search that matched here would be answering about
-    // text that no claim's identity was ever derived from.
+    // Query words follow the identity normalizer. A tab, line break or no-break space
+    // separates words; a unit separator is removed and cannot forge a field boundary.
     let graph = Corpus();
     let searches = CurrentQueries::Over(&graph);
-
-    assert!(
-        searches.Claims_Matching("isolated\u{A0}system").len() == 1,
-        "a no-break space is whitespace, so this is the claim's own two words"
-    );
-    assert!(
-        searches.Claims_Matching("isolated\tsystem").is_empty(),
-        "a tab was read as a space, so the search is splitting the query itself instead of \
-         normalizing it the way the claim's text was normalized"
-    );
+    for query in ["isolated\u{A0}system", "isolated\tsystem", "isolated\nsystem", "isolated\r\nsystem", "isolated\u{85}system"]
+    {
+        assert_eq!(searches.Claims_Matching(query).len(), 1, "whitespace in {query:?} must preserve the claim's two words");
+    }
+    assert!(searches.Claims_Matching("isolated\u{1f}system").is_empty(), "a non-whitespace control must not introduce a word boundary");
 }
 
 #[test]

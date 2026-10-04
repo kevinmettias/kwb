@@ -210,7 +210,7 @@ fn Digest_Of(value: &[u8]) -> [u8; IDENTITY_BYTES]
 /// line, a changed line ending, or a model that indents its output differently is not an
 /// edit and must not break a citation.
 ///
-/// Every C0 and C1 control character is removed. This is what keeps [`SEPARATOR`] out of a
+/// Every C0 and C1 control character outside whitespace is removed. This keeps [`SEPARATOR`] out of a
 /// value, and therefore what stops a value forging a field boundary — see that constant's
 /// own documentation for why the prototype's reasoning did not carry across.
 ///
@@ -239,14 +239,14 @@ pub fn Normalize_Text(text: &str) -> String
 /// what trims both ends without a second pass over the result.
 fn Fold_Character(normalized: &mut String, pending_space: &mut bool, character: char)
 {
-    if character.is_control()
-    {
-        return;
-    }
-
     if character.is_whitespace()
     {
         *pending_space = !normalized.is_empty();
+        return;
+    }
+
+    if character.is_control()
+    {
         return;
     }
 
