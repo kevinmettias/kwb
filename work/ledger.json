@@ -10116,6 +10116,69 @@
       "displaced": [],
       "declined": null,
       "widened": []
+    },
+    {
+      "id": "REL07-MEASURE-IDENTITY-ADOPTION-AT-THE-CURRENT-PUBLISHED-PIN",
+      "title": "Measure the approved identity adoption at the current published pin before changing production APIs",
+      "why": "D-018 and KWB-114 require a stop if adoption differs from their c700bcf83 lock measurement. Current 726aa3fee already includes identity and hashing transitively. The exact D-018 amendment reservation is currently refused because the open KWB-126 item reserves the records directory, so measurement proceeds independently and does not override the implementation terms.",
+      "done_when": "Export committed HEAD into an isolated scratch directory, simulate only the approved identity dependency adoption at unchanged pin 726aa3fee, and record its full lockfile delta and identity-only feature closure in docs/corpus/kwb-identity-adoption-at-726aa3fee.md. State the current mismatch with KWB-114 and the unresolved D-018 amendment instead of claiming implementation acceptance. No production source, manifest, lockfile, pin or original store changes. Contract tests pass.",
+      "kind": "Validation",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/corpus/kwb-identity-adoption-at-726aa3fee.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 900
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-platform-xvpe v0.1.0 (F:\\repos\\kwb\\crates\\platform\\kwb-platform-xvpe)\n   Compiling kwb-domain v0.1.0 (F:\\repos\\kwb\\crates\\domain\\kwb-domain)\n   Compiling kwb-retrieval v0.1.0 (F:\\repos\\kwb\\crates\\retrieval\\kwb-retrieval)\n   Compiling kwb-mcp v0.1.0 (F:\\repos\\kwb\\crates\\host\\kwb-mcp)\n   Compiling kwb-contract-tests v0.1.0 (F:\\repos\\kwb\\tests\\contract)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.68s\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_contract_tests-4b594c8526d62f5f.exe)\n     Running tests\\boundaries.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\boundaries-da0bd5a1cfcbd2d8.exe)\n     Running tests\\commands.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\commands-cbd9c1dd9a4423be.exe)\n     Running tests\\literals.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\literals-4d2dc5b45c318f8f.exe)\n     Running tests\\projections.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\projections-e2dff84033769910.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1791136179,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "a88e1b31557d4cb8d924ff53da2b4d506472adc9"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
     }
   ]
 }
