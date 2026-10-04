@@ -193,7 +193,7 @@ the quarantine exists.
 | 1 | `kwb-store` | The content-addressed document store; one write door. |
 | 1p | `kwb-platform` | The seam an implementation is chosen behind: one port per thing the outside world does for this repository. |
 | 1p | `kwb-platform-std` | The standard-library implementation of those traits. |
-| 1p | `kwb-platform-xvpe` | The one crate permitted to name XVPE. Adopts the persistent map, the wall clock, the passage splitter and the inference surface, each by git reference and commit SHA. `D-007`, `D-012`. |
+| 1p | `kwb-platform-xvpe` | The one crate permitted to name XVPE. Adopts the persistent map, wall clock, passage splitter, inference and optional model caller, each by git reference and commit SHA. `D-007`, `D-012`. |
 | 2 | `kwb-domain` | Claims, concepts, argumentation, evidence, coverage, the derivation ledger, and the universal type kernel. |
 | 3 | `kwb-extract` | A model-backed reader, behind the extraction seam. The only crate that asks a model anything, and it chooses no provider. |
 | 3 | `kwb-ingest` | The admission pipeline: link-concepts, normalize-concepts, admit. |
@@ -230,3 +230,33 @@ The operating contract is `AGENTS.md`. It is not repeated here.
   `KWB-27` a fourth, `KWB-28` a manifest comment — and it outlived all of them because
   every pass read code and records, and this is prose in a README. That is the cost of
   restating a fact: a correction reaches the copies somebody thought to look for.
+
+## Model call accounting
+
+`ReadsText` makes each unchanged extraction request through the adopted model
+caller. `With_Calling` supplies an explicit price card, retry policy and spend
+ceiling for one source read. Reaching that ceiling refuses the whole reading;
+accounting still retains any charged response. The host must enforce an overall
+folder/run ceiling when it composes many source reads.
+
+`Take_Call_Records` returns one record per requested passage, including refusals.
+`CallRecord` renders and parses the versioned line format, recording role, model,
+protocol, source address, computed outcome, attempts, reported token counts,
+integer cost and observed inference wait. It records no prompt or answer.
+A failed request with no reported usage has absent counts, and a reader built
+without an explicit price card has absent cost; neither is fabricated as zero.
+The pinned inference type carries four complete token counts per reported answer;
+a partial set of counts in a log is refused rather than completed by guessing.
+
+The non-default `model-calling` quarantine feature adopts the pipeline at
+`726aa3fee`; extraction enables it. The lockfile gains only `xvpe-ai-pipeline`,
+with no new third-party package or changed existing version. CLI composition
+still owes appending these records to `calls.log`; this library change does not
+claim that host workflow or the complete KWB 0.1 release is finished.
+
+The current text adapter supplies one whole text file as one page. The published
+page splitter keeps an oversized page intact, so 4,000 characters is a soft target,
+not an enforced text-file limit. Public accounting tests exercise that exact behavior;
+private calling tests additionally use two real splitter passages and verify that the
+shared source budget accumulates while each call record reports only its own delta.
+Text-file subdivision and model-backed host composition remain separate work.

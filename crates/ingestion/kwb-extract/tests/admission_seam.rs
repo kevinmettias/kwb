@@ -1,28 +1,17 @@
 //! The boundary between this crate and the pipeline that consumes it: `kwb-ingest`, `kwb-domain`,
 //! `kwb-store`, and the inference strategy underneath the reader.
 //!
-//! # What can be asserted from out here, and what cannot
+//! # What this suite asserts
 //!
-//! `ReadsText` is an [`ExtractionStrategy`], and what it hands back or refuses is what decides
-//! what a graph becomes. The half a consumer can check from outside is the refusal half, and this
-//! file checks it: the reader is handed to admission as the trait object the composition root
-//! really hands it, a reading that does not happen is asserted to leave the graph *exactly as it
-//! was* and to reach admission as `unmet` rather than as evidence of absence, and the source it
-//! could not read is asserted to be in the store anyway.
+//! These tests hand the reader to admission through the real extraction seam. A refused
+//! reading leaves existing graph knowledge intact, reports `Unmet` rather than evidence of
+//! absence, and still retains the source in the store.
 //!
-//! **The other half -- a reading that succeeded -- cannot be asserted from here, and the reason is
-//! not an oversight.** A replay is keyed by the fingerprint of the request the reader asks, and
-//! that fingerprint absorbs the instructions and the schema. Both are private to this crate:
-//! `Request_For` and `Propositions_Schema` are `pub(crate)` deliberately, so that a fixture cannot
-//! record against a question the reader never asks -- `KWB-57` is the item where a fixture built
-//! from a reconstruction passed while the real instance slipped through. `src/lib.rs` states the
-//! consequence and accepts it: *a test under `tests/` is a separate crate, which reaches only
-//! `pub` names, so the request the reader asks and the schema it asks under would have to be
-//! exported for the suite's sake, and an export made for a test outlives the test.* A successful
-//! reading is therefore asserted in `src/tests.rs`, which is where that argument puts it.
-//!
-//! Naming the gap here rather than leaving it to be discovered is the point: a suite that quietly
-//! covered only the refusals would look like a suite that covered the seam.
+//! Successful readings are covered in `replayed_answers.rs` and `call_accounting.rs` as well
+//! as the unit suite. A capturing inference strategy observes the actual private request
+//! through the public trait, so offline recordings need neither a reconstructed prompt nor
+//! an exported request constructor. The earlier claim here that successful integration
+//! testing was impossible was incorrect.
 //!
 //! # Why `admission_seam` and not a source file's stem
 //!

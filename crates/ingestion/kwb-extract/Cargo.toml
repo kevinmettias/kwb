@@ -21,7 +21,7 @@ kwb-domain = { workspace = true }
 kwb-model = { workspace = true }
 # Reading and inference, through the one crate permitted to name XVPE. Nothing here names
 # XVPE directly, which is what keeps `D-007`'s single edge single.
-kwb-platform-xvpe = { workspace = true }
+kwb-platform-xvpe = { workspace = true, features = ["model-calling"] }
 
 [dev-dependencies]
 # Driving the seam end to end needs the write door and a graph to publish into.

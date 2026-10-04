@@ -155,3 +155,12 @@ pub mod inference
     pub use xvpe_ai_inference::ReplayInference;
     pub use xvpe_ai_inference::ReplayRecording;
 }
+
+/// Calling a model under explicit retries, conformance and spend policy.
+#[cfg(feature = "model-calling")]
+pub mod calling
+{
+    pub use xvpe_ai_pipeline::{CallObserver, CallPolicy, CallTelemetry, ModelCaller, Retryability, RoleSettings};
+    pub use xvpe_ai_inference::{CachePolicy, MicroDollars, PriceRates, RoleUsage, SpendBudget};
+    pub use xvpe_host_clock::HostedClock as CallClock;
+}

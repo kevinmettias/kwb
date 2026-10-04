@@ -1,12 +1,11 @@
 //! A model reading a source, exercised offline against recorded answers.
 //!
-//! # Why these tests are in the crate and not beside it
+//! # What these unit tests reach
 //!
-//! A test under `tests/` is a **separate crate**, which reaches only `pub` names — so the
-//! request the reader asks and the schema it asks under would have to be exported for the
-//! suite's sake, and an export made for a test outlives the test. Here the same code reaches
-//! the same names at the rung that admits it, and `ReadsText` keeps the `pub` its real caller
-//! needs rather than borrowing one from a test.
+//! These fixtures build recordings with the crate-private request constructor. Integration
+//! tests can also observe that same request through a capturing inference strategy; see
+//! `tests/replayed_answers.rs` and `tests/call_accounting.rs`. No request constructor needs
+//! exporting for either suite.
 //!
 //! # Why every test here replays
 //!
@@ -17,8 +16,8 @@
 //!
 //! # What these recordings are, said plainly
 //!
-//! They are **constructed, not captured.** Nothing in this repository can capture one yet,
-//! because capturing needs the live provider that is deliberately outside it. `KWB-57` is the
+//! They are **constructed, not captured.** These fixtures do not capture a live-provider response,
+//! because no provider is selected or contacted. Integration fixtures capture real request values offline before attaching scripted answers. `KWB-57` is the
 //! item where a fixture built from a reconstruction passed while the real instance slipped
 //! through, so the hazard is named rather than hidden — and mitigated where it can be: every
 //! recording is keyed by `Request_For`, the same function the reader asks through, so a fixture

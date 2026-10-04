@@ -1,6 +1,11 @@
 //! Reading born-digital text, one passage at a time.
 
 use kwb_domain::Scope;
+use kwb_platform_xvpe::calling::{CallClock, CallPolicy, ModelCaller, RoleSettings};
+use crate::CallRecord;
+use std::cell::RefCell;
+
+mod calling;
 use kwb_ingest::Extraction;
 use kwb_ingest::ExtractionError;
 use kwb_ingest::ExtractionStrategy;
@@ -110,6 +115,10 @@ pub struct ReadsText<Reader>
     reader: Reader,
     model: ModelIdentifier,
     scope: Scope,
+    settings: RoleSettings,
+    policy: CallPolicy,
+    is_priced: bool,
+    calls: RefCell<Vec<CallRecord>>,
 }
 
 impl<Reader> ReadsText<Reader>
@@ -125,6 +134,10 @@ impl<Reader> ReadsText<Reader>
             reader,
             model,
             scope,
+            settings: calling::Free_Replay_Settings(),
+            policy: calling::Single_Attempt(),
+            is_priced: false,
+            calls: RefCell::new(Vec::new()),
         };
     }
 }
@@ -198,6 +211,7 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
     ) -> Result<Vec<ProposedReading>, ExtractionError>
     {
         let mut readings = Vec::new();
+        let mut caller = ModelCaller::New(&self.reader, [self.settings], self.policy, CallClock);
         for passage in Passages_Of(text)
         {
             // XVPE measured this page and says it needs looking at. That is `PageFidelity`
@@ -211,7 +225,7 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
                 });
             }
 
-            let reading = self.Reading_Of(source, &passage)?;
+            let reading = self.Reading_Of(source, &passage, &mut caller)?;
             readings.push(reading);
         }
 
@@ -228,6 +242,7 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         &self,
         source: ContentIdentity,
         passage: &Passage,
+        caller: &mut calling::Caller<'_, Reader>,
     ) -> Result<ProposedReading, ExtractionError>
     {
         use kwb_ingest::ExtractionLineage;
@@ -235,7 +250,7 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         use kwb_ingest::ReadingProtocol;
         use kwb_ingest::SourceLocation;
 
-        let proposed = self.Proposed_For(passage)?;
+        let proposed = self.Proposed_For(source, passage, caller)?;
         let where_in = Where_In(passage);
         let location = SourceLocation::Named(&where_in);
         let model_name = self.model.As_Str();
@@ -245,30 +260,7 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
         return Ok(ProposedReading::Of(source, location, proposed, lineage));
     }
 
-    /// What the reader proposes about one passage, or the refusal that it did not answer usably.
-    ///
-    /// The request and the refusal it can raise are one step, because they are the whole of what
-    /// happens between handing the model a question and having an answer to read: everything after
-    /// them is assembly of values already in hand. A strategy that was asked and did not answer
-    /// becomes `ReaderFailed` — **nothing was learned about the source** — rather than an empty
-    /// reading, which is the distinction this seam exists to keep, and the reason the refusal is
-    /// raised *here* rather than left to whether the answer turned out empty.
-    ///
-    /// # Errors
-    ///
-    /// [`ExtractionError::ReaderFailed`] when the strategy did not answer usably, and the same
-    /// variant carrying the same fact when [`Proposed_From`] refuses the shape of what came back.
-    fn Proposed_For(&self, passage: &Passage) -> Result<Vec<Extraction>, ExtractionError>
-    {
-        let request = Request_For(&self.model, passage.Text());
-        let answered = self.reader.Infer(&request).map_err(|cause| {
-            return ExtractionError::ReaderFailed {
-                cause: format!("{cause}"),
-            };
-        })?;
 
-        return Proposed_From(answered.Answer());
-    }
 }
 
 /// The request this reader sends about one passage.

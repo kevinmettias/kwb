@@ -200,6 +200,7 @@ name = "kwb-platform-xvpe"
 version = "0.1.0"
 dependencies = [
  "xvpe-ai-inference",
+ "xvpe-ai-pipeline",
  "xvpe-clock",
  "xvpe-collections-persistent",
  "xvpe-corpus-text",
@@ -438,6 +439,15 @@ dependencies = [
  "xvpe-content-identity",
  "xvpe-json-text",
  "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-ai-pipeline"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
+dependencies = [
+ "xvpe-ai-inference",
+ "xvpe-clock",
 ]
 
 [[package]]

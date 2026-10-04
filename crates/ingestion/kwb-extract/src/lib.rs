@@ -31,6 +31,7 @@
 
 #![forbid(unsafe_code)]
 
+mod call_record;
 mod reads_text;
 
 #[cfg(test)]
@@ -38,3 +39,4 @@ mod tests;
 
 pub use reads_text::PROTOCOL;
 pub use reads_text::ReadsText;
+pub use call_record::{CallOutcome, CallRecord, CallRecordError};
