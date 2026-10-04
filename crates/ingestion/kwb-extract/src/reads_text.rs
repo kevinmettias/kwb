@@ -74,10 +74,10 @@ const ANSWER_TOKEN_BUDGET: u32 = 2_048;
 
 /// The most propositions one passage's answer may carry.
 ///
-/// A ceiling rather than a target, and part of the request's schema rather than a count taken
-/// afterwards, so an answer offering more comes back non-conforming and is refused — which is
-/// stronger than trimming it here, because an answer that overflowed says the model read a
-/// different passage than the one it was sent.
+/// A ceiling rather than a target, declared in the request's schema and checked again by
+/// `Proposed_From` because a replay strategy may return a recorded answer without validating
+/// that schema. An overflow refuses the whole reading; it never trims proposals into a
+/// seemingly complete answer.
 const MAXIMUM_PROPOSITIONS: u32 = 32;
 
 /// A model-backed reader of born-digital text.
@@ -465,6 +465,10 @@ fn Proposed_From(answer: &AnswerValue) -> Result<Vec<Extraction>, ExtractionErro
         return Err(Malformed_Answer("a list of propositions was expected"));
     };
 
+    if !u32::try_from(propositions.len()).is_ok_and(|count| return count <= MAXIMUM_PROPOSITIONS)
+    {
+        return Err(Malformed_Answer("the list exceeds the declared proposition limit"));
+    }
     let mut proposed = Vec::new();
     for proposition in propositions
     {

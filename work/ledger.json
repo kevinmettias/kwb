@@ -8419,7 +8419,13 @@
         "timeout_seconds": 3600
       },
       "verified": null,
-      "abandoned": [],
+      "abandoned": [
+        {
+          "holder": "codex-release-loop",
+          "reason": "The cardinality defect is real, but the acceptance contract also demands Unmet for repeated propositions and a 10000-character claim while forbidding request or grounding changes. At c9fbfa4, Propositions_Schema constrains only sequence length, field presence and text types; it declares no text length or uniqueness bound. Proposed_Of therefore accepts the long nonempty claim and duplicate records as contract-conforming, and D-027 separately decides repeats are counted during admission. Making those become Unmet would add semantics the count correction does not establish. No source was edited. The count guard will be handled in a narrower required release item while preserving the separately governed grounding and repeat obligations.",
+          "abandoned_at": 1791097910
+        }
+      ],
       "displaced": [],
       "declined": null,
       "widened": []
@@ -9920,6 +9926,70 @@
         "timeout_seconds": 2700
       },
       "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL01-REFUSE-REPLAYED-ANSWERS-THAT-EXCEED-THE-DECLARED-SCHEMA",
+      "title": "Refuse replayed extraction answers above the declared proposition ceiling",
+      "why": "The owner requires KWB 0.1 to admit model proposals safely. KWB-155 identifies a real missing 32-proposition guard but also requires new outcomes for schema-conforming long or repeated text. This narrow correction enforces the bound the request already declares and validates all adversarial answers through real replay without inventing a new length, uniqueness, grounding or identity rule.",
+      "done_when": "Proposed_From refuses more than MAXIMUM_PROPOSITIONS as ReaderFailed, never truncates, and accepts 32 correctly shaped proposals. A public-seam integration test captures the request ReadsText actually constructs, keys ReplayRecording with its fingerprint, and replays adversarial answers through ReplayInference and Admit_Source. Wrong root or field types are Unmet; canonical-empty proposals are counted as refused; long, repeated, extra-field and separator-bearing otherwise complete proposals retain their documented current outcomes and every generated publication replays. A recording for a different model or passage yields Unmet. Removing the count guard makes the overflow regression fail; the implementation is restored byte-identically. Forbidden: live calls, modified existing recordings, changed request or protocol, invented character bounds or uniqueness rules, grounding decisions, canonicalization or identity changes, production panic paths. The existing extractor suite passes.",
+      "kind": "Correction",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-extract/src/reads_text.rs",
+          "crates/ingestion/kwb-extract/tests/replayed_answers.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-extract",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-extract",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ests::Test_An_Answer_That_Does_Not_Conform_Should_Refuse_And_Propose_Nothing ... ok\ntest tests::Test_A_Passage_That_Asserts_Nothing_Should_Be_Barren_And_Not_A_Refusal ... ok\ntest tests::Test_Two_Sources_Read_By_A_Model_Should_Meet_At_One_Claim ... ok\n\ntest result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 4 tests\ntest Test_A_Source_Needing_A_Look_Should_Be_Refused_Without_Asking_A_Model ... ok\ntest Test_A_Reading_That_Did_Not_Happen_Should_Leave_The_Graph_Exactly_As_It_Was ... ok\ntest Test_A_Source_Should_Be_Kept_When_Its_Reading_Did_Not_Happen ... ok\ntest Test_Reading_One_Source_Twice_Should_Keep_One_Document ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 5 tests\ntest Test_A_Recording_For_Another_Passage_Or_Model_Should_Not_Answer_This_Source ... ok\ntest Test_Canonical_Empty_Replayed_Proposals_Should_Be_Refused_And_Counted ... ok\ntest Test_Replayed_Wrong_Root_Or_Field_Types_Should_Be_Unmet ... ok\ntest Test_Replay_Should_Enforce_The_Declared_Proposition_Count_Without_Truncating ... ok\ntest Test_Otherwise_Complete_Replayed_Text_Should_Keep_Its_Current_Admission_Contract ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-extract v0.1.0 (F:\\repos\\kwb\\crates\\ingestion\\kwb-extract)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.46s\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_extract-da8c054f20f90872.exe)\n     Running tests\\admission_seam.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\admission_seam-c63cdfbf5328fdf3.exe)\n     Running tests\\replayed_answers.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\replayed_answers-96335d194976666a.exe)\n   Doc-tests kwb_extract\n",
+        "verified_at": 1791098730,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "c9fbfa42a465d36aed16b35a2b52cee9bc2c70f5"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
