@@ -7968,16 +7968,12 @@
         ],
         "patterns": []
       },
-      "state": "Claimed",
+      "state": "Done",
       "depends_on": [
         "KWB-144"
       ],
       "blocked": null,
-      "claim": {
-        "holder": "codex-release-loop",
-        "acquired_at": 1791096669,
-        "lease_expires_at": 1791111069
-      },
+      "claim": null,
       "verification": {
         "argv": [
           "cargo",
@@ -7988,7 +7984,32 @@
         ],
         "timeout_seconds": 3600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "A_Verb_The_Binary_Cannot_Answer ... ok\ntest Test_Every_Verb_The_Binary_Dispatches_Should_Appear_In_Its_Own_Help ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n\nrunning 6 tests\ntest Test_As_Of_Should_Be_Refused_On_A_Log_That_Carries_No_Time ... ok\ntest Test_A_Log_Written_Before_Timestamps_Should_Still_Replay ... ok\ntest Test_History_Without_A_Store_Should_Say_Why_Rather_Than_Report_An_Empty_Graph ... ok\ntest Test_Asking_For_More_History_Than_Exists_Should_Be_Refused ... ok\ntest Test_A_Prefix_Should_Give_The_Graph_Before_A_Later_Publication ... ok\ntest Test_As_Of_Should_Answer_A_Time_And_Not_A_Position ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.21s\n\n\nrunning 1 test\ntest Test_Print_Usage_Should_Label_The_First_Usage_Line_And_Align_The_Rest_Under_It ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n   Compiling kwb-cli v0.1.0 (F:\\repos\\kwb\\crates\\host\\kwb-cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.74s\n     Running unittests src\\main.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb-f025b6a0a9136f1b.exe)\n     Running tests\\closing_reason.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\closing_reason-bd1fb664582088c5.exe)\n     Running tests\\closing_time.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\closing_time-f8c12564c9a2291e.exe)\n     Running tests\\composition_seam.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\composition_seam-54e188816c5b6074.exe)\n     Running tests\\help.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\help-866518a994104362.exe)\n     Running tests\\history.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\history-3ab9fa5b0a008abf.exe)\n     Running tests\\usage.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\usage-b393be8774caf6e2.exe)\n",
+        "verified_at": 1791097108,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "2e934b39774ca9ae5f71dfe0d1e1c82cdae413c9"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,

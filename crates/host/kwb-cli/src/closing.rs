@@ -270,7 +270,7 @@ fn Record_Closure(log: Option<&FileRecordLog>, publication: &Publication) -> Res
     };
 
     return log
-        .Append(&publication.Record(None))
+        .Append(&publication.Record(Some(crate::keeping::Now())))
         .map_err(|cause| return format!("cannot record the closure: {cause}"));
 }
 
