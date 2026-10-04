@@ -7893,11 +7893,13 @@
         "resolution": "File",
         "paths": [
           "crates/host/kwb-cli/src/closing.rs",
-          "crates/host/kwb-cli/tests/closing_reason.rs"
+          "crates/host/kwb-cli/tests/closing_reason.rs",
+          "crates/host/kwb-cli/Cargo.toml",
+          "Cargo.lock"
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -7911,11 +7913,45 @@
         ],
         "timeout_seconds": 3600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "e_Store_And_Nothing_Else ... ok\ntest Test_An_Absent_Scope_Should_Reach_The_Record_As_Absent ... ok\ntest Test_Admitting_One_Source_Twice_Should_Keep_One_Document ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n\nrunning 3 tests\ntest Test_The_Help_Should_Not_Claim_This_Repository_Cannot_Read_A_Source ... ok\ntest Test_Every_Verb_The_Binary_Dispatches_Should_Appear_In_Its_Own_Help ... ok\ntest Test_The_Help_Should_Not_Offer_A_Verb_The_Binary_Cannot_Answer ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 6 tests\ntest Test_A_Log_Written_Before_Timestamps_Should_Still_Replay ... ok\ntest Test_As_Of_Should_Be_Refused_On_A_Log_That_Carries_No_Time ... ok\ntest Test_History_Without_A_Store_Should_Say_Why_Rather_Than_Report_An_Empty_Graph ... ok\ntest Test_Asking_For_More_History_Than_Exists_Should_Be_Refused ... ok\ntest Test_A_Prefix_Should_Give_The_Graph_Before_A_Later_Publication ... ok\ntest Test_As_Of_Should_Answer_A_Time_And_Not_A_Position ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.53s\n\n\nrunning 1 test\ntest Test_Print_Usage_Should_Label_The_First_Usage_Line_And_Align_The_Rest_Under_It ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s\n\n   Compiling kwb-cli v0.1.0 (F:\\repos\\kwb\\crates\\host\\kwb-cli)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.73s\n     Running unittests src\\main.rs (target\\debug\\deps\\kwb-f025b6a0a9136f1b.exe)\n     Running tests\\closing_reason.rs (target\\debug\\deps\\closing_reason-bd1fb664582088c5.exe)\n     Running tests\\composition_seam.rs (target\\debug\\deps\\composition_seam-54e188816c5b6074.exe)\n     Running tests\\help.rs (target\\debug\\deps\\help-866518a994104362.exe)\n     Running tests\\history.rs (target\\debug\\deps\\history-3ab9fa5b0a008abf.exe)\n     Running tests\\usage.rs (target\\debug\\deps\\usage-b393be8774caf6e2.exe)\n",
+        "verified_at": 1791096578,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "9a603d19944196885c04b13a81a1afb0e92cb562"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
-      "widened": []
+      "widened": [
+        {
+          "holder": "codex-release-loop",
+          "added": [
+            "crates/host/kwb-cli/Cargo.toml",
+            "Cargo.lock"
+          ],
+          "widened_at": 1791096420
+        }
+      ]
     },
     {
       "id": "KWB-145",

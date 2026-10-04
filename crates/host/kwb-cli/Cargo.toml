@@ -22,6 +22,8 @@ path = "src/main.rs"
 # A composition root names the library and no backend the library does not
 # already have. Nothing here is domain logic.
 kwb-domain = { workspace = true }
+# Closure reasons use the same canonical normalization as domain identities and log fields.
+kwb-model = { workspace = true }
 kwb-ingest = { workspace = true }
 kwb-store = { workspace = true }
 # The composition root is where an implementation of a port is named. The library

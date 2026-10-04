@@ -57,8 +57,8 @@ struct Closing<'arguments>
     /// The successor `--into` named, when the verb merges.
     successor: Option<&'arguments str>,
 
-    /// The reason `--because` gave, which `D17` requires rather than accepts.
-    because: &'arguments str,
+    /// The canonical reason `--because` gave, which `D17` requires rather than accepts.
+    because: String,
 
     /// Where `--store` said the publication log is.
     store_root: &'arguments str,
@@ -106,14 +106,14 @@ fn Required_Of<'arguments>(
     because: Option<&'arguments str>,
     store_root: Option<&'arguments str>,
     rest: &[&str],
-) -> Result<(&'arguments str, &'arguments str), ExitCode>
+) -> Result<(String, &'arguments str), ExitCode>
 {
     if let Err(complaint) = Nothing_Left(rest)
     {
         return Err(Wrong_Command_Line(&complaint));
     }
 
-    let Some(because) = because.filter(|reason| return !reason.trim().is_empty())
+    let Some(because) = because.map(kwb_model::Normalize_Text).filter(|reason| return !reason.is_empty())
     else
     {
         return Err(Wrong_Command_Line(
@@ -199,7 +199,7 @@ fn Closing_Standing(
     if closing.merging.is_none()
     {
         return Ok(Standing::Retired {
-            because: closing.because.to_owned(),
+            because: closing.because.clone(),
         });
     }
 
@@ -237,7 +237,7 @@ fn Merged_Into(
 
     return Ok(Standing::Superseded {
         by: into.Identity(),
-        because: closing.because.to_owned(),
+        because: closing.because.clone(),
     });
 }
 
