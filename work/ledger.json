@@ -1,5 +1,5 @@
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "items": [
     {
       "id": "KWB-1",
@@ -52,6 +52,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "b8a63b7022bcd36b33e56ba9bda47d6f6c1091c5"
       },
       "abandoned": [],
@@ -112,6 +113,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "f33b2446486c3fcabfff1386bef01b95bb10e36c"
       },
       "abandoned": [],
@@ -173,6 +175,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "b34e7984ee4d6768110e7c6c1da07443eb51d67d"
       },
       "abandoned": [],
@@ -233,6 +236,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "2e520460e581bbf471a8de7ec663735cb00bd928"
       },
       "abandoned": [],
@@ -294,6 +298,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "afff90e9d695597f61e3499b91b65642bf0ffeeb"
       },
       "abandoned": [],
@@ -410,6 +415,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "f7cc8da12315fd0b4cd82c0b202c0f1f4e7fd57c"
       },
       "abandoned": [],
@@ -469,6 +475,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "9da9475ee05f02a5cd714fbdc16f7ce7cfca9eca"
       },
       "abandoned": [],
@@ -525,6 +532,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "f7cc8da12315fd0b4cd82c0b202c0f1f4e7fd57c"
       },
       "abandoned": [],
@@ -584,6 +592,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "58e5ec11580cef6373850de0853037046b267682"
       },
       "abandoned": [],
@@ -643,6 +652,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "159eaaa60879e65a84598f732df03690853bb5bd"
       },
       "abandoned": [],
@@ -702,6 +712,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "ee5cd09e6b6ae5f23289e7b2b06b6fc62b0576f0"
       },
       "abandoned": [],
@@ -759,6 +770,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "f7cc8da12315fd0b4cd82c0b202c0f1f4e7fd57c"
       },
       "abandoned": [],
@@ -816,6 +828,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "a2cb76052312c758396259ecb21dd2a5efb83323"
       },
       "abandoned": [],
@@ -874,6 +887,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "7f7d4f5e50714f0c8c402cf860165c7f65535310"
       },
       "abandoned": [],
@@ -931,6 +945,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "7f1cb5a1aea5043dc3aff0523f9787ee9ab5d9ab"
       },
       "abandoned": [],
@@ -988,6 +1003,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "9da9475ee05f02a5cd714fbdc16f7ce7cfca9eca"
       },
       "abandoned": [],
@@ -1044,6 +1060,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "03e7ffd94fffc519d91cb4690e8641abf0538aef"
       },
       "abandoned": [],
@@ -1100,6 +1117,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "858b458e06967a8fc1524f5ea1d034ab0dd9f929"
       },
       "abandoned": [],
@@ -1158,6 +1176,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "52172565076c1ce3f690b57fe269c09f288a48b2"
       },
       "abandoned": [],
@@ -1214,6 +1233,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "02e03c9881607167c007c7c45b38c8612c49a9f0"
       },
       "abandoned": [],
@@ -1272,6 +1292,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "983a1fb3f3ce4c27e4855262a3e41c408c1b0838"
       },
       "abandoned": [],
@@ -1331,6 +1352,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "e180e75b18460ccce15a65351da4b82bee62e532"
       },
       "abandoned": [],
@@ -1394,6 +1416,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "94e73a322403f529f6eabb9e5184609474c37878"
       },
       "abandoned": [],
@@ -1452,6 +1475,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "0ef57ccdb16b93ed8ca6000c32bd96797d2f089b"
       },
       "abandoned": [],
@@ -1508,6 +1532,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "4985324c480a67dac2727e65c2aa07d37d5eef25"
       },
       "abandoned": [],
@@ -1564,6 +1589,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "3260e1b4507d59a81d68d2808ecc82c8c17a7c03"
       },
       "abandoned": [],
@@ -1620,6 +1646,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "dff7ed7a2e4f320f7557ad29db23ce4831c74a9d"
       },
       "abandoned": [],
@@ -1684,6 +1711,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "556d5b5978063708dc1d1b778a34d7e31e9f31a9"
       },
       "abandoned": [],
@@ -1742,6 +1770,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "cd6ca127c8468e69f7181d79aadc9b69c6e9bf0d"
       },
       "abandoned": [],
@@ -1800,6 +1829,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "4aae284bb219abb38793cbf21bdfa92dbc341a68"
       },
       "abandoned": [],
@@ -1864,6 +1894,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "82ca93f4c1f34e79e9e9f966f6d1422bf054c5f3"
       },
       "abandoned": [],
@@ -1927,6 +1958,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "e90b31728af1af6f18e74950c41296e395e9d38a"
       },
       "abandoned": [],
@@ -1985,6 +2017,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "87858504dc0da512fc127908453d7e4ff94882f4"
       },
       "abandoned": [],
@@ -2048,6 +2081,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "1c89ca5a379e075f9873c59a2f5bb3318ea16e08"
       },
       "abandoned": [],
@@ -2111,6 +2145,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "469cb06cac13b5b49f3097546e1007ae6337b96a"
       },
       "abandoned": [],
@@ -2170,6 +2205,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "e8fe4702066650a1421ad0597a3fccdfdb7c97df"
       },
       "abandoned": [],
@@ -2231,6 +2267,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "ecd4c5c88fc788fae694d048d533317e50b5fd44"
       },
       "abandoned": [],
@@ -2290,6 +2327,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "e06a1d6d748245b0af33c2ca5491d7d8757e9877"
       },
       "abandoned": [],
@@ -2348,6 +2386,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "4dcfedd04342389e281aeeb931ce528fe060337e"
       },
       "abandoned": [],
@@ -2404,6 +2443,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "268148472dcceb141df6efd13a3d97d02f88e8e3"
       },
       "abandoned": [],
@@ -2460,6 +2500,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "1e5554a4f53adac57b5e76eac77857ecbd555d9e"
       },
       "abandoned": [],
@@ -2533,6 +2574,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "73f32ba9eb77d1653d767c6b7e1f2641134f8aed"
       },
       "abandoned": [],
@@ -2592,6 +2634,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "60787d7c94ac1f6b0dd3ceae480a56ea9d0ffa7d"
       },
       "abandoned": [],
@@ -2705,6 +2748,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "bb014fd61ec761c4d7537fc86aec93b70ab4715a"
       },
       "abandoned": [],
@@ -2800,6 +2844,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "2a6c9449f8f84773802bf524318181eef1b56da8"
       },
       "abandoned": [],
@@ -2858,6 +2903,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "722d05c4147d2d9f7b8510fbc10f918a79d6e468"
       },
       "abandoned": [],
@@ -2919,6 +2965,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "84c2d45a37f0c403b026dc23815afe506809f118"
       },
       "abandoned": [],
@@ -2975,6 +3022,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "5f8e595d6dd372fdd0b2bd1990130f476252fc21"
       },
       "abandoned": [],
@@ -3031,6 +3079,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "2455a67fd629c28c28a5f6c19761c9780e2a2330"
       },
       "abandoned": [],
@@ -3087,6 +3136,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "23f49026777a356b51cde9c86074ec3634450a00"
       },
       "abandoned": [],
@@ -3144,6 +3194,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "a06e56a2dc972da306190d539a3d0979af2474f5"
       },
       "abandoned": [],
@@ -3200,6 +3251,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "b9b38311d8593b15a4b3c3604d46621eb5da803f"
       },
       "abandoned": [],
@@ -3256,6 +3308,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "4246d500defedab9fceb7b26aa345ccda595330e"
       },
       "abandoned": [],
@@ -3312,6 +3365,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "5b7b97fdc44e91ffeaa360e3394c3057d6ba9bef"
       },
       "abandoned": [],
@@ -3415,6 +3469,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "aababed103d422be37edaa1cadda2bbba8c9334f"
       },
       "abandoned": [],
@@ -3472,6 +3527,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "17fd2fc329d64444013c152ac0816df4647c0d31"
       },
       "abandoned": [],
@@ -3535,6 +3591,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "4ef0c3d9ab06aa2a808f5c0be8f15293a6c80e53"
       },
       "abandoned": [],
@@ -3591,6 +3648,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "9f6d12563c31ea66c7b440da9adeed133ab94d17"
       },
       "abandoned": [],
@@ -3649,6 +3707,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "3cb776e7cdd64fa5ca33b5783d82f67cd49931d4"
       },
       "abandoned": [],
@@ -3706,6 +3765,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "442198dd01e4cf88635e2274b22753adc07b9920"
       },
       "abandoned": [],
@@ -3764,6 +3824,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "3fd0aa6408a29631d3b42f5eedb260d27f78e871"
       },
       "abandoned": [],
@@ -3825,6 +3886,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "0661708b4354a31e54bbb318365c9bc7e7fb4b57"
       },
       "abandoned": [],
@@ -3881,6 +3943,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "e05506959b02dd9b95b6703026c19e56b5bc7636"
       },
       "abandoned": [],
@@ -3991,6 +4054,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "d1020a1089f74b0df3b5e85541a351b5e03ed778"
       },
       "abandoned": [],
@@ -4098,6 +4162,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "a9d79c1b36f426e39d5c3766800200c7af3cbdfa"
       },
       "abandoned": [],
@@ -4201,6 +4266,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "985ac42918ce510c862aa3a0d8b8e82e432c0f39"
       },
       "abandoned": [],
@@ -4259,6 +4325,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "b226a399970587f1637e016f6451822933e3a6de"
       },
       "abandoned": [],
@@ -4320,6 +4387,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "f454cf54fe655115576e652448a334e997bc8cf4"
       },
       "abandoned": [],
@@ -4429,6 +4497,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "cb320e9b705f9a0e5a86293fa4496ac8e8b78fb1"
       },
       "abandoned": [],
@@ -4485,6 +4554,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "75b656215dc58f79e27e6dce4681dc4f9dd85ec7"
       },
       "abandoned": [],
@@ -4542,6 +4612,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "24ad2bbac71edcb3e5baa1a711f6d4b4cce81eb0"
       },
       "abandoned": [],
@@ -4599,6 +4670,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "0488ffe68377bc3e339f889fd082a52935a35c90"
       },
       "abandoned": [],
@@ -4696,6 +4768,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "fb223f7ad58a95f6cdf9aeb0b0b9e41631d41dc1"
       },
       "abandoned": [],
@@ -4753,6 +4826,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "de959925714e720bc604985f2ebffbb57e237436"
       },
       "abandoned": [],
@@ -4857,6 +4931,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "50e225a66228b1537b8ed5d2fdceea38762349e1"
       },
       "abandoned": [],
@@ -4953,6 +5028,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "618e7171a048ea2a18a26f33af8dc289b4fb8485"
       },
       "abandoned": [],
@@ -5009,6 +5085,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "ae174aa79f4348a66f7052b985e03a6f89b621c9"
       },
       "abandoned": [],
@@ -5065,6 +5142,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "d795ac5c8e9ec6b28c67c34c1880f42580e3be85"
       },
       "abandoned": [],
@@ -5122,6 +5200,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "d923a124b6bdd81ff7a74869887ebc18bc178ac7"
       },
       "abandoned": [],
@@ -5220,6 +5299,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "fdc0fe0caec38bef535e197cff60ea405d275128"
       },
       "abandoned": [],
@@ -5276,6 +5356,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "0d25dfbc0261dad152d6d4461de69f3947b7976f"
       },
       "abandoned": [],
@@ -5332,6 +5413,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "c7a8f14a6ba82eb20433997d50fa96fe9f33ac19"
       },
       "abandoned": [],
@@ -5390,6 +5472,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "eed1b52e54994f44fdf0c52c624d5cd3e631c394"
       },
       "abandoned": [],
@@ -5447,6 +5530,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "1d09044c66a1173e224d079a630de562304b2e51"
       },
       "abandoned": [],
@@ -5504,6 +5588,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "91ca8c0150d2469bc2890a105107f7bdd1aa3c1b"
       },
       "abandoned": [],
@@ -5561,6 +5646,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "c595b60498905ecdc59a3f74337c4e64f14ec2de"
       },
       "abandoned": [],
@@ -5617,6 +5703,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "79f9d06e8b67b1877623dfbc1b773e755ce38112"
       },
       "abandoned": [],
@@ -5673,6 +5760,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "9127e41239de9340af1bddb9103e665441f22d34"
       },
       "abandoned": [],
@@ -5727,6 +5815,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "b5faed59dcde15f550a81e74d1154255c2a183e6"
       },
       "abandoned": [
@@ -5795,6 +5884,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "9c63bebfb9e8eafd4e682eb881c1b1b106600d09"
       },
       "abandoned": [],
@@ -5854,6 +5944,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "00dd02d25652fc73fc1b579b8770e5817a187bc0"
       },
       "abandoned": [
@@ -5920,6 +6011,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "6bc4fd275950d7a9cfd6a9bbf0ed461322a38693"
       },
       "abandoned": [],
@@ -6027,6 +6119,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "6608426d60f443ec5ddbcc31918001f3b29aadc9"
       },
       "abandoned": [
@@ -6106,6 +6199,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "ffedaa154bd2e4293e3aaddc368f0b7c4cf4c8d6"
       },
       "abandoned": [],
@@ -6164,6 +6258,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "0cccfa41dc1265b8b0ba4251c86cdfc78d01f8a1"
       },
       "abandoned": [],
@@ -6220,6 +6315,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "e29b1648371f6eb6a2316cf8838cda6abf2a1251"
       },
       "abandoned": [],
@@ -6321,6 +6417,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "7c2b7a5d18795865c04bb9a61bde1adb9717c7f5"
       },
       "abandoned": [],
@@ -6382,6 +6479,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "292885e86a717d2c4e1e91f5f85c34106495a55f"
       },
       "abandoned": [],
@@ -6795,6 +6893,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "b5faed59dcde15f550a81e74d1154255c2a183e6"
       },
       "abandoned": [],
@@ -6910,6 +7009,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "6714d3a5c3f19998627af279df4534250183fd74"
       },
       "abandoned": [],
@@ -6971,6 +7071,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "9d052ff893282802d6c2921f9bfd6199dc49f9e9"
       },
       "abandoned": [],
@@ -7069,6 +7170,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "1b197ee823accb134d92b45342e0f4c302c0aeb5"
       },
       "abandoned": [],
@@ -7131,6 +7233,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "807114257e78dc1731bc7cf7fa7ee01b40105a51"
       },
       "abandoned": [],
@@ -7533,6 +7636,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "84d968a75c77922385c6cd62dc5fd1f59a005848"
       },
       "abandoned": [],
@@ -7591,6 +7695,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "00fabc9d43e6f1aa02b56c9747c2940be16c81ed"
       },
       "abandoned": [],
@@ -7616,7 +7721,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [],
       "blocked": null,
       "claim": null,
@@ -7629,7 +7734,31 @@
         ],
         "timeout_seconds": 2700
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "ps\\sealed-b17db8f26fb29a4e.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform-c7a0a7d931cfd479.exe)\n     Running tests\\storage_error.rs (target\\debug\\deps\\storage_error-351bcd17ced2d39d.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_std-ca5df810923bd0ec.exe)\n     Running tests\\directory_content_store.rs (target\\debug\\deps\\directory_content_store-0d3f4e3b98677455.exe)\n     Running tests\\file_record_log.rs (target\\debug\\deps\\file_record_log-75cd84dcb6b16395.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_platform_xvpe-8127cdd7d0226c06.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_retrieval-35a5ce9a94babd61.exe)\n     Running tests\\current_queries.rs (target\\debug\\deps\\current_queries-1e3baae4749cc87c.exe)\n     Running tests\\historical_queries.rs (target\\debug\\deps\\historical_queries-2891d9145a62969a.exe)\n     Running tests\\one_vocabulary.rs (target\\debug\\deps\\one_vocabulary-edae9f5774bfe8b7.exe)\n     Running tests\\read_only.rs (target\\debug\\deps\\read_only-c595a7196ffd89a3.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_source_guards-ce51c80a93d53639.exe)\n     Running unittests src\\lib.rs (target\\debug\\deps\\kwb_store-0da8ea51a0edf53c.exe)\n     Running tests\\document.rs (target\\debug\\deps\\document-67cb7a653f8c8657.exe)\n     Running tests\\document_store.rs (target\\debug\\deps\\document_store-a86eaab5cfa5cc18.exe)\n     Running tests\\messages.rs (target\\debug\\deps\\messages-14a246da7eb24f7c.exe)\n     Running tests\\one_door.rs (target\\debug\\deps\\one_door-5238bca60fbec701.exe)\n     Running tests\\written.rs (target\\debug\\deps\\written-a9d2add5f4ac527b.exe)\n   Doc-tests kwb_contract_tests\n   Doc-tests kwb_contracts\n   Doc-tests kwb_domain\n   Doc-tests kwb_extract\n   Doc-tests kwb_ingest\n   Doc-tests kwb_mcp\n   Doc-tests kwb_model\n   Doc-tests kwb_platform\n   Doc-tests kwb_platform_std\n   Doc-tests kwb_platform_xvpe\n   Doc-tests kwb_retrieval\n   Doc-tests kwb_source_guards\n   Doc-tests kwb_store\n",
+        "verified_at": 1791096316,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "9a41bcb271b904678d275addd62aea0b6c191963"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,
@@ -8387,6 +8516,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "f9c51c7ee3ba7fd8a63d31475ced50bc31c42ccd"
       },
       "abandoned": [],
@@ -8991,6 +9121,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "7f64bc7989ee5b2d2af2f2a892318a919f48883c"
       },
       "abandoned": [],
@@ -9049,6 +9180,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "dcb7e2af1a5a77dba366024204f04d11a89cfa7e"
       },
       "abandoned": [],
@@ -9107,6 +9239,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "ff097fa91465de773139d752892da8329ec983cc"
       },
       "abandoned": [],
@@ -9165,6 +9298,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "6de5ef3934749d9034c187f77f5db1f5812542e3"
       },
       "abandoned": [],
@@ -9295,6 +9429,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "ab7c456e8fe4b2a5ca55aeda617152e9078316e9"
       },
       "abandoned": [],
@@ -9519,6 +9654,7 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "12a2512d8af7eb7d1defb95c40490642284e3e9d"
       },
       "abandoned": [],
@@ -9657,8 +9793,45 @@
           ],
           "exit_code": 0
         },
+        "rules": null,
         "revision": "b49b14a0f1b43a4801d948f0eab22d93c915f0b2"
       },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "KWB-188",
+      "title": "A publication kwb reports appended survives a killed process but not a power cut, because File::flush asks the operating system for nothing",
+      "why": "FileRecordLog::Append writes a publication and calls flush(), and its comment says that keeps the record from being left to the operating system's convenience. It does not: std::fs::File is unbuffered and its flush is Ok(()) on Windows and unix alike (library/std/src/sys/fs/windows.rs:660, unix.rs:1754), and nothing calls sync_data. A record kwb reported appended survives a killed process but not a power cut, and after one each file keeps its own prefix independently of the others. With coverage.log beside publications.log (D-024, KWB-166) a coverage record saying a document was read can outlive the publications it counts, and KWB-182's audit, which must not read the publication log, would pass it: lost content with a clean audit. D-014 v6 decides that an append is durable before it reports success, through XVPE's RecordLogStrategy::Make_Durable, reached through D-019's adapter.",
+      "done_when": "kwb-platform-std's FileRecordLog returns Ok from Append only once the record is durable: after xvpe-record-log's Append succeeds it calls that log's Make_Durable, and a refusal from either maps to StorageError::Refused with a doing that names which step refused, so a caller told a record was appended has been told it survives a power cut. This needs a pinned XVPE revision whose xvpe-record-log offers RecordLogStrategy::Make_Durable (added 2026-10-03): if the pinned revision has none, stop and abandon saying a pin move must come first -- moving the pin is its own measured item (D-007), not this one. Append's doc comment states the guarantee as D-014 v6 gives it -- survival of the machine, not only the process -- and no longer says flush() provides it. A test drives FileRecordLog over an injected file system that counts Make_Durable calls by path, through a constructor visible only inside kwb-platform-std if the adapter has no other way in, and shows: one Make_Durable per Append, on publications.log's path, made after the append; a refused Make_Durable makes Append Refused; Records() still reads every record. A mutation removing the Make_Durable call is caught by that test. Forbidden: syncing once at the end of a command instead of per append (D-014 v6 names the batching remedy and its condition, and it is a port operation, never a caller-remembered sync); a durability error swallowed or logged and continued; std::fs, OpenOptions or sync_data in file_record_log.rs (D-019 keeps the log's files through XVPE); changing kwb-platform's RecordLogStrategy or StorageError; moving the rev; unwrap, expect or panic outside tests. cargo test --workspace passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-std/src/file_record_log.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-116"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
       "abandoned": [],
       "displaced": [],
       "declined": null,

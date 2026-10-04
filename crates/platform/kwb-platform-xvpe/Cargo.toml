@@ -38,16 +38,14 @@ band = "1p"
 # it also keeps a type off the surface this workspace sees. Measured at this commit by
 # `cargo tree -f "{p} [{f}]"`: all three collections crates resolve to no features at all.
 #
-# Unlike `xvpe-clock` below, nothing protects it. That setting is guarded by construction --
-# `pub use xvpe_clock::HostedWallClock as SystemClock` in `src/lib.rs` stops compiling the moment
-# the clock's defaults go off. Deleting this line compiles cleanly, turns `std` on and adds
+# Nothing protects this setting. Deleting it compiles cleanly, turns `std` on and adds
 # `StandardHashMap`, and nothing here names that type, so nothing fails. The asymmetry is written
 # down because it is real, not because it is wanted: a test asserting this file contains a line it
 # is this file's job to contain would prove nothing a reader of the line does not already know.
 # `KWB-98`, and `D-007` carries the measurement.
 [dependencies.xvpe-collections-persistent]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "c700bcf83"
+rev = "726aa3fee"
 default-features = false
 
 [lints]
@@ -59,13 +57,11 @@ workspace = true
 # second clock port in `kwb-platform` would be a rival authority for something XVPE already
 # owns, which is the defect this repository has spent six items removing.
 #
-# `default-features` stays on, deliberately. `HostedWallClock` is behind `std`, and without it
-# this crate would adopt a port with no implementation -- measured at this commit, proved by
-# naming the types rather than by this manifest listing the crate. The cost is `web-time`,
-# which `D-012` already measured as arriving through `xvpe-clock` and accepted.
+# `default-features` stays on. `D-007`'s 2026-09-30 amendment records what that
+# setting exposes now that the hosted implementation lives in `xvpe-host-clock`.
 [dependencies.xvpe-clock]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "c700bcf83"
+rev = "726aa3fee"
 
 # Reading a source, and asking something about what it says. `D-135` again: neither has
 # knowledge-domain semantics -- a chunker cuts text and an inference strategy turns a question
@@ -75,11 +71,11 @@ rev = "c700bcf83"
 # extractor sits behind separable rather than aspirational.
 [dependencies.xvpe-corpus-text]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "c700bcf83"
+rev = "726aa3fee"
 
 [dependencies.xvpe-ai-inference]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "c700bcf83"
+rev = "726aa3fee"
 
 # Answering a caller that did not compile against this program, and the JSON-RPC 2.0 line
 # framing that carries it. `D-135` a third time, and the clearest case of it: an envelope, a
@@ -98,12 +94,19 @@ rev = "c700bcf83"
 # resolution rather than on a decision.
 [dependencies.xvpe-remote-call]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "c700bcf83"
+rev = "726aa3fee"
 
 [dependencies.xvpe-remote-call-backend-json]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "c700bcf83"
+rev = "726aa3fee"
 
 [dependencies.xvpe-primitives]
 git = "https://github.com/kevinmettias/xvpe.git"
-rev = "c700bcf83"
+rev = "726aa3fee"
+
+# HostedWallClock moved here on 2026-09-29. Its default features enable nothing;
+# its default closure adds nothing this closure lacks. D-007's 2026-09-30 amendment
+# measures the move. The collections feature is deliberately not enabled.
+[dependencies.xvpe-host-clock]
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "726aa3fee"

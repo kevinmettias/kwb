@@ -202,6 +202,7 @@ dependencies = [
  "xvpe-clock",
  "xvpe-collections-persistent",
  "xvpe-corpus-text",
+ "xvpe-host-clock",
  "xvpe-primitives",
  "xvpe-remote-call",
  "xvpe-remote-call-backend-json",
@@ -431,25 +432,34 @@ dependencies = [
 [[package]]
 name = "xvpe-ai-inference"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
+ "xvpe-content-identity",
  "xvpe-json-text",
+ "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-algorithms-hashing"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
+dependencies = [
+ "xvpe-collections-map",
  "xvpe-primitives",
 ]
 
 [[package]]
 name = "xvpe-clock"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
- "web-time",
  "xvpe-primitives",
 ]
 
 [[package]]
 name = "xvpe-collections-handle"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
  "xvpe-primitives",
 ]
@@ -457,7 +467,7 @@ dependencies = [
 [[package]]
 name = "xvpe-collections-map"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
  "hashbrown",
  "xvpe-collections-handle",
@@ -467,7 +477,7 @@ dependencies = [
 [[package]]
 name = "xvpe-collections-persistent"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
  "xvpe-collections-map",
  "xvpe-collections-sequence",
@@ -477,34 +487,52 @@ dependencies = [
 [[package]]
 name = "xvpe-collections-sequence"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
  "smallvec",
  "xvpe-primitives",
 ]
 
 [[package]]
+name = "xvpe-content-identity"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
+dependencies = [
+ "xvpe-algorithms-hashing",
+]
+
+[[package]]
 name = "xvpe-corpus-text"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
+ "xvpe-primitives",
+]
+
+[[package]]
+name = "xvpe-host-clock"
+version = "0.1.0"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
+dependencies = [
+ "web-time",
+ "xvpe-clock",
  "xvpe-primitives",
 ]
 
 [[package]]
 name = "xvpe-json-text"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 
 [[package]]
 name = "xvpe-primitives"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 
 [[package]]
 name = "xvpe-remote-call"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
  "xvpe-primitives",
 ]
@@ -512,7 +540,7 @@ dependencies = [
 [[package]]
 name = "xvpe-remote-call-backend-json"
 version = "0.1.0"
-source = "git+https://github.com/kevinmettias/xvpe.git?rev=c700bcf83#c700bcf83561c12c3789946d68eb702f4c2c8402"
+source = "git+https://github.com/kevinmettias/xvpe.git?rev=726aa3fee#726aa3feecefd928677d26f68d235894b3228a0b"
 dependencies = [
  "serde",
  "serde_json",

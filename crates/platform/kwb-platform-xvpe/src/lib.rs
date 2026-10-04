@@ -61,10 +61,9 @@ pub use xvpe_clock::Timestamp as PublicationTime;
 
 /// The implementation a host composes in, for a process that has an operating system.
 ///
-/// Behind `xvpe-clock`'s `std` feature, which is why this crate takes that crate with default
-/// features on: adopting the port without it would leave `kwb-cli` with nothing to pass, which
-/// is a port with no implementation and no caller.
-pub use xvpe_clock::HostedWallClock as SystemClock;
+/// Adopted from `xvpe-host-clock` after the host clocks moved there on 2026-09-29.
+/// `D-007`'s 2026-09-30 amendment records the default-feature settings and their cost.
+pub use xvpe_host_clock::HostedWallClock as SystemClock;
 
 /// Cutting a source into passages small enough to ask about.
 ///
@@ -147,11 +146,12 @@ pub mod inference
     pub use xvpe_ai_inference::ModelIdentifier;
     pub use xvpe_ai_inference::ModelRole;
     pub use xvpe_ai_inference::RequestFingerprint;
+    pub use xvpe_ai_inference::RequestTerms;
     pub use xvpe_ai_inference::ResponseSchema;
     pub use xvpe_ai_inference::SchemaField;
     pub use xvpe_ai_inference::SchemaNode;
     pub use xvpe_ai_inference::TokenUsage;
     pub use xvpe_ai_inference::recording_codec;
-    pub use xvpe_ai_inference::strategies::ReplayInference;
-    pub use xvpe_ai_inference::strategies::ReplayRecording;
+    pub use xvpe_ai_inference::ReplayInference;
+    pub use xvpe_ai_inference::ReplayRecording;
 }

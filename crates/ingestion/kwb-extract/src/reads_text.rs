@@ -204,7 +204,7 @@ impl<Reader: InferenceStrategy> ReadsText<Reader>
             // mapping *into* `ReadingKind` rather than replacing it, which is what `KWB-47`
             // said would happen when a reading adapter arrived: the grading stays XVPE's and
             // the capability question stays KWB's.
-            if passage.Requires_Page_Images()
+            if passage.Is_Page_Image_Required()
             {
                 return Err(ExtractionError::CannotRead {
                     needed: ReadingKind::Visual,
@@ -296,13 +296,15 @@ pub(crate) fn Request_For(model: &ModelIdentifier, passage: &str) -> InferenceRe
     let blocks = vec![content];
     let schema = Propositions_Schema();
     let request = InferenceRequest::New(
-        model.clone(),
-        role,
-        instructions,
+        kwb_platform_xvpe::inference::RequestTerms {
+            model: model.clone(),
+            role,
+            cacheable_instructions: instructions,
+            schema: Some(schema),
+            effort: None,
+            maximum_output_tokens: ANSWER_TOKEN_BUDGET,
+        },
         blocks,
-        Some(schema),
-        None,
-        ANSWER_TOKEN_BUDGET,
     );
 
     return request;

@@ -73,7 +73,7 @@ fn Recording_Answering(passage: &str, answer: AnswerValue) -> ReplayRecording
     let response = InferenceResponse::New(answer, String::new(), usage, Model());
 
     return ReplayRecording::New(
-        kwb_platform_xvpe::inference::RequestFingerprint::Of_Request(&request),
+        kwb_platform_xvpe::inference::RequestFingerprint::Of_Request(&request).expect("the extractor fixture should have a valid request fingerprint"),
         response,
     );
 }
