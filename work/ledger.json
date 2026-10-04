@@ -8480,7 +8480,7 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Done",
       "depends_on": [
         "KWB-140"
       ],
@@ -8496,7 +8496,32 @@
         ],
         "timeout_seconds": 3600
       },
-      "verified": null,
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-extract",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "shed in 0.00s\n\n\nrunning 4 tests\ntest Test_A_Source_Needing_A_Look_Should_Be_Refused_Without_Asking_A_Model ... ok\ntest Test_A_Reading_That_Did_Not_Happen_Should_Leave_The_Graph_Exactly_As_It_Was ... ok\ntest Test_A_Source_Should_Be_Kept_When_Its_Reading_Did_Not_Happen ... ok\ntest Test_Reading_One_Source_Twice_Should_Keep_One_Document ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest Test_A_Reading_Of_One_Text_Page_Should_Name_The_One_Based_Page_Span ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 5 tests\ntest Test_A_Recording_For_Another_Passage_Or_Model_Should_Not_Answer_This_Source ... ok\ntest Test_Canonical_Empty_Replayed_Proposals_Should_Be_Refused_And_Counted ... ok\ntest Test_Replayed_Wrong_Root_Or_Field_Types_Should_Be_Unmet ... ok\ntest Test_Otherwise_Complete_Replayed_Text_Should_Keep_Its_Current_Admission_Contract ... ok\ntest Test_Replay_Should_Enforce_The_Declared_Proposition_Count_Without_Truncating ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling kwb-extract v0.1.0 (F:\\repos\\kwb\\crates\\ingestion\\kwb-extract)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.29s\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_extract-da8c054f20f90872.exe)\n     Running tests\\admission_seam.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\admission_seam-c63cdfbf5328fdf3.exe)\n     Running tests\\passage_location.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\passage_location-8ca4712d021e2ff9.exe)\n     Running tests\\replayed_answers.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\replayed_answers-96335d194976666a.exe)\n   Doc-tests kwb_extract\n",
+        "verified_at": 1791132806,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "522de19527cc5946436b6b13d91adad8729b0b27"
+      },
       "abandoned": [],
       "displaced": [],
       "declined": null,

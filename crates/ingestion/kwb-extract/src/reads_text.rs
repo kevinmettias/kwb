@@ -422,9 +422,9 @@ fn Where_In(passage: &Passage) -> String
     let span = passage.Span();
 
     return format!(
-        "characters {} to {} of the text",
-        span.First().Zero_Based(),
-        span.Last().Zero_Based()
+        "pages {} to {} of the text",
+        span.First().One_Based(),
+        span.Last().One_Based()
     );
 }
 
