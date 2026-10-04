@@ -296,6 +296,7 @@ fn Report_Admission(
     println!("claims     {}", published.Current().Claims().len());
     println!("citations  {}", published.Current().Assertions().len());
     println!("refused    {}", report.Normalized().Linked().Refused());
+    println!("repeated   {}", report.Repeated());
     println!("documents  {}", documents.Name());
     println!("knowledge  {}", knowledge.Name());
 

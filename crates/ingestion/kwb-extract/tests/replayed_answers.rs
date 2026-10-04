@@ -118,8 +118,8 @@ fn Test_Canonical_Empty_Replayed_Proposals_Should_Be_Refused_And_Counted()
 #[test]
 fn Test_Otherwise_Complete_Replayed_Text_Should_Keep_Its_Current_Admission_Contract()
 {
-    // The schema declares no claim-length or uniqueness rule. Grounding and repeat
-    // admission are separate release obligations; this regression does not invent them.
+    // The schema declares no claim-length rule. Admission independently counts repeats
+    // under D-027; grounding remains a separate release obligation.
     let mut extra = vec![("concept".to_owned(), AnswerValue::Text("entropy".to_owned())), ("claim".to_owned(), AnswerValue::Text("A claim.".to_owned()))];
     extra.push(("extra".to_owned(), AnswerValue::Null));
     let answers = [
@@ -135,7 +135,7 @@ fn Test_Otherwise_Complete_Replayed_Text_Should_Keep_Its_Current_Admission_Contr
         let report = Admitted(&Reader_For(AnswerValue::Sequence(propositions), PASSAGE, Model()));
         assert!(report.Refusal().is_none());
         assert_eq!(report.Normalized().Linked().Refused(), 0);
-        assert_eq!(report.Normalized().Claims_Held(), offered);
+        assert_eq!(report.Normalized().Claims_Held().checked_add(report.Repeated()).expect("a small fixture count"), offered);
     }
 }
 

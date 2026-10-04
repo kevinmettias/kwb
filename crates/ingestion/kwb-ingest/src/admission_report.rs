@@ -57,6 +57,7 @@ pub struct AdmissionReport
     source: Option<Written>,
     refusal: Option<ExtractionError>,
     assertions: Vec<Assertion>,
+    repeated: usize,
 }
 
 impl AdmissionReport
@@ -66,6 +67,13 @@ impl AdmissionReport
     pub const fn Coverage(&self) -> Coverage
     {
         return self.coverage;
+    }
+
+    /// Complete extractions withheld because this run already accepted their assertion.
+    #[must_use]
+    pub const fn Repeated(&self) -> usize
+    {
+        return self.repeated;
     }
 
     /// The concepts and claims, handed back rather than stored.
@@ -275,9 +283,9 @@ pub fn Admit_Source(
         Err(refusal) => return Ok(Report_Of_Refusal(source, refusal)),
     };
 
-    let normalized = Normalize_Concepts(Link_Concepts(&Proposals_Of(&reading)));
-
-    let assertions = Assertions_Citing(&normalized, &source, &Scope_Of(reader));
+    let linked = Link_Concepts(&Proposals_Of(&reading));
+    let (linked, assertions, repeated) = linked.Distinct_Assertions(&source.Identity().Render(), &Scope_Of(reader));
+    let normalized = Normalize_Concepts(linked);
 
     return Ok(AdmissionReport {
         coverage: Coverage_Of_Reading(normalized.Linked().Claims().len()),
@@ -285,6 +293,7 @@ pub fn Admit_Source(
         source: Some(source),
         refusal: None,
         assertions,
+        repeated,
     });
 }
 
@@ -376,6 +385,7 @@ fn Report_Of_Refusal(source: Written, refusal: ExtractionError) -> AdmissionRepo
         source: Some(source),
         refusal: Some(refusal),
         assertions: Vec::new(),
+        repeated: 0,
     };
 }
 
@@ -389,27 +399,6 @@ fn Proposals_Of(reading: &[ProposedReading]) -> Vec<Extraction>
     return reading
         .iter()
         .flat_map(|reading| return reading.Proposed().to_vec())
-        .collect();
-}
-
-/// One assertion per claim, each cited to the document its claim was read out of.
-///
-/// The citation. The source is the document's own address rather than a filename or a
-/// title, so following it returns the bytes the claim was read out of -- and two documents
-/// with the same content are one source, which is the same mechanism one crate down.
-///
-/// The scope is borrowed because every assertion gets its own copy of it: the reading has one
-/// scope and the claims are many, so consuming it here would tie the number of citations to the
-/// number of scopes, which is not a relationship either of them has.
-fn Assertions_Citing(normalized: &Normalized, source: &Written, scope: &Scope) -> Vec<Assertion>
-{
-    let cited = source.Identity().Render();
-
-    return normalized
-        .Linked()
-        .Claims()
-        .iter()
-        .map(|claim| return Assertion::By(&cited, claim, scope.clone()))
         .collect();
 }
 

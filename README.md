@@ -47,6 +47,7 @@ concepts   1
 claims     1
 citations  1
 refused    0
+repeated   0
 documents  kept
 knowledge  kept
 
@@ -57,9 +58,13 @@ concepts   1
 claims     1
 citations  2
 refused    0
+repeated   0
 documents  kept
 knowledge  kept
 ```
+
+Within one admission, the same assertion proposed twice is published once and
+counted under `repeated`. A different claim or a different source remains admissible.
 
 A different book, a different source address, and still **one** claim — because a claim's
 identity excludes the source it was read from (`D-002`). The second run replays what the first

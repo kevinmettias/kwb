@@ -1,6 +1,7 @@
 //! Stage one: link a claim to the concept its extraction named, and to nothing else.
 
-use kwb_domain::Claim;
+use kwb_domain::{Assertion, Claim, Scope};
+use std::collections::BTreeSet;
 use kwb_domain::Concept;
 
 use crate::Extraction;
@@ -29,6 +30,31 @@ pub struct Linked
 
 impl Linked
 {
+    /// Select one publication per assertion identity within this admission only.
+    ///
+    /// Linking itself still preserves every accepted extraction; admission makes this
+    /// separate decision before concept grouping, keeping claims and concepts paired.
+    pub(crate) fn Distinct_Assertions(self, source: &str, scope: &Scope) -> (Self, Vec<Assertion>, usize)
+    {
+        let mut distinct = Self { refused: self.refused, ..Self::default() };
+        let mut identities = BTreeSet::new();
+        let mut assertions = Vec::new();
+        let mut repeated = 0_usize;
+        for (concept, claim) in self.concepts.into_iter().zip(self.claims)
+        {
+            let assertion = Assertion::By(source, &claim, scope.clone());
+            if !identities.insert(assertion.Identity())
+            {
+                repeated = repeated.saturating_add(1);
+                continue;
+            }
+            distinct.concepts.push(concept);
+            distinct.claims.push(claim);
+            assertions.push(assertion);
+        }
+        return (distinct, assertions, repeated);
+    }
+
     /// The concepts, in the order they were first named.
     #[must_use]
     pub fn Concepts(&self) -> &[Concept]
