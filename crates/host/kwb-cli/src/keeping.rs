@@ -156,6 +156,7 @@ pub(crate) fn Known_So_Far(log: Option<&FileRecordLog>) -> Result<KnowledgeGraph
 pub(crate) fn Record_Into(
     log: Option<&FileRecordLog>,
     report: &AdmissionReport,
+    known: &KnowledgeGraph,
     at: Option<i64>,
 ) -> Result<(), String>
 {
@@ -165,7 +166,7 @@ pub(crate) fn Record_Into(
         return Ok(());
     };
 
-    for publication in report.Publications()
+    for publication in report.Publications_Into(known)
     {
         log.Append(&publication.Record(at))
             .map_err(|cause| return format!("cannot record a publication: {cause}"))?;
@@ -397,7 +398,7 @@ mod tests
             .expect("a writable temporary root")
             .expect("a log under a root that was named");
 
-        Record_Into(Some(&log), &report, Some(PUBLISHED_AT)).expect("a writable temporary log");
+        Record_Into(Some(&log), &report, &KnowledgeGraph::Empty(), Some(PUBLISHED_AT)).expect("a writable temporary log");
 
         assert_eq!(
             Records_Of(&log).expect("a readable temporary log").len(),
@@ -416,7 +417,7 @@ mod tests
         let named = root.display().to_string();
         let report = Admission_Report_At(&named);
 
-        assert_eq!(Record_Into(None, &report, None), Ok(()));
+        assert_eq!(Record_Into(None, &report, &KnowledgeGraph::Empty(), None), Ok(()));
     }
 
     #[test]

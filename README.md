@@ -48,6 +48,7 @@ claims     1
 citations  1
 refused    0
 repeated   0
+closed     0
 documents  kept
 knowledge  kept
 
@@ -59,12 +60,15 @@ claims     1
 citations  2
 refused    0
 repeated   0
+closed     0
 documents  kept
 knowledge  kept
 ```
 
 Within one admission, the same assertion proposed twice is published once and
 counted under `repeated`. A different claim or a different source remains admissible.
+
+An admission never reopens a retired or superseded concept. It keeps new claims and citations about that concept without attaching them to its successor. Each report prints `closed`, counting distinct concepts the admission named that the store already held closed.
 
 A different book, a different source address, and still **one** claim — because a claim's
 identity excludes the source it was read from (`D-002`). The second run replays what the first

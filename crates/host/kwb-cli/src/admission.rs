@@ -4,7 +4,7 @@
 //! # Where the report is printed, and why not here
 //!
 //! [`Run_Admission`] ends in [`Report_Admission`], which stays in the crate root. The report is
-//! the composition root's statement about what its own run did — the same eight fields the
+//! the composition root's statement about what its own run did — the fields the
 //! README's transcripts show — and the crate root is where a reader looks for it.
 //!
 //! [`Report_Admission`]: crate::Report_Admission
@@ -217,7 +217,7 @@ fn Ran_Admission(bytes: Vec<u8>, said: Option<&Stated>, kept: &mut Kept) -> Exit
 /// recorded before the report claimed it.
 fn Finished_Admission(report: &AdmissionReport, kept: &mut Kept) -> ExitCode
 {
-    let published = match Record_Into(kept.recorded.log.as_ref(), report, Some(Now()))
+    let published = match Record_Into(kept.recorded.log.as_ref(), report, &kept.recorded.known, Some(Now()))
     {
         Ok(()) => report.Published_Into(&kept.recorded.known),
         Err(complaint) => return Complained_Without_Usage("kwb admit", &complaint, FAILURE_EXIT),
@@ -226,6 +226,7 @@ fn Finished_Admission(report: &AdmissionReport, kept: &mut Kept) -> ExitCode
     Report_Admission(
         report,
         &published,
+        &kept.recorded.known,
         Persistence::Of(kept.store.Is_Durable()),
         Persistence::Of(kept.recorded.log.is_some()),
     );

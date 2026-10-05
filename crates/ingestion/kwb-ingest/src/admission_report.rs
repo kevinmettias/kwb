@@ -76,6 +76,15 @@ impl AdmissionReport
         return self.repeated;
     }
 
+    /// Distinct concepts this admission named whose latest standing in the graph is closed.
+    ///
+    /// Computed against the same pre-admission graph as `Publications_Into`, rather than inferred
+    /// from the graph after publishing. Repeated mentions count once after normalization.
+    #[must_use]
+    pub fn Closed_Concepts_In(&self, known: &KnowledgeGraph) -> usize
+    {
+        return self.normalized.Concepts().iter().filter(|concept| return Is_Closed_In(known, concept)).count();
+    }
     /// The concepts and claims, handed back rather than stored.
     #[must_use]
     pub const fn Normalized(&self) -> &Normalized
@@ -120,9 +129,9 @@ impl AdmissionReport
         return self.refusal.as_ref();
     }
 
-    /// What this admission published, as publications.
+    /// Publications for a new, empty graph. Use `Publications_Into` when a graph already exists.
     ///
-    /// The same things [`Published_Into`] adds to a graph, in the same order, expressed as the
+    /// The same things [`Published_Into`] adds to an empty graph, in the same order, expressed as the
     /// transitions `D-014` records rather than as the graph they produce. A caller recording
     /// them does not have to take a graph apart to find out what changed — which it could not
     /// do correctly anyway, since a graph is a fold and a fold does not remember its inputs.
@@ -135,7 +144,17 @@ impl AdmissionReport
     #[must_use]
     pub fn Publications(&self) -> Vec<Publication>
     {
-        let mut publications = self.Concept_Publications();
+        return self.Publications_Into(&KnowledgeGraph::Empty());
+    }
+
+    /// Publications admitted into this existing graph, preserving its closed standings.
+    ///
+    /// D-023: a reading carries no authority to reopen a concept. New claims and assertions
+    /// still name that concept and are kept without following its successor.
+    #[must_use]
+    pub fn Publications_Into(&self, known: &KnowledgeGraph) -> Vec<Publication>
+    {
+        let mut publications = self.Concept_Publications(known);
 
         publications.extend(self.Claim_Publications());
         publications.extend(self.Assertion_Publications());
@@ -145,12 +164,13 @@ impl AdmissionReport
 
     /// The concepts, as publications. They come first among their three, because a claim is
     /// about a concept and replay refuses a claim naming one no earlier record published.
-    fn Concept_Publications(&self) -> Vec<Publication>
+    fn Concept_Publications(&self, known: &KnowledgeGraph) -> Vec<Publication>
     {
         return self
             .normalized
             .Concepts()
             .iter()
+            .filter(|concept| return !Is_Closed_In(known, concept))
             .map(|concept| return Publication::Concept {
                 concept: concept.clone(),
                 standing: Standing::Asserted,
@@ -213,23 +233,25 @@ impl AdmissionReport
 
         let mut published = graph.clone();
 
-        for concept in self.normalized.Concepts()
+        for publication in self.Publications_Into(graph)
         {
-            published = published.With_Concept(Versioned::Asserted(concept.clone()));
+            published = match publication
+            {
+                Publication::Concept { concept, standing } => published.With_Concept(Versioned::Asserted(concept).Closed(standing)),
+                Publication::Claim { claim, standing } => published.With_Claim(Versioned::Asserted(claim).Closed(standing)),
+                Publication::Assertion { assertion, standing } => published.With_Assertion(Versioned::Asserted(assertion).Closed(standing)),
+            };
         }
-        for claim in self.normalized.Linked().Claims()
-        {
-            published = published.With_Claim(Versioned::Asserted(claim.clone()));
-        }
-        for assertion in &self.assertions
-        {
-            published = published.With_Assertion(Versioned::Asserted(assertion.clone()));
-        }
-
         return published;
     }
 }
 
+/// A standing is closed only by the domain's one liveness contract, never by its variant name.
+fn Is_Closed_In(known: &KnowledgeGraph, concept: &kwb_domain::Concept) -> bool
+{
+    return known.Every_Version().Concepts().into_iter()
+        .any(|held| return held.Value().Identity() == concept.Identity() && !held.Standing().Is_Current());
+}
 /// Admit a source, read by a reader, and report what was admitted.
 ///
 /// The source document goes through `kwb-store`'s one write door. The reader is asked what it

@@ -286,6 +286,7 @@ impl Persistence
 fn Report_Admission(
     report: &AdmissionReport,
     published: &KnowledgeGraph,
+    known: &KnowledgeGraph,
     documents: Persistence,
     knowledge: Persistence,
 )
@@ -297,6 +298,7 @@ fn Report_Admission(
     println!("citations  {}", published.Current().Assertions().len());
     println!("refused    {}", report.Normalized().Linked().Refused());
     println!("repeated   {}", report.Repeated());
+    println!("closed     {}", report.Closed_Concepts_In(known));
     println!("documents  {}", documents.Name());
     println!("knowledge  {}", knowledge.Name());
 
