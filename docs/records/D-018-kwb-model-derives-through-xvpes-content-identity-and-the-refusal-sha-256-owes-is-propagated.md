@@ -3,7 +3,7 @@ id: D-018
 type: decision
 title: kwb-model derives through XVPE's content identity, and the refusal SHA-256 owes is propagated rather than wrapped
 status: accepted
-version: 2
+version: 3
 authority: canonical-normative-record
 tags:
   - identity
@@ -134,3 +134,51 @@ The preceding statement that neither implementation item edits this record is
 superseded for `KWB-111` by this amendment, because its previously observed
 retrieval consequence requires an explicit semantic ruling. The separate adoption
 measurement and refusal obligations remain unchanged.
+
+## Amendment: adoption measured at the current published pin (2026-10-04)
+
+The two-package gain measured at c700bcf83 is superseded for adoption at the
+already-published, already-adopted pin 726aa3fee. On an export of committed KWB
+811353c, simulating the approved identity dependency change alone resolves 66
+packages before and 57 after: zero gains, no retained version or source changes,
+and exactly these nine removals:
+
+- block-buffer 0.10.4
+- cpufeatures 0.2.17
+- crypto-common 0.1.7
+- digest 0.10.7
+- generic-array 0.14.7
+- libc 0.2.189
+- sha2 0.10.9
+- typenum 1.20.1
+- version_check 0.9.5
+
+Every removal is from the crates.io registry. Identity and hashing already occur
+in the baseline through the inference adoption; removing the model's SHA2 edge
+removes the listed packages and introduces nothing. Every retained XVPE package
+keeps the same published commit. This repeats the earlier a88e1b3 measurement in
+docs/corpus/kwb-identity-adoption-at-726aa3fee.md against the current committed
+tree, including its test-only host dependency metadata.
+
+The unchanged-pin adoption is now judged against this exact delta. A different
+delta still requires stopping, reporting its packages, and a separate amendment.
+This changes the old measurement, not the requirement to measure it or the pin.
+
+The isolation contract remains: optional identity-only quarantine feature, model
+defaults disabled, existing runtime consumers explicitly retaining their prior
+features, and no clock, inference, chunker or persistent map in an independent
+model consumer's closure. The dependency-only probe establishes this separately
+from the workspace feature union; it makes no source-compilation claim.
+
+Every other adoption obligation stands: the same public identity vocabulary and
+64-character rendering, no fixture hex strings or historical log edits, no
+second derivation or normalizer, and InputTooLong propagated through the four
+fallible constructors and production callers. No panic, wrapping or sentinel
+discharges that refusal. No path dependency or live model call is introduced.
+
+REL10-ADOPT-XVPE-CONTENT-IDENTITY replaces KWB-114 with only its stale delta clause
+changed. Its eighteen-item open dependent closure is re-authored with unchanged
+obligations and remapped dependency identifiers; originals remain in Declined
+history. docs/corpus/kwb-identity-adoption-reauthoring.md records the mapping.
+This amendment accepts the measured dependency change; the source migration
+and its full compilation, identity compatibility and replay proofs remain owed.

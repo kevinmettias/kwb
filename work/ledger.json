@@ -6547,7 +6547,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-ADOPT-XVPE-CONTENT-IDENTITY under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-111",
         "KWB-113"
@@ -6566,7 +6570,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -6630,7 +6637,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-116 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-114"
       ],
@@ -6648,7 +6659,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -7866,7 +7880,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-141 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-140",
         "KWB-116"
@@ -7885,7 +7903,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -7907,7 +7928,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-142 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-141"
       ],
@@ -7925,7 +7950,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -8224,7 +8252,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-148 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-116"
       ],
@@ -8247,7 +8279,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -8304,7 +8339,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-150 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-114"
       ],
@@ -8325,7 +8364,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -8343,7 +8385,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-151 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-116"
       ],
@@ -8364,7 +8410,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -8381,7 +8430,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-152 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-114"
       ],
@@ -8400,7 +8453,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -8419,7 +8475,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-153 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-114"
       ],
@@ -8440,7 +8500,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -8647,7 +8710,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-158 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-142",
         "KWB-145",
@@ -8669,7 +8736,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -9096,7 +9166,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-166 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-165",
         "KWB-116",
@@ -9121,7 +9195,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -9394,7 +9471,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-172 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-140",
         "KWB-114"
@@ -9414,7 +9495,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -9878,7 +9962,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-182 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-166",
         "KWB-181",
@@ -9901,7 +9989,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164695
+      },
       "widened": []
     },
     {
@@ -10208,7 +10299,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-188 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-116"
       ],
@@ -10226,7 +10321,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164696
+      },
       "widened": []
     },
     {
@@ -10698,7 +10796,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-143 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-142",
         "KWB-103",
@@ -10719,7 +10821,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164696
+      },
       "widened": []
     },
     {
@@ -10736,7 +10841,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-160 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-142",
         "KWB-103",
@@ -10757,7 +10866,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164696
+      },
       "widened": []
     },
     {
@@ -10774,7 +10886,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-161 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-116",
         "KWB-103",
@@ -10795,7 +10911,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164696
+      },
       "widened": []
     },
     {
@@ -10812,7 +10931,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-162 under the current-pin measurement amendment to D-018. All obligations are preserved; only KWB-114s outdated package-delta clause and dependency IDs within its eighteen-item open closure change."
+        }
+      },
       "depends_on": [
         "KWB-114",
         "KWB-103",
@@ -10833,7 +10956,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164696
+      },
       "widened": []
     },
     {
@@ -10865,6 +10991,854 @@
           "test",
           "-p",
           "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-UPDATE-IDENTITY-ADOPTION-MEASUREMENT",
+      "title": "Amend D-018 for the current published pin and preserve the identity adoption dependency graph",
+      "why": "The full dependency-resolution measurement now holds on fresh export 811353c: at unchanged pin 726aa3fee, adoption gains no packages and removes exactly nine. D-018 and KWB-114 require stopping and separately amending the old two-gain measurement; REL09 has removed the legacy directory reservations that prevented this amendment.",
+      "done_when": "D-018 gains one dated Amendment and version 3, retaining its prior claims while superseding only the outdated lock measurement at c700bcf83 with the measured 66-to-57 closure at 726aa3fee: zero gains, no retained version/source changes, and exactly the nine measured SHA2-only removals. All identity compatibility, feature isolation and InputTooLong propagation rules remain. Replace KWB-114 with an implementation item whose acceptance differs only in the exact measured Cargo.lock delta, and re-author its eighteen-item open dependent closure with all other obligations, kinds, origins, territories, predicates and timeouts unchanged and dependencies remapped. Preserve each original in Declined history naming its replacement; verify all preserved fields against a pre-mutation snapshot and validate the board. Record the replacement mapping and current measurement in docs/corpus/kwb-identity-adoption-reauthoring.md. No production source, Cargo metadata, pin, identity fixture, published record other than D-018, original store or live model changes. Repository contracts pass.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "work/ledger.json",
+          "docs/corpus/kwb-identity-adoption-reauthoring.md",
+          "docs/records/D-018-kwb-model-derives-through-xvpes-content-identity-and-the-refusal-sha-256-owes-is-propagated.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "_It_Was_Written_For ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.76s\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_contract_tests-4b594c8526d62f5f.exe)\n     Running tests\\boundaries.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\boundaries-da0bd5a1cfcbd2d8.exe)\n     Running tests\\commands.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\commands-cbd9c1dd9a4423be.exe)\n     Running tests\\literals.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\literals-4d2dc5b45c318f8f.exe)\n     Running tests\\projections.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\projections-e2dff84033769910.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1791164890,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "811353c6f7d4cd6a4255e94384d8dc40107cf331"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-ADOPT-XVPE-CONTENT-IDENTITY",
+      "title": "kwb-model derives through XVPE's content identity, so one derivation and one normalizer serve both products, and the refusal SHA-256 owes is surfaced rather than wrapped",
+      "why": "Replaces KWB-114 under the separately amended current-pin measurement in D-018; all other obligations remain. D-018 decides this item and holds what was measured. kwb-model's Derivation, ContentIdentity, Exclusion, Sealed, IdentityError and Normalize_Text were generalized into XVPE's xvpe-content-identity on 2026-09-24, which reproduces seven identities this repository published through two independent SHA-256 implementations. Two copies of one derivation drift, and KWB-111 is that drift already measured: the normalizer here deletes a lone line break XVPE's collapses. Under D-135 an identity scheme carries no knowledge semantics -- its definition never mentions a claim, a concept or a source -- so the scheme is XVPE's, and the kinds and fields this repository derives under it stay here. Measured 2026-09-24 against XVPE c700bcf83: the public surfaces match name for name -- the same items, the same methods, IdentityError with the same two variants, the same 64-character lowercase rendering, so a KnowledgeReferenceId (Nomos D-137) keeps its value and its shape; no crate here names Derivation as a type. One difference decides this item's size. XVPE's Seal returns Result<Sealed, InputTooLong>, because SHA-256 is defined only for messages under 2^64 bits and a streaming derivation can be fed past that; kwb-model's Seal returns Sealed, and past that bound sha2 wraps the length, which would give two different inputs one identity. This repository denies panic paths, so the refusal can only be propagated: Claim::About, Concept::Named, Assertion::By and kwb-store's Document::Of seal, and 51 files across eight crates call them or Seal (23 production call sites of the four constructors, about 209 in tests). Adopting xvpe-content-identity into kwb-platform-xvpe adds exactly two packages to Cargo.lock at c700bcf83 -- xvpe-content-identity and xvpe-algorithms-hashing; everything beneath them already arrives through xvpe-collections-persistent -- and sha2, which only kwb-model uses, leaves.",
+      "done_when": "kwb-platform-xvpe adopts xvpe-content-identity at the rev its other XVPE crates pin, behind a cargo feature that enables that crate and nothing else, while every XVPE crate it already adopts moves behind its default features so each existing consumer keeps what it has. kwb-model depends on kwb-platform-xvpe with default features off and that one feature on, so its own closure gains no clock, inference, chunker or persistent map, and it keeps every public name it has -- Derivation, ContentIdentity, Exclusion, Sealed, IdentityError, Normalize_Text, IDENTITY_BYTES, IDENTITY_CHARACTERS -- as re-exports of XVPE's, plus InputTooLong; it holds no SHA-256, normalizer or derivation of its own, and sha2 leaves both its manifest and the workspace's. InputTooLong is propagated: Claim::About, Concept::Named, Assertion::By and Document::Of return Result, and each production caller passes it with ? to the nearest function that already returns a Result, giving any function between them a Result where it has none; a test builds its fixtures through a helper that expects with a named message. No pinned identity changes: no hex string, fixture log or golden file is edited, and Test_Replay_Records_Should_Hold_What_The_Original_Held and KWB-111's tests pass unmodified. Cargo.lock at unchanged pin 726aa3fee gains no packages, changes no retained version or source, and removes exactly block-buffer 0.10.4, cpufeatures 0.2.17, crypto-common 0.1.7, digest 0.10.7, generic-array 0.14.7, libc 0.2.189, sha2 0.10.9, typenum 1.20.1 and version_check 0.9.5; a different delta is a stop, reported with the packages, because it means D-018s current measured adoption delta is wrong. cargo test --workspace passes. Forbidden: unwrap, expect or panic outside tests to discharge InputTooLong; a sentinel, zero or wrapped identity for an over-long input; any change to what an identity renders as; a second derivation or normalizer left beside XVPE's; naming an XVPE crate anywhere but kwb-platform-xvpe; a path dependency; moving the rev.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/kernel/kwb-model",
+          "crates/kernel/kwb-store",
+          "crates/domain/kwb-domain",
+          "crates/ingestion/kwb-ingest",
+          "crates/ingestion/kwb-extract",
+          "crates/retrieval/kwb-retrieval",
+          "crates/host/kwb-cli",
+          "crates/host/kwb-mcp",
+          "crates/platform/kwb-platform-xvpe",
+          "Cargo.toml",
+          "Cargo.lock",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-111",
+        "KWB-113"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-116",
+      "title": "The publication log keeps its lines through XVPE's record log, and a torn last line is refused instead of replayed as a publication nobody made",
+      "why": "Replaces KWB-116 under the separately amended current-pin measurement in D-018; all other obligations remain. D-019 decides this and holds the clause-by-clause measurement. kwb-platform-std's FileRecordLog is the donor of xvpe-record-log and still keeps its own std::fs copy, so the two drift: at c700bcf83 XVPE's log refuses an empty record and a line break where this one trusts the domain, and reports a last line with no terminator as a torn tail where this one returns it as a record. That last difference is a defect here, not a style: Records() hands the fragment to Replay_Records, and a line cut inside its trailing field still parses -- as a different time, or at the untimed arity with a shortened last field (record_time.rs Timestamped_Fields) -- so a crash mid-append publishes something nobody published. Bytes already on disk are compatible: both sides write record plus LF, skip a blank line and drop a CR before the terminator. Measured 2026-09-25 at c700bcf83: adopting the log adds exactly xvpe-record-log, xvpe-file-system and xvpe-file-system-backend-system, none third-party, all at the rev kwb-platform-xvpe already pins. The store half is not this item: XVPE's store counted a directory as held until a fix XVPE made the same day, and it needs its own pin move once that fix is published (D-019).",
+      "done_when": "kwb-platform-xvpe adopts xvpe-record-log, xvpe-file-system and xvpe-file-system-backend-system at the rev its other XVPE crates pin, behind one cargo feature that enables those three and nothing else, not among its defaults; kwb-platform-std depends on kwb-platform-xvpe with default features off and that feature on, so its closure gains no clock, inference, chunker or persistent map. kwb-platform-std's FileRecordLog keeps its name, At(path) -> Result<Self, StorageError> and its RecordLogStrategy impl, and keeps its lines through xvpe-record-log's FileRecordLog over the system file system; no std::fs, OpenOptions, BufReader or writeln! remains in file_record_log.rs. At still creates the log's directory and an empty file, through the injected file system rather than std::fs, so a store root holds publications.log after At exactly as it does today. Every XVPE refusal maps to StorageError::Refused with a doing that names the operation; a refusal kind XVPE adds later maps to Refused too, never a panic. The five tests in kwb-platform-std/tests/file_record_log.rs pass unmodified. New tests there, each written to fail first against the std::fs implementation where it can: a log whose last line lacks its terminator makes Records() Refused, and the refusal's text names how many complete records precede the fragment; Append of a record holding a line feed or a carriage return is Refused and leaves the file's bytes unchanged; a log file written byte for byte as today's implementation writes it, plus a CRLF-terminated line and a blank line, reads back the records today's implementation reads. Cargo.lock gains exactly those three packages and nothing else; a different delta is a stop, reported with the packages, because it means D-019's measurement is wrong. README.md's band and dependency statements match the new same-band edge. cargo test --workspace passes. Forbidden: XVPE's Close_Torn_Tail, or any other way of terminating, keeping or dropping a torn tail, since D-019 leaves repair undecided; mapping a torn tail to Ok; naming an xvpe_ crate anywhere but kwb-platform-xvpe; behaviour in kwb-platform-xvpe beyond re-exports; changing kwb-platform's RecordLogStrategy or StorageError; moving the log's path or file name; editing a test outside kwb-platform-std/tests/file_record_log.rs; unwrap, expect or panic outside tests; a path dependency; moving the rev; adopting xvpe-content-store, which is the store half's own item.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/platform/kwb-platform-std/Cargo.toml",
+          "crates/platform/kwb-platform-std/src/file_record_log.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log.rs",
+          "Cargo.lock",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-ADOPT-XVPE-CONTENT-IDENTITY"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-150",
+      "title": "One identity in this repository is pinned to a literal, so a change to the derivation scheme passes every test but one",
+      "why": "Replaces KWB-150 under the separately amended current-pin measurement in D-018; all other obligations remain. D-002: the same claim always renders the same identifier, and the identifier never changes meaning once cited; Nomos D-137 takes that value as a KnowledgeReferenceId. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): the only literal identity in any test is the concept address a0503586...652c in kwb-cli/tests/history.rs. Every other identity test compares two derivations made through kwb_model, so changing derivation.rs's separator, a tag, the kind header, a field name, or the order of the fields in claim.rs or assertion.rs moves both sides together and stays green. KWB-114 moves the derivation to XVPE and promises that no identity changes; this item makes that promise checkable for every kind, after it lands. The nineteen values in the done_when were computed on 2026-10-03 twice, independently -- through this workspace's Concept::Named, Claim::About, Assertion::By and Document::Of, and by a separate SHA-256 over the layout derivation.rs documents -- and all nineteen agreed.",
+      "done_when": "Two new test files, crates/domain/kwb-domain/tests/golden_identity.rs for concepts, claims and assertions and crates/kernel/kwb-store/tests/golden_identity.rs for documents, assert that the rendered identity of each of these inputs equals its literal, with the input written beside each literal: concept 'entropy' a05035869b31af055b5b16060404ea98130701b0b0e5a25be8a78c01427a652c; concept 'Entropy' 376b5084c88d36d18f3ee828ccc8118b9bcc6ae62bbbdcae490527da7d5b07fe; concept '  entropy  ' a05035869b31af055b5b16060404ea98130701b0b0e5a25be8a78c01427a652c; concept '\\u{e9}nergie' ef53c55576b992fd967c6e21030c8765c91626d640460b474c37a950f2f42dde; concept 'e\\u{301}nergie' d54b4d70c0a4e588b9a86852178e984246559cd5a743d3b1478d6d734c8e25f3; concept '\\u{71b5}' ae78e4702320ca1d191358cbbe15765ed8c003161db6169cf342d38430d7e5b3; concept '\\u{1f600}' 0fa27912a74d66967a2453dda03cd5d9a9107b2e75f9f4896acc58bef990b88c; concept 'a  b' 716610248153dd004b1480e858b6302bd6494fc81dee040e32403522ce35a513; concept '' 33a3fadedd23c4975691c8335c14a35f4918fe4a20ebe1acda35eef5310646fe; claim about concept 'entropy' with text 'It never decreases in an isolated system.' 1bfc49de32daddec7899d30fb6aed897e7ca1a94315c104577859d4bf08b26be; the same claim with text 'It  never decreases   in an isolated system.  ' 1bfc49de32daddec7899d30fb6aed897e7ca1a94315c104577859d4bf08b26be; claim about concept 'entropy' with text '' 08a156ce2b83460ec62acfd5884aaf036f573f2d03cce3d6573d48f36b45a662; assertion of the first claim by source 33f28a20d372ccc7775c9ab43af6b06a7698ae6ddddeb86c4fd4c28800d7f97e (the rendered identity of the document b'entropy\\n') with Scope::Unstated() 87191271a55ac66169cf090afa879e78f5ce0375bbc7ae975bf6c46316aecdbd, and with scope 'physics' 5758532cc73cd47f04481ee30af2994a0a2fd6502b5f6a7844ec4d7b7f107946; document b'' 967753c480cd2750542e4b6113d31956d6811898026073ad2fd1b81925abb914; document b'\\x00' 0c8845564fa4a7690e1d3727fbf0c2aae5a7c1e41ac7d834cb372b76d1e78dde; document b'\\x1f' 3903add507d238e292768f1ec2a2a0cb8ad8a0c18433e0b9c0dddeaa44b4dda4; document b'\\xff\\xfe' 5cfe5a9a77ed142141167a263bbdf22f4feba37b46b20f388d6d52a34463f0e6; document b'entropy\\n' 33f28a20d372ccc7775c9ab43af6b06a7698ae6ddddeb86c4fd4c28800d7f97e. The two whitespace variants that share a literal are asserted equal to it, not to each other, and the decomposed spelling's distinct literal pins today's behaviour, which only a record may change. Each file was shown to go red under a mutation inside this workspace and restored byte-identically: swapping the two field calls in claim.rs (claim and assertion literals), changing concept.rs's canonical-name field name (every concept, claim and assertion literal), and changing document.rs's document kind name (every document literal). Forbidden: computing an expected value at test time through kwb_model, kwb_domain, kwb_store or any XVPE crate; an input holding control-class whitespace standing alone, which is KWB-111's subject; editing a literal -- if one disagrees, stop and abandon with the input and both values, because an identity has moved; editing anything under src. cargo test -p kwb-domain -p kwb-store passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/tests/golden_identity.rs",
+          "crates/kernel/kwb-store/tests/golden_identity.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-ADOPT-XVPE-CONTENT-IDENTITY"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-store",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-152",
+      "title": "Replay is compared with what was published only by counts and current identities, so a replay that lost every reason, successor or time would pass",
+      "why": "Replaces KWB-152 under the separately amended current-pin measurement in D-018; all other obligations remain. D-014: the graph becomes durable by replaying what was published. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): kwb-domain/tests/publication.rs compares concept counts and the identities of current claims and assertions; closed versions, reasons, successors and times are never compared, so a replay that recorded every retirement with an empty reason would pass. Three refusals have no test: an assertion naming a claim nobody published, an Unaddressed reference, and an asserted record carrying a reason.",
+      "done_when": "A new test file crates/domain/kwb-domain/tests/replay_fidelity.rs. For every sequence of one to four operations, enumerated exhaustively rather than sampled, over two concept names, two claim texts and two sources -- publish a concept, publish a claim, publish an assertion scoped or unstated, retire a concept, supersede a concept into the other -- applying each publication to a graph through the KnowledgeGraph operations kwb-ingest's admission report calls when it applies an admission live, and replaying the same records through Replay_Records, give graphs equal on every version: value, standing, reason, successor and Published_At time. Replaying the same records twice gives equal graphs, and a log with every record repeated in place replays to the same graph. A refusal table, each case refused with its own ReplayError variant: an assertion before its claim; a claim before its concept; an address of 63 characters, an uppercase address and a non-hexadecimal address, each in a claim record and in an assertion record; an asserted record carrying a reason; a superseded record whose successor does not parse. A sweep that substitutes and that deletes each single byte of a fixture log never panics, and asserts the number of corruptions that replay silently as a different graph, as evidence for KWB-161. The fidelity test was shown to fail when replay records a retirement's reason as a constant, and publication.rs was restored byte-identically. If any case fails, stop and abandon naming the case: the fix is a Correction this item does not authorize. Forbidden: editing anything under src; asserting what a supersession cycle, re-closing or closing an unpublished concept should do beyond live equals replay, which KWB-159 decides; sampling where enumeration is feasible. cargo test -p kwb-domain passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/tests/replay_fidelity.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-ADOPT-XVPE-CONTENT-IDENTITY"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-153",
+      "title": "Replay is quadratic in the publication log, so every kwb admit pays seconds per ten thousand records and minutes at a library's size",
+      "why": "Replaces KWB-153 under the separately amended current-pin measurement in D-018; all other obligations remain. D-014 says a replay is linear in publications. Measured 2026-10-03 at 17f82cf in a release build, replaying synthetic logs of concepts that each carry one claim and one assertion: 750 records 4.7 ms, 1,500 15.5 ms, 3,000 121.7 ms, 6,000 464.9 ms, 12,000 2,138.6 ms -- each doubling costs about four times (docs/corpus/core-invariant-audit.md, F26). Read: replay looks up a record's concept and claim by collecting and sorting every version the graph holds (Concept_At and Claim_At in publication.rs, over knowledge_graph.rs's listing), and CurrentKnowledge::Assertions scans a list once per assertion. kwb admit replays the whole log before every admission, and kwb history and kwb-mcp replay it on start, so at the reference library's expected hundreds of thousands of records one admission would wait tens of minutes before reading anything.",
+      "done_when": "Replay finds a record's concept or claim by key in the map the graph already holds instead of listing and sorting every version, and CurrentKnowledge::Assertions answers membership by key; what Replay_Records returns is unchanged. A new test file crates/domain/kwb-domain/tests/replay_growth.rs replays synthetic logs of N and 8N concepts, each with one claim and one assertion, with N chosen so the suite with the old lookup restored still finishes inside the predicate's timeout, and asserts growth at most linear with a stated margin: by counting the lookups replay performs, if the code admits a counter without changing its public surface, or otherwise by the ratio of the two replay times, each the minimum of five runs, staying below 16 where linear is 8 and quadratic 64. Never an absolute time bound. The existing replay tests pass unmodified. The growth test was shown to fail with the old lookup restored, and the source restored byte-identically. Forbidden: changing replay's semantics, refusals or the order of anything it reports; a cache that outlives one call; parallelism; an absolute wall-clock assertion; unwrap, expect or panic outside tests. cargo test -p kwb-domain -p kwb-cli passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/domain/kwb-domain/src/graph",
+          "crates/domain/kwb-domain/src/versioning",
+          "crates/domain/kwb-domain/tests/replay_growth.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-ADOPT-XVPE-CONTENT-IDENTITY"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-domain",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-172",
+      "title": "The reading protocol is a constant string, so an edit to the instructions or the schema reads as the same protocol and no coverage recorded under the old one goes stale",
+      "why": "Replaces KWB-172 under the separately amended current-pin measurement in D-018; all other obligations remain. D-025 decides this (row C-12). kwb-extract's PROTOCOL is the literal read-born-digital-text-v1, so a change to INSTRUCTIONS, to the answer schema or to the passage budget leaves every reading's lineage naming the protocol it had before, and the coverage D-024 keeps would call a document read under instructions it was never read under. The prototype hashed the schema alone for two of its stages, so an instruction edit changed nothing they recorded, and hand-bumped a number for another.",
+      "done_when": "The protocol a reading's lineage names is read-born-digital-text at a version derived through kwb_model's Derivation from every text the reader sends that is the same for every passage: INSTRUCTIONS, the answer schema as the JSON Schema text the request carries, the passage budget (characters and pages), the answer token budget and the proposition ceiling. The model is not folded in; it stays the lineage's reader name (D-025). A new test file crates/ingestion/kwb-extract/tests/protocol_version.rs: the version is the same on every call and in every process; changing any one of the inputs above changes it; the passage text and the model do not; and today's version is pinned as a literal, so an unintended change to what the reader sends shows up as a failing test that names it. The existing test that compares a reading's protocol with the constant is updated to the derived value. Shown to fail with the schema left out of the derivation, and the source restored byte-identically. Forbidden: a hand-maintained version string; leaving out any text every request carries; folding in the passage or the model; changing the request, any request fingerprint or any recorded fixture; unwrap, expect or panic outside tests. cargo test -p kwb-extract passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-extract/src/reads_text.rs",
+          "crates/ingestion/kwb-extract/src/lib.rs",
+          "crates/ingestion/kwb-extract/src/tests.rs",
+          "crates/ingestion/kwb-extract/tests/protocol_version.rs"
+        ],
+        "patterns": []
+      },
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL10-AFTER-IDENTITY-KWB-172-EXACT-ARGV because PowerShell 5 stripped literal quotation marks while forwarding its argv. The preservation audit caught the mismatch before completion; the corrected item retains the complete original obligation."
+        }
+      },
+      "depends_on": [
+        "KWB-140",
+        "REL10-ADOPT-XVPE-CONTENT-IDENTITY"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-extract",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164823
+      },
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-162",
+      "title": "Two spellings of one name that render identically derive two identities, and nothing decides which differences of spelling are edits",
+      "why": "Replaces REL09-REPLACE-KWB-162 under the separately amended current-pin measurement in D-018; all other obligations remain. Replaces KWB-162 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Measured 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): the concept named with a precomposed e-acute derives ef53c55576b9...2dde and the same word with e and a combining acute accent derives d54b4d70c0a4...25f3 -- two concepts for one word. PDF text layers and model answers produce both spellings, and ligatures, soft hyphens, zero-width characters, byte-order marks, full-width forms and words hyphenated across a line break besides. Normalize_Text folds whitespace and removes control characters and does nothing else; KWB-111 owns the whitespace controls. D-002 says an identity never changes meaning once cited, so any fold moves cited identities, and Nomos D-137 holds those values as KnowledgeReferenceIds. After KWB-114 the normalizer is XVPE's, so a fold is an XVPE step and a pin move.",
+      "done_when": "A record decides keep or fold, case by case, for this catalogue: NFC against NFD; the order of combining marks; U+200B, U+200C, U+200D, U+FEFF, U+00AD and U+FE0F; the ligature U+FB01; full-width Latin letters; U+037E against the semicolon; Cyrillic letters that resemble Latin ones; U+00A0, U+2028, U+2029 and U+3000; and a word hyphenated across a line break. For every fold it decides what happens to identities already cited, reconciled with D-002 and Nomos D-137, and specifies the XVPE step in XVPE's docs/plans/programs/ecosystem-substrate/kwb-parity.md. It authors a Validation item that pins today's derivation for every case in the catalogue to a literal computed outside the code under test, and a Correction for each fold. Forbidden: folding case, which derivation.rs decides is kept; changing a cited identity without a migration the record states; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-038"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-ADOPT-XVPE-CONTENT-IDENTITY",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-141",
+      "title": "kwb-domain's Coverage is XVPE's evidence type, re-exported through the quarantine, so the four outcomes have one definition across both products",
+      "why": "Replaces KWB-141 under the separately amended current-pin measurement in D-018; all other obligations remain. Amended 2026-10-01: 7471a1c9d left GitHub when XVPE's history was folded into one commit, so KWB-140 now moves the pin to 726aa3fee; xvpe-evidence is identical in source at both (measured 2026-10-01), so the measurement below holds at 726aa3fee. Re-authored from KWB-118, which waited on KWB-117's move to d6f075c14 -- a commit that left GitHub with XVPE's old history on 2026-09-30, so KWB-118 could never become claimable. KWB-140 moves the pin to 726aa3fee instead, and D-007's 2026-09-30 amendment measured xvpe-evidence at 7471a1c9d as differing from d6f075c14 by one doc comment moved into a markdown include, with an unchanged manifest, so the measurement below holds at the new pin. The done_when is KWB-118's, unchanged. D-020 decides this and holds the measurement. kwb-domain declares Coverage; XVPE rebuilt it name for name on 2026-09-26 as xvpe_evidence::Coverage for its mining products, so there are two definitions of one type, and two copies drift (D-017; KWB-111 measured it happening to a copied normalizer). Measured side by side at d6f075c14: the same four variants and fields, the same five methods with the same bodies (Of_Run, Has_Run, Is_Evidence_Of_Absence, Findings, Name) and the same rendered names; XVPE adds Hash and the four names as constants. xvpe-evidence is no_std and depends on nothing, and adopting it at d6f075c14 adds exactly one package. The reasons for the type's shape -- the prototype's 1,367 Barren rows, D17, D20, and why Skipped is producible but unbuilt -- are this repository's history and now live in D-020, which the re-export points to.",
+      "done_when": "kwb-platform-xvpe adopts xvpe-evidence at the rev its other XVPE crates pin, behind one cargo feature that enables that crate and nothing else, not among its defaults, and re-exports Coverage with no behaviour of its own; kwb-domain enables that feature. kwb-domain's src/epistemic/coverage.rs declares no type: Coverage there is the re-export, with a doc naming D-020 as where the type's reasons are kept. kwb_domain::Coverage keeps its path, and every variant, field, method and rendered name resolves as before. crates/domain/kwb-domain/tests/coverage.rs and every kwb-ingest test pass unmodified. Cargo.lock gains exactly xvpe-evidence and nothing else; a different delta is a stop, reported with the packages, because it means D-020's measurement is wrong. README.md's band and dependency statements match the edges. cargo test --workspace passes. Forbidden: a wrapper, newtype, trait or conversion between two Coverage types -- there is one; keeping kwb-domain's enum beside the re-export; any change to a variant, field, method, signature or rendered name; editing kwb-domain's or kwb-ingest's tests; naming an xvpe_ crate anywhere but kwb-platform-xvpe; a path dependency; moving the rev.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/domain/kwb-domain/Cargo.toml",
+          "crates/domain/kwb-domain/src/epistemic/coverage.rs",
+          "Cargo.lock",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140",
+        "REL10-AFTER-IDENTITY-KWB-116"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-148",
+      "title": "kwb history, retire, supersede and kwb-mcp create a store at any path they are given, so a mistyped path reads as an empty corpus and a closure can be recorded in one",
+      "why": "Replaces KWB-148 under the separately amended current-pin measurement in D-018; all other obligations remain. Measured 2026-10-03 at 17f82cf with the debug kwb and kwb-mcp this workspace builds, against scratch stores outside the repository; docs/corpus/core-invariant-audit.md holds the finding as F11. kwb history --store ./corpsu exits 0 printing 'through 0 of 0'; kwb-mcp ./corpsu2 merge_losers exits 0 printing (nothing); kwb retire x --store ./corpsu3 --because r exits 0, prints 'closed x', and records the closure of a concept nobody published. All three directories exist afterwards. FileRecordLog::At creates the log's directory and opens with create(true), and kwb-mcp and kwb-cli's keeping.rs open every store through it. history.rs's own comment says that reporting zero concepts there would be true of the value and false about the corpus, and prototype-incidents.md's D19-B is that blindness must be loud. Only admit has a reason to create a store.",
+      "done_when": "kwb-platform-std's FileRecordLog gains an opening that refuses a log that does not exist and creates nothing, beside At, which is unchanged. kwb history, kwb retire, kwb supersede and every kwb-mcp entry that reads a store open through it, so a store that does not exist is refused with exit 1 naming the path, before anything is written; kwb admit keeps opening through At. New tests: crates/platform/kwb-platform-std/tests/file_record_log_existing.rs (the new opening refuses a missing file and a missing directory and creates neither; it opens an existing empty log and reads back what At wrote); crates/host/kwb-cli/tests/missing_store.rs and crates/host/kwb-mcp/tests/missing_store.rs spawn each of kwb history, kwb retire, kwb supersede, kwb-mcp <path> and kwb-mcp <path> merge_losers against a path that does not exist, and require a non-zero exit with the path still absent afterwards; and kwb admit against a missing path still creates its store and exits 0. The hosts' tests were shown to fail with the hosts opening through At again. Forbidden: changing what admit does; changing the log's path or file name; changing RecordLogStrategy or StorageError; deciding what kwb-mcp --serve does when given no store at all, which KWB-126 owns; unwrap, expect or panic outside tests. cargo test -p kwb-platform-std -p kwb-cli -p kwb-mcp passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-std/src/file_record_log.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log_existing.rs",
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/missing_store.rs",
+          "crates/host/kwb-mcp/src",
+          "crates/host/kwb-mcp/tests/missing_store.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-116"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-platform-std",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-mcp",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-151",
+      "title": "No test cuts a publication log at every byte, so what a crash mid-append publishes is held at one offset",
+      "why": "Replaces KWB-151 under the separately amended current-pin measurement in D-018; all other obligations remain. D-019: a torn tail is a refusal, because a crash mid-append would otherwise publish something nobody published. KWB-116 makes Records() refuse a log whose last line lacks its terminator and tests one such log. A crash can stop a write at any byte, including inside a multi-byte character, and at 17f82cf a cut inside a trailing field replays as a shorter name or a different time (KWB-116's why; docs/corpus/core-invariant-audit.md, F16). Once the refusal exists, the property worth holding is that no cut anywhere yields a record that was never written.",
+      "done_when": "A new test file crates/platform/kwb-platform-std/tests/file_record_log_truncation.rs appends records holding ASCII, two-, three- and four-byte characters through FileRecordLog, and for every byte offset k from 0 to the file's length reads a copy truncated to k bytes: when k falls just after a line terminator, Records() returns exactly the complete records before it; at every other offset Records() is refused, and the refusal names how many complete records precede the fragment; no offset yields a record that was not appended. A new test file crates/host/kwb-cli/tests/torn_log.rs writes a log with the built binary -- two admissions, a supersession and a retirement -- and for every offset applies the same reading, then requires Replay_Records over each accepted prefix to equal replaying the same number of written records, compared on every version: value, standing, reason, successor and time; and with the log cut inside a record, kwb admit, kwb retire, kwb supersede and kwb history each exit 1 and leave the log's bytes unchanged. Every offset is covered; none is sampled. Two mutations in the adapter were each performed, caught and restored byte-identically: mapping a torn tail to Ok without the fragment, and mapping it to Ok with the fragment kept. Forbidden: terminating, keeping, dropping or repairing a torn tail, which D-019 leaves undecided; editing anything under src; editing KWB-116's tests. cargo test -p kwb-platform-std -p kwb-cli passes.",
+      "kind": "Validation",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-std/tests/file_record_log_truncation.rs",
+          "crates/host/kwb-cli/tests/torn_log.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-116"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-platform-std",
+          "-p",
+          "kwb-cli",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-188",
+      "title": "A publication kwb reports appended survives a killed process but not a power cut, because File::flush asks the operating system for nothing",
+      "why": "Replaces KWB-188 under the separately amended current-pin measurement in D-018; all other obligations remain. FileRecordLog::Append writes a publication and calls flush(), and its comment says that keeps the record from being left to the operating system's convenience. It does not: std::fs::File is unbuffered and its flush is Ok(()) on Windows and unix alike (library/std/src/sys/fs/windows.rs:660, unix.rs:1754), and nothing calls sync_data. A record kwb reported appended survives a killed process but not a power cut, and after one each file keeps its own prefix independently of the others. With coverage.log beside publications.log (D-024, KWB-166) a coverage record saying a document was read can outlive the publications it counts, and KWB-182's audit, which must not read the publication log, would pass it: lost content with a clean audit. D-014 v6 decides that an append is durable before it reports success, through XVPE's RecordLogStrategy::Make_Durable, reached through D-019's adapter.",
+      "done_when": "kwb-platform-std's FileRecordLog returns Ok from Append only once the record is durable: after xvpe-record-log's Append succeeds it calls that log's Make_Durable, and a refusal from either maps to StorageError::Refused with a doing that names which step refused, so a caller told a record was appended has been told it survives a power cut. This needs a pinned XVPE revision whose xvpe-record-log offers RecordLogStrategy::Make_Durable (added 2026-10-03): if the pinned revision has none, stop and abandon saying a pin move must come first -- moving the pin is its own measured item (D-007), not this one. Append's doc comment states the guarantee as D-014 v6 gives it -- survival of the machine, not only the process -- and no longer says flush() provides it. A test drives FileRecordLog over an injected file system that counts Make_Durable calls by path, through a constructor visible only inside kwb-platform-std if the adapter has no other way in, and shows: one Make_Durable per Append, on publications.log's path, made after the append; a refused Make_Durable makes Append Refused; Records() still reads every record. A mutation removing the Make_Durable call is caught by that test. Forbidden: syncing once at the end of a command instead of per append (D-014 v6 names the batching remedy and its condition, and it is a port operation, never a caller-remembered sync); a durability error swallowed or logged and continued; std::fs, OpenOptions or sync_data in file_record_log.rs (D-019 keeps the log's files through XVPE); changing kwb-platform's RecordLogStrategy or StorageError; moving the rev; unwrap, expect or panic outside tests. cargo test --workspace passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-std/src/file_record_log.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-116"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-161",
+      "title": "A publication record carries nothing replay can check it against, and a run's records have no boundary, so a corrupted name replays as another concept and a stopped run leaves uncited claims",
+      "why": "Replaces REL09-REPLACE-KWB-161 under the separately amended current-pin measurement in D-018; all other obligations remain. Replaces KWB-161 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F27 and F28). Replay re-derives every record from its text, so a one-byte change inside a concept's name derives a different and perfectly valid concept, and nothing can tell. kwb admit appends a run's records one at a time; a failure or a kill between two of them leaves concepts and claims in the log with no assertion citing them, while the run reports that it failed. D-019 settled the torn tail -- a refusal -- and neither of these is a torn tail: every line is whole. KWB-152's corruption sweep, once it lands, counts how many single-byte corruptions replay silently.",
+      "done_when": "A record, amending D-014 or D-019 where it changes what they say, decides whether a record carries the identity it was derived as, so that replay refuses text that no longer derives it; whether a run's records are bracketed, so that a partial publication is recognisable, and what replay does with one, consistent with D-019's rule that nothing closes a torn tail; the format change each implies; and what each does to a log written before it -- read unchanged, or refused with a reason. It authors the implementation items, each with a territory, a done_when naming what is forbidden and a predicate. Forbidden: rewriting or migrating a log already written; a checksum that is not the identity the record already derives, which would be a second authority for the same fact; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-037"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-116",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-142",
+      "title": "kwb-platform-std's DirectoryContentStore keeps its documents through XVPE's content store over the injected file system, and refuses an address that is not a content identity instead of calling it absent",
+      "why": "Replaces KWB-142 under the separately amended current-pin measurement in D-018; all other obligations remain. Amended 2026-10-01: 7471a1c9d left GitHub when XVPE's history was folded into one commit, so KWB-140 now moves the pin to 726aa3fee; xvpe-content-store, xvpe-file-system, xvpe-file-system-backend-system and xvpe-record-log are identical in source at both (measured 2026-10-01), so every property below holds at 726aa3fee. Re-authored from KWB-120, which waited on KWB-119's move to f45a7b085 -- a commit that left GitHub with XVPE's old history on 2026-09-30, so KWB-120 could never become claimable. KWB-140 moves the pin to 726aa3fee instead; D-007's 2026-09-30 amendment measured, at 7471a1c9d, xvpe-content-store, xvpe-file-system and xvpe-file-system-backend-system as identical in source to f45a7b085, so every property below holds at the new pin. The done_when is KWB-120's, unchanged. D-019 decides it, and its 2026-09-27 amendment measured the revision. At f45a7b085 xvpe-content-store's DirectoryContentStore counts only a regular file as held, refuses a put onto a directory before writing anything, puts through a unique exclusive temporary synchronized before the rename, and removes a failed put's temporary; XVPE's file-system port can create a directory, so Under keeps its promise without a second route to the disk; and adopting the store adds exactly xvpe-content-store. Bytes already on disk are compatible: a document is <root>/<64 lowercase hex> holding the raw bytes on both sides, and XVPE pins that layout with a test of its own. Today's adapter keeps its documents through std::fs beside the port the publication log goes through after KWB-116, keeps a failed put's <address>.staged file, which D-019 retired as evidence nothing ever read and the race XVPE's unique temporaries remove, and accepts any string as an address, so a caller's malformed address reads as a true-sounding 'not held'.",
+      "done_when": "kwb-platform-xvpe adopts xvpe-content-store at the rev its other XVPE crates pin, behind the cargo feature KWB-116 added for the log -- which then enables xvpe-content-store beside xvpe-record-log, xvpe-file-system and xvpe-file-system-backend-system, and nothing else -- and re-exports ContentStoreStrategy, ContentStoreError and DirectoryContentStore beside the log's re-exports, adding no behaviour. kwb-platform-std's DirectoryContentStore keeps its name, Under(root) -> Result<Self, StorageError> and its ContentStoreStrategy impl, and keeps its documents through xvpe-content-store's DirectoryContentStore over the system file system; no std::fs, OpenOptions or other route to the disk remains in directory_content_store.rs. Under creates the root through the port's Create_Directory, so the directory exists when Under returns, as it does today. Every address is parsed as a rendered content identity before the store is asked anything: an address that does not parse makes Holds, Put and Get each return StorageError::Refused with a cause naming the address -- never Absent, and never false. XVPE's Absent maps to StorageError::Absent carrying the address as the caller gave it; every other ContentStoreError, including a variant XVPE adds later (the enum is non_exhaustive), maps to StorageError::Refused with a doing that names the operation, never a panic. kwb-platform-std/tests/directory_content_store.rs addresses the store with rendered content identities instead of short strings and otherwise keeps every test's assertion: Under creates its directory; bytes read back unchanged; an absent address is refused as Absent; a repeat put is idempotent and leaves one file; a completed put leaves exactly the document's file. Test_A_Write_Should_Be_Staged_And_Renamed_Rather_Than_Written_In_Place, which asserts the kept .staged file D-019 retired, becomes a test that a put onto an address where a directory stands is Refused and leaves that directory in place with nothing else written beside it. New tests there, each written to fail first against today's implementation where it can: an address that is not a content identity is Refused by each of Holds, Put and Get; a directory holding documents written byte for byte as today's implementation writes them reads back the same bytes. The kwb-store suites that open a DirectoryContentStore (tests/document_store.rs, tests/one_door.rs) pass unmodified. Cargo.lock gains exactly xvpe-content-store and nothing else; a different delta is a stop, reported with the packages, because it means D-019's measurement is wrong. README.md's kwb-platform-xvpe row names the store beside what the crate already adopts. cargo test --workspace passes. Forbidden: keeping, writing or reading a .staged file; mapping an unparseable address to Absent or to false; behaviour in kwb-platform-xvpe beyond re-exports; changing kwb-platform's ContentStoreStrategy or StorageError; moving where a document lands on disk; naming an xvpe_ crate anywhere but kwb-platform-xvpe; editing a test outside kwb-platform-std/tests/directory_content_store.rs; unwrap, expect or panic outside tests; a path dependency; moving the rev.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/platform/kwb-platform-xvpe",
+          "crates/platform/kwb-platform-std/Cargo.toml",
+          "crates/platform/kwb-platform-std/src/directory_content_store.rs",
+          "crates/platform/kwb-platform-std/tests/directory_content_store.rs",
+          "Cargo.lock",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-141"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 2700
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-166",
+      "title": "Coverage is computed per admission and printed, then forgotten, so nothing can tell a source nobody read from one read and found empty",
+      "why": "Replaces KWB-166 under the separately amended current-pin measurement in D-018; all other obligations remain. D-024 C-28 decides this. kwb admit prints coverage and keeps nothing of it, so after the process ends the distinction D-020 built a type to draw -- looked and found nothing, against never looked -- is gone. The prototype kept coverage in a table it overwrote on every re-run and keyed without the model version; D-024 keeps it append-only, beside the publications, through the same record log and its torn-tail refusal (D-019).",
+      "done_when": "kwb admit appends, after its publications, one coverage record to coverage.log in the store root, through the same record-log adapter publications.log uses. The record carries the document's content address, the reading protocol and the reader name the readings' lineage names (empty when no reading happened, never a guessed value), the outcome's rendered name, its count (findings, or material examined), the outcome's &'static str reason where it has one, and the instant from the clock kwb admit already reads. One type renders and parses the record, and parse of render is the identity for every outcome in tests. kwb admit reads coverage.log before appending, so a torn tail there is refused, exit 1, with both logs' bytes unchanged. The admit report prints a coverage-kept line, and README.md's admit transcripts show it so Test_Every_Readme_Admit_Transcript_Should_Show_Every_Field_The_Binary_Prints passes. A new test file crates/host/kwb-cli/tests/coverage_log.rs drives the built binary on scratch stores whose names carry std::process::id(): an admission with --says leaves one Yielded record with its protocol and count; one with no --says leaves one Unmet record; two admissions leave two records in file order; a torn coverage.log is refused as above. Forbidden: coverage as a kind of publication record; editing, replacing or deleting an earlier coverage record; writing coverage before the publications it describes; a free-text reason; any change to publications.log or replay; unwrap, expect or panic outside tests. cargo test -p kwb-ingest -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-ingest/src",
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/coverage_log.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-165",
+        "REL10-AFTER-IDENTITY-KWB-116",
+        "REL10-AFTER-IDENTITY-KWB-141"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-ingest",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-158",
+      "title": "Tests make scratch directories under fixed names, so two concurrent cargo test runs delete each other's stores",
+      "why": "Replaces KWB-158 under the separately amended current-pin measurement in D-018; all other obligations remain. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F24): seventeen sites in thirteen test files join a fixed name to std::env::temp_dir() and clear it before use; only the guards crate adds std::process::id(). Two runs at once -- two sessions, or a gate and a person -- clear each other's scratch stores mid-test, which reads as a flaky store rather than a collision.",
+      "done_when": "Every scratch directory a test makes under the system temporary directory carries std::process::id() in its name, through one helper in kwb-source-guards that every such site calls, and the helper's own test asserts that two names it gives for one label in one process are equal and that the name carries the process id. No test changes what it asserts. Test files added by KWB-144 to KWB-157 already carry the process id and are outside this territory. Forbidden: changing any assertion; deleting a scratch directory a test did not create. cargo test --workspace passes.",
+      "kind": "Cleanup",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src/admission.rs",
+          "crates/host/kwb-cli/src/closing.rs",
+          "crates/host/kwb-cli/src/history.rs",
+          "crates/host/kwb-cli/src/keeping.rs",
+          "crates/host/kwb-cli/tests/composition_seam.rs",
+          "crates/host/kwb-cli/tests/history.rs",
+          "crates/host/kwb-mcp/tests/lib.rs",
+          "crates/host/kwb-mcp/tests/served_session.rs",
+          "crates/kernel/kwb-store/tests/document_store.rs",
+          "crates/kernel/kwb-store/tests/one_door.rs",
+          "crates/platform/kwb-platform-std/tests/directory_content_store.rs",
+          "crates/platform/kwb-platform-std/tests/file_record_log.rs",
+          "tests/guards/src/lib.rs",
+          "crates/host/kwb-cli/Cargo.toml",
+          "crates/host/kwb-mcp/Cargo.toml",
+          "crates/platform/kwb-platform-std/Cargo.toml",
+          "Cargo.lock"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-142",
+        "KWB-145",
+        "REL10-AFTER-IDENTITY-KWB-148",
+        "KWB-149",
+        "KWB-157"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-182",
+      "title": "Nothing checks the documents a store holds against the coverage it recorded, so a document never read and a document lost are both silent",
+      "why": "Replaces KWB-182 under the separately amended current-pin measurement in D-018; all other obligations remain. Re-authored under D-024 v2 (KWB-173): the item it replaces gave blind and vacuous exit 2, kwb's USAGE_EXIT. D-024 C-29 decides this. With coverage kept (KWB-166) the store can be held to it: every document the content store holds should have been read, and every coverage record should name a document still held -- one that is not is content lost. The prototype's coverage audit re-ran the stages' own classifier and so confirmed its own write-offs, always exited 0, and its --reopen hard-deleted rows; this one compares two independent stores and never writes.",
+      "done_when": "kwb audit coverage --store <dir> [--protocol <name>] enumerates the documents the content store holds through the store itself, not through admission or the publication log, reads coverage.log, and reports findings of KWB-180's shape: a document with no coverage record; with --protocol, a document read only under another protocol; a coverage record naming a document the store does not hold; a Barren record with nothing examined. Without --protocol the output says the protocol check was not made. Eligible is the documents held; the verdict and exit code are KWB-180's: clean 0, failed 1, a command line that cannot be parsed 2 (the verbs' existing USAGE_EXIT), blind 3, vacuous 4 (D-024 v2) -- blind when the store holds documents and coverage.log cannot be read, vacuous when the store holds none. kwb audit all includes it. A new test file crates/host/kwb-cli/tests/audit_coverage.rs: an admitted store exits 0; a document placed in the store without admission fails as never read, exit 1; a document removed after admission fails as lost; --protocol naming another protocol fails each document as stale; a torn coverage.log exits 3; an empty store exits 4. If the content store offers no way to enumerate what it holds, stop and abandon saying so. Forbidden: writing, reopening or deleting anything; calling admission or any classifier; inferring the documents from the publication log; unwrap, expect or panic outside tests. cargo test -p kwb-cli -p kwb-contract-tests passes.",
+      "kind": "Capability",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/host/kwb-cli/src",
+          "crates/host/kwb-cli/tests/audit_coverage.rs",
+          "README.md"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-166",
+        "KWB-181",
+        "REL10-AFTER-IDENTITY-KWB-142"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-cli",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-143",
+      "title": "A citation cannot be followed from a new process, and two processes may write one store with nothing between them",
+      "why": "Replaces REL09-REPLACE-KWB-143 under the separately amended current-pin measurement in D-018; all other obligations remain. Replaces KWB-143 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Re-authored from KWB-123, which depended on KWB-120; that item was re-authored as KWB-142 when its pin target left GitHub on 2026-09-30, so KWB-123 could never become claimable. Only the item references change. Goal G1 of D-021, rows C-14, C-65 and C-81 of docs/corpus/prototype-capabilities.md. KWB-140 moves the pin to 726aa3fee and KWB-142 keeps the documents through XVPE's content store, which settles where the bytes live and leaves two things open. README.md says following a citation returns the exact bytes, but DocumentStore::Read consults an in-memory map that a store opened by a new process starts empty, and no command follows a citation at all, so a document one process admitted cannot be read back by another (C-65). And two processes may write one store at once with nothing between them (C-81), where the prototype had optimistic concept creation and a stage lock, and XVPE's cross-process lock is not started. C-14, content-derived claim identity, is met by KWB-1 and KWB-15 and needs only its verdict.",
+      "done_when": "A record verdicts C-14, C-65 and C-81 by name. For C-65 it decides whether DocumentStore::Read consults the durable medium when memory does not hold an address, and whether a verb prints the bytes at an address or README.md's present-tense claim is corrected, saying which and why. For C-81 it decides whether concurrent writers are serialized through an XVPE lock -- specifying step X8 in XVPE's docs/plans/programs/ecosystem-substrate/kwb-parity.md to ready -- refused by a lock of this repository's own, or declined with the reason. It authors the implementation items those decisions imply, each with territory, a done_when that names what is forbidden, and a predicate that selects every crate it changes, depending on KWB-142 wherever they touch the store. Forbidden: a read that answers for a document the store does not hold, which is the D19-B incident in another shape; moving a pin; any source edit, which is the authored items' work. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-035"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-142",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-REL09-REPLACE-KWB-160",
+      "title": "A file at a content address is never compared with its address, so a truncated or foreign file there is answered AlreadyPresent for ever",
+      "why": "Replaces REL09-REPLACE-KWB-160 under the separately amended current-pin measurement in D-018; all other obligations remain. Replaces KWB-160 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F15). DocumentStore answers AlreadyPresent whenever the medium says it holds the address; DirectoryContentStore::Put returns early when a file is already at the destination; Get returns whatever bytes are there. document_store.rs explains why nothing re-reads: the write path guarantees a complete value under a complete address. D-014 names a half-written file under a content address as the one way the store can lie, because nothing downstream re-hashes what it reads -- and a file can be damaged after a correct write, by a disk, a sync tool or a person. XVPE's content store states that it does not re-derive identities either, so after KWB-142 the check is still this repository's to decide. Following a citation (KWB-136) returns those bytes as the document.",
+      "done_when": "A record decides whether DocumentStore re-derives a document's identity from the medium's bytes when it answers AlreadyPresent, when it reads a document, or both; what a mismatch does -- refuse, replace atomically, or set the file aside -- and how it is reported; and what the check costs per write and per read, measured on a scratch store, not estimated. It is consistent with what KWB-143 decides for two processes on one store. It authors the implementation items, among them a Validation item whose tests place a truncated file, a foreign file and a directory at an address and assert the decided outcome. Forbidden: deleting or overwriting a file whose bytes disagree with its address without recording it (D17); taking a file's name as evidence of its content; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-036"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL10-AFTER-IDENTITY-KWB-142",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL10-AFTER-IDENTITY-KWB-172-EXACT-ARGV",
+      "title": "The reading protocol is a constant string, so an edit to the instructions or the schema reads as the same protocol and no coverage recorded under the old one goes stale",
+      "why": "Replaces KWB-172 under the separately amended current-pin measurement in D-018; all other obligations remain. D-025 decides this (row C-12). kwb-extract's PROTOCOL is the literal \"read-born-digital-text-v1\", so a change to INSTRUCTIONS, to the answer schema or to the passage budget leaves every reading's lineage naming the protocol it had before, and the coverage D-024 keeps would call a document read under instructions it was never read under. The prototype hashed the schema alone for two of its stages, so an instruction edit changed nothing they recorded, and hand-bumped a number for another.",
+      "done_when": "The protocol a reading's lineage names is \"read-born-digital-text\" at a version derived through kwb_model's Derivation from every text the reader sends that is the same for every passage: INSTRUCTIONS, the answer schema as the JSON Schema text the request carries, the passage budget (characters and pages), the answer token budget and the proposition ceiling. The model is not folded in; it stays the lineage's reader name (D-025). A new test file crates/ingestion/kwb-extract/tests/protocol_version.rs: the version is the same on every call and in every process; changing any one of the inputs above changes it; the passage text and the model do not; and today's version is pinned as a literal, so an unintended change to what the reader sends shows up as a failing test that names it. The existing test that compares a reading's protocol with the constant is updated to the derived value. Shown to fail with the schema left out of the derivation, and the source restored byte-identically. Forbidden: a hand-maintained version string; leaving out any text every request carries; folding in the passage or the model; changing the request, any request fingerprint or any recorded fixture; unwrap, expect or panic outside tests. cargo test -p kwb-extract passes.",
+      "kind": "Correction",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "crates/ingestion/kwb-extract/src/reads_text.rs",
+          "crates/ingestion/kwb-extract/src/lib.rs",
+          "crates/ingestion/kwb-extract/src/tests.rs",
+          "crates/ingestion/kwb-extract/tests/protocol_version.rs"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140",
+        "REL10-ADOPT-XVPE-CONTENT-IDENTITY"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-extract",
           "--no-fail-fast"
         ],
         "timeout_seconds": 3600
