@@ -32,8 +32,8 @@ fn Sealed_Claim(concept: &str, text: &str, scope: Option<&str>, source: &str) ->
 
     return match scope
     {
-        Some(scope) => derivation.With_Text("scope", scope).Seal(),
-        None => derivation.With_Absent("scope").Seal(),
+        Some(scope) => derivation.With_Text("scope", scope).Seal().expect("a bounded identity fixture"),
+        None => derivation.With_Absent("scope").Seal().expect("a bounded identity fixture"),
     };
 }
 
@@ -133,11 +133,11 @@ fn Test_A_Value_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
     let forged = Derivation::Of("claim")
         .With_Text("concept", "entropy\u{1F}text\u{1F}Anything.")
         .With_Text("text", "")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
     let honest = Derivation::Of("claim")
         .With_Text("concept", "entropy")
         .With_Text("text", "Anything.")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_ne!(forged.Identity(), honest.Identity());
 }
@@ -148,11 +148,11 @@ fn Test_An_Absent_Field_Should_Hold_Its_Place()
     let absent_then_valued = Derivation::Of("claim")
         .With_Absent("scope")
         .With_Text("context", "c")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
     let valued_then_absent = Derivation::Of("claim")
         .With_Text("scope", "c")
         .With_Absent("context")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         absent_then_valued.Identity(),
@@ -164,8 +164,8 @@ fn Test_An_Absent_Field_Should_Hold_Its_Place()
 #[test]
 fn Test_A_Field_Name_Should_Participate()
 {
-    let scope = Derivation::Of("claim").With_Text("scope", "c").Seal();
-    let context = Derivation::Of("claim").With_Text("context", "c").Seal();
+    let scope = Derivation::Of("claim").With_Text("scope", "c").Seal().expect("a bounded identity fixture");
+    let context = Derivation::Of("claim").With_Text("context", "c").Seal().expect("a bounded identity fixture");
 
     assert_ne!(scope.Identity(), context.Identity());
 }
@@ -173,8 +173,8 @@ fn Test_A_Field_Name_Should_Participate()
 #[test]
 fn Test_The_Kind_Should_Participate()
 {
-    let claim = Derivation::Of("claim").With_Text("name", "entropy").Seal();
-    let concept = Derivation::Of("concept").With_Text("name", "entropy").Seal();
+    let claim = Derivation::Of("claim").With_Text("name", "entropy").Seal().expect("a bounded identity fixture");
+    let concept = Derivation::Of("concept").With_Text("name", "entropy").Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         claim.Identity(),
@@ -186,8 +186,8 @@ fn Test_The_Kind_Should_Participate()
 #[test]
 fn Test_Field_Order_Should_Be_Significant()
 {
-    let one = Derivation::Of("claim").With_Text("a", "1").With_Text("b", "2").Seal();
-    let other = Derivation::Of("claim").With_Text("b", "2").With_Text("a", "1").Seal();
+    let one = Derivation::Of("claim").With_Text("a", "1").With_Text("b", "2").Seal().expect("a bounded identity fixture");
+    let other = Derivation::Of("claim").With_Text("b", "2").With_Text("a", "1").Seal().expect("a bounded identity fixture");
 
     assert_ne!(one.Identity(), other.Identity());
 }
@@ -195,10 +195,10 @@ fn Test_Field_Order_Should_Be_Significant()
 #[test]
 fn Test_An_Identity_Field_Should_Not_Collide_With_Its_Own_Rendering()
 {
-    let input = Derivation::Of("chunk").With_Text("text", "anything").Seal().Identity();
+    let input = Derivation::Of("chunk").With_Text("text", "anything").Seal().expect("a bounded identity fixture").Identity();
 
-    let referenced = Derivation::Of("synthesis").With_Identity("input", &input).Seal();
-    let spelled = Derivation::Of("synthesis").With_Text("input", &input.Render()).Seal();
+    let referenced = Derivation::Of("synthesis").With_Identity("input", &input).Seal().expect("a bounded identity fixture");
+    let spelled = Derivation::Of("synthesis").With_Text("input", &input.Render()).Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         referenced.Identity(),
@@ -212,8 +212,8 @@ fn Test_An_Identity_Field_Should_Not_Collide_With_Its_Own_Rendering()
 #[test]
 fn Test_A_Rederived_Input_Should_Carry_The_Same_Identity()
 {
-    let once = Derivation::Of("chunk").With_Text("text", "a passage").Seal().Identity();
-    let twice = Derivation::Of("chunk").With_Text("text", "a passage").Seal().Identity();
+    let once = Derivation::Of("chunk").With_Text("text", "a passage").Seal().expect("a bounded identity fixture").Identity();
+    let twice = Derivation::Of("chunk").With_Text("text", "a passage").Seal().expect("a bounded identity fixture").Identity();
 
     assert_eq!(
         once, twice,
@@ -225,11 +225,11 @@ fn Test_A_Rederived_Input_Should_Carry_The_Same_Identity()
 #[test]
 fn Test_A_Derived_Artifact_Should_Change_When_An_Input_Changes()
 {
-    let before = Derivation::Of("chunk").With_Text("text", "a passage").Seal().Identity();
-    let after = Derivation::Of("chunk").With_Text("text", "a revised passage").Seal().Identity();
+    let before = Derivation::Of("chunk").With_Text("text", "a passage").Seal().expect("a bounded identity fixture").Identity();
+    let after = Derivation::Of("chunk").With_Text("text", "a revised passage").Seal().expect("a bounded identity fixture").Identity();
 
-    let from_before = Derivation::Of("synthesis").With_Identity("input", &before).Seal();
-    let from_after = Derivation::Of("synthesis").With_Identity("input", &after).Seal();
+    let from_before = Derivation::Of("synthesis").With_Identity("input", &before).Seal().expect("a bounded identity fixture");
+    let from_after = Derivation::Of("synthesis").With_Identity("input", &after).Seal().expect("a bounded identity fixture");
 
     assert_ne!(from_before.Identity(), from_after.Identity());
 }
@@ -247,7 +247,7 @@ const SHA256_RENDERED_CHARACTERS: usize = 64;
 #[test]
 fn Test_Render_Should_Produce_Lowercase_Hexadecimal_Of_The_Full_Digest()
 {
-    let rendered = Derivation::Of("claim").With_Text("text", "x").Seal().Identity().Render();
+    let rendered = Derivation::Of("claim").With_Text("text", "x").Seal().expect("a bounded identity fixture").Identity().Render();
 
     assert_eq!(rendered.len(), IDENTITY_CHARACTERS);
     assert_eq!(IDENTITY_CHARACTERS, SHA256_RENDERED_CHARACTERS);
@@ -257,7 +257,7 @@ fn Test_Render_Should_Produce_Lowercase_Hexadecimal_Of_The_Full_Digest()
 #[test]
 fn Test_Parse_Should_Recognize_What_Render_Produced()
 {
-    let identity = Derivation::Of("claim").With_Text("text", "x").Seal().Identity();
+    let identity = Derivation::Of("claim").With_Text("text", "x").Seal().expect("a bounded identity fixture").Identity();
 
     assert_eq!(ContentIdentity::Parse(&identity.Render()), Ok(identity));
 }
@@ -276,7 +276,7 @@ fn Test_Parse_Should_Refuse_A_Wrong_Length()
 #[test]
 fn Test_Parse_Should_Refuse_Uppercase_So_One_Identity_Has_One_Rendering()
 {
-    let identity = Derivation::Of("claim").With_Text("text", "x").Seal().Identity();
+    let identity = Derivation::Of("claim").With_Text("text", "x").Seal().expect("a bounded identity fixture").Identity();
     let shouted = identity.Render().to_uppercase();
 
     assert!(
@@ -294,8 +294,8 @@ fn Test_Parse_Should_Refuse_Uppercase_So_One_Identity_Has_One_Rendering()
 #[test]
 fn Test_Two_Byte_Strings_Differing_Only_By_Whitespace_Should_Have_Different_Identities()
 {
-    let spaced = Derivation::Of("document").With_Bytes("content", b"fn main()  {}").Seal();
-    let tight = Derivation::Of("document").With_Bytes("content", b"fn main() {}").Seal();
+    let spaced = Derivation::Of("document").With_Bytes("content", b"fn main()  {}").Seal().expect("a bounded identity fixture");
+    let tight = Derivation::Of("document").With_Bytes("content", b"fn main() {}").Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         spaced.Identity(),
@@ -309,8 +309,8 @@ fn Test_Two_Byte_Strings_Differing_Only_By_Whitespace_Should_Have_Different_Iden
 #[test]
 fn Test_The_Same_Bytes_Should_Derive_One_Identity()
 {
-    let once = Derivation::Of("document").With_Bytes("content", b"a passage").Seal();
-    let twice = Derivation::Of("document").With_Bytes("content", b"a passage").Seal();
+    let once = Derivation::Of("document").With_Bytes("content", b"a passage").Seal().expect("a bounded identity fixture");
+    let twice = Derivation::Of("document").With_Bytes("content", b"a passage").Seal().expect("a bounded identity fixture");
 
     assert_eq!(
         once.Identity(),
@@ -322,8 +322,8 @@ fn Test_The_Same_Bytes_Should_Derive_One_Identity()
 #[test]
 fn Test_A_Byte_Field_Should_Not_Collide_With_A_Text_Field_Of_The_Same_Content()
 {
-    let opaque = Derivation::Of("document").With_Bytes("content", b"a passage").Seal();
-    let text = Derivation::Of("document").With_Text("content", "a passage").Seal();
+    let opaque = Derivation::Of("document").With_Bytes("content", b"a passage").Seal().expect("a bounded identity fixture");
+    let text = Derivation::Of("document").With_Text("content", "a passage").Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         opaque.Identity(),
@@ -336,10 +336,10 @@ fn Test_A_Byte_Field_Should_Not_Collide_With_A_Text_Field_Of_The_Same_Content()
 #[test]
 fn Test_A_Byte_Field_Should_Not_Collide_With_An_Identity_Field()
 {
-    let referenced = Derivation::Of("chunk").With_Text("text", "anything").Seal().Identity();
+    let referenced = Derivation::Of("chunk").With_Text("text", "anything").Seal().expect("a bounded identity fixture").Identity();
 
-    let as_reference = Derivation::Of("synthesis").With_Identity("input", &referenced).Seal();
-    let as_bytes = Derivation::Of("synthesis").With_Bytes("input", referenced.As_Bytes()).Seal();
+    let as_reference = Derivation::Of("synthesis").With_Identity("input", &referenced).Seal().expect("a bounded identity fixture");
+    let as_bytes = Derivation::Of("synthesis").With_Bytes("input", referenced.As_Bytes()).Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         as_reference.Identity(),
@@ -353,11 +353,11 @@ fn Test_Bytes_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
 {
     let forged = Derivation::Of("document")
         .With_Bytes("content", b"anextz")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
     let honest = Derivation::Of("document")
         .With_Bytes("content", b"a")
         .With_Text("next", "z")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         forged.Identity(),
@@ -370,8 +370,8 @@ fn Test_Bytes_Should_Not_Be_Able_To_Forge_A_Field_Boundary()
 #[test]
 fn Test_A_Byte_Field_Name_Should_Participate()
 {
-    let content = Derivation::Of("document").With_Bytes("content", b"z").Seal();
-    let preview = Derivation::Of("document").With_Bytes("preview", b"z").Seal();
+    let content = Derivation::Of("document").With_Bytes("content", b"z").Seal().expect("a bounded identity fixture");
+    let preview = Derivation::Of("document").With_Bytes("preview", b"z").Seal().expect("a bounded identity fixture");
 
     assert_ne!(content.Identity(), preview.Identity());
 }
@@ -379,8 +379,8 @@ fn Test_A_Byte_Field_Name_Should_Participate()
 #[test]
 fn Test_An_Empty_Byte_Field_Should_Not_Be_An_Absent_One()
 {
-    let empty = Derivation::Of("document").With_Bytes("content", b"").Seal();
-    let absent = Derivation::Of("document").With_Absent("content").Seal();
+    let empty = Derivation::Of("document").With_Bytes("content", b"").Seal().expect("a bounded identity fixture");
+    let absent = Derivation::Of("document").With_Absent("content").Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         empty.Identity(),
@@ -395,11 +395,11 @@ fn Test_An_Absent_Field_Should_Still_Occupy_Its_Place_Among_Byte_Fields()
     let absent_then_valued = Derivation::Of("document")
         .With_Absent("a")
         .With_Bytes("b", b"1")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
     let valued_then_absent = Derivation::Of("document")
         .With_Bytes("a", b"1")
         .With_Absent("b")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_ne!(absent_then_valued.Identity(), valued_then_absent.Identity());
 }
@@ -407,7 +407,7 @@ fn Test_An_Absent_Field_Should_Still_Occupy_Its_Place_Among_Byte_Fields()
 #[test]
 fn Test_A_Byte_Field_Should_Be_Recorded_As_Included()
 {
-    let sealed = Derivation::Of("document").With_Bytes("content", b"z").Seal();
+    let sealed = Derivation::Of("document").With_Bytes("content", b"z").Seal().expect("a bounded identity fixture");
 
     assert_eq!(sealed.Included(), ["content"]);
 }

@@ -52,7 +52,7 @@ impl Claim
     /// renamed concept gives its claims new identities and the staleness is computable
     /// rather than silent.
     #[must_use]
-    pub fn About(concept: &Concept, text: &str) -> Self
+    pub fn About(concept: &Concept, text: &str) -> Result<Self, kwb_model::InputTooLong>
     {
         use kwb_model::Derivation;
         use kwb_model::Normalize_Text;
@@ -68,14 +68,14 @@ impl Claim
                 "scope",
                 "D-010: a scope belongs to an assertion of a claim, never to the claim",
             )
-            .Seal()
+            .Seal()?
             .Identity();
 
-        return Self {
+        return Ok(Self {
             identity,
             concept: concept.Identity(),
             text: Normalize_Text(text),
-        };
+        });
     }
 
     /// The address this claim has.

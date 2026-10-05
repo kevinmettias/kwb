@@ -68,7 +68,7 @@ kwb-model = { path = "crates/kernel/kwb-model" }
 kwb-store = { path = "crates/kernel/kwb-store" }
 kwb-platform = { path = "crates/platform/kwb-platform" }
 kwb-platform-std = { path = "crates/platform/kwb-platform-std" }
-kwb-platform-xvpe = { path = "crates/platform/kwb-platform-xvpe" }
+kwb-platform-xvpe = { path = "crates/platform/kwb-platform-xvpe", default-features = false }
 kwb-domain = { path = "crates/domain/kwb-domain" }
 kwb-extract = { path = "crates/ingestion/kwb-extract" }
 kwb-ingest = { path = "crates/ingestion/kwb-ingest" }
@@ -82,7 +82,7 @@ kwb-source-guards = { path = "tests/guards" }
 
 serde = { version = "1", default-features = false, features = ["derive", "std"] }
 serde_json = "1"
-sha2 = "0.10"
+
 
 # Workspace-wide lint policy, mirrored from f:/repos/nomos/Cargo.toml, itself mirrored
 # from f:/repos/xvpe/Cargo.toml — the same policy across all three repositories on

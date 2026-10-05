@@ -18,7 +18,7 @@ band = "2"
 kwb-model = { workspace = true }
 # Versioned concept state is adopted rather than written (D-012), and this is the
 # only crate in the workspace permitted to name XVPE (D-007).
-kwb-platform-xvpe = { workspace = true }
+kwb-platform-xvpe = { workspace = true, default-features = true }
 
 # Reading this crate's own source, for the one-definition-of-liveness guard. A dev-dependency, so
 # the crate itself still declares no edge it does not use.

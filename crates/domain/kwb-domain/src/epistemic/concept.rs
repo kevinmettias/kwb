@@ -37,7 +37,7 @@ impl Concept
     ///
     /// The only way to obtain one, and it derives rather than accepts the identity.
     #[must_use]
-    pub fn Named(canonical_name: &str) -> Self
+    pub fn Named(canonical_name: &str) -> Result<Self, kwb_model::InputTooLong>
     {
         use kwb_model::Derivation;
         use kwb_model::Normalize_Text;
@@ -48,13 +48,13 @@ impl Concept
                 "source",
                 "a concept named by two references is one concept with two citations",
             )
-            .Seal()
+            .Seal()?
             .Identity();
 
-        return Self {
+        return Ok(Self {
             identity,
             canonical_name: Normalize_Text(canonical_name),
-        };
+        });
     }
 
     /// The address this concept has.

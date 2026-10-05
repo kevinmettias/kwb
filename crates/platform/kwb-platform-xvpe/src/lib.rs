@@ -39,6 +39,7 @@
 /// Named for its role here rather than for its implementation: callers in this workspace want
 /// *a map whose previous versions stay valid*, and the fact that it is a hash array mapped
 /// trie is `xvpe-collections-persistent`'s business.
+#[cfg(feature = "runtime")]
 pub use xvpe_collections_persistent::HamtMap as VersionedMap;
 
 /// The clock a published record is timestamped by.
@@ -54,15 +55,18 @@ pub use xvpe_collections_persistent::HamtMap as VersionedMap;
 /// mentions a claim, a concept or a source — so `D-135` puts it in XVPE, and XVPE has one.
 /// Declaring a second here would be the rival authority `KWB-49`, `KWB-55` and `KWB-61` each
 /// removed from somewhere else.
+#[cfg(feature = "runtime")]
 pub use xvpe_clock::WallClockStrategy as PublicationClock;
 
 /// The time a clock reports.
+#[cfg(feature = "runtime")]
 pub use xvpe_clock::Timestamp as PublicationTime;
 
 /// The implementation a host composes in, for a process that has an operating system.
 ///
 /// Adopted from `xvpe-host-clock` after the host clocks moved there on 2026-09-29.
 /// `D-007`'s 2026-09-30 amendment records the default-feature settings and their cost.
+#[cfg(feature = "runtime")]
 pub use xvpe_host_clock::HostedWallClock as SystemClock;
 
 /// Cutting a source into passages small enough to ask about.
@@ -71,6 +75,7 @@ pub use xvpe_host_clock::HostedWallClock as SystemClock;
 /// and that XVPE calls it a chunk and measures a page fidelity onto it is `xvpe-corpus-text`'s
 /// business. `KWB-47` said this is where `PageFidelity` would arrive, and `KWB-66` is where it
 /// maps into `ReadingKind` rather than replacing it.
+#[cfg(feature = "runtime")]
 pub mod reading
 {
     pub use xvpe_corpus_text::Chunk as Passage;
@@ -109,6 +114,7 @@ pub mod reading
 /// reachable here and none is re-exported: `kwb-mcp` serves over stdio and nothing in this
 /// workspace opens a listener, so an unexported door is one no dependent can come to depend
 /// on. It is added the day something needs it, which is what the quarantine is for.
+#[cfg(feature = "runtime")]
 pub mod remote_call
 {
     pub use xvpe_primitives::DeterminismStrength;
@@ -135,6 +141,7 @@ pub mod remote_call
 /// runs on [`ReplayInference`] against committed recordings.
 ///
 /// [`ReplayInference`]: inference::ReplayInference
+#[cfg(feature = "runtime")]
 pub mod inference
 {
     pub use xvpe_ai_inference::AnswerValue;
@@ -163,4 +170,12 @@ pub mod calling
     pub use xvpe_ai_pipeline::{CallObserver, CallPolicy, CallTelemetry, ModelCaller, Retryability, RoleSettings};
     pub use xvpe_ai_inference::{CachePolicy, MicroDollars, PriceRates, RoleUsage, SpendBudget};
     pub use xvpe_host_clock::HostedClock as CallClock;
+}
+
+/// Canonical derivation and normalization, adopted alone for the identity kernel.
+#[cfg(feature = "content-identity")]
+pub mod identity
+{
+    pub use xvpe_content_identity::{ContentIdentity, Derivation, Exclusion, IdentityError, InputTooLong,
+        Normalize_Text, Sealed, IDENTITY_BYTES, IDENTITY_CHARACTERS};
 }

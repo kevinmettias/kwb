@@ -32,7 +32,7 @@ kwb-platform = { workspace = true }
 kwb-platform-std = { workspace = true }
 # The clock. `KWB-64`: it is adopted from XVPE rather than declared here, so the implementation
 # this root composes in arrives through the one crate permitted to name XVPE.
-kwb-platform-xvpe = { workspace = true }
+kwb-platform-xvpe = { workspace = true, default-features = true }
 
 [dev-dependencies]
 # Closure regressions re-read the actual agent query surface after replaying the CLI log.

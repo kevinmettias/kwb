@@ -11091,13 +11091,17 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": "Claimed",
       "depends_on": [
         "KWB-111",
         "KWB-113"
       ],
       "blocked": null,
-      "claim": null,
+      "claim": {
+        "holder": "codex-release-loop",
+        "acquired_at": 1791164955,
+        "lease_expires_at": 1791179355
+      },
       "verification": {
         "argv": [
           "cargo",

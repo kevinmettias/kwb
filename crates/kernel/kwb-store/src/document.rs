@@ -43,7 +43,7 @@ impl Document
     ///
     /// This is the only way to obtain one, and it derives rather than accepts the identity.
     #[must_use]
-    pub fn Of(content: Vec<u8>) -> Self
+    pub fn Of(content: Vec<u8>) -> Result<Self, kwb_model::InputTooLong>
     {
         use kwb_model::Derivation;
 
@@ -57,10 +57,10 @@ impl Document
                 "received",
                 "when a document arrived is a fact about this run, not about the document",
             )
-            .Seal()
+            .Seal()?
             .Identity();
 
-        return Self { identity, content };
+        return Ok(Self { identity, content });
     }
 
     /// The address these bytes have.

@@ -26,8 +26,8 @@ fn Test_Of_Should_Name_The_Kind_Without_Listing_It_Among_The_Fields()
     // layout, so `kind` appearing there would say the caller wrote a field called `kind` — and
     // the second assertion is what says so rather than assuming it: a derivation that spells
     // the same word as a text field is a different derivation from the one `Of` begins.
-    let opened = Derivation::Of("claim").Seal();
-    let spelled = Derivation::Of("claim").With_Text("kind", "claim").Seal();
+    let opened = Derivation::Of("claim").Seal().expect("a bounded identity fixture");
+    let spelled = Derivation::Of("claim").With_Text("kind", "claim").Seal().expect("a bounded identity fixture");
 
     assert!(opened.Included().is_empty(), "the kind was reported as a field the caller wrote");
     assert_ne!(
@@ -45,8 +45,8 @@ fn Test_With_Text_Should_Make_An_Empty_Value_Participate_Rather_Than_Vanish()
     // so. If it were folded into an absence, a claim whose scope was recorded as the empty string
     // would derive the identity of a claim whose scope was never supplied — two different
     // statements about one artifact, told apart by nothing.
-    let empty = Derivation::Of("claim").With_Text("scope", "").Seal();
-    let absent = Derivation::Of("claim").With_Absent("scope").Seal();
+    let empty = Derivation::Of("claim").With_Text("scope", "").Seal().expect("a bounded identity fixture");
+    let absent = Derivation::Of("claim").With_Absent("scope").Seal().expect("a bounded identity fixture");
 
     assert_ne!(
         empty.Identity(),
@@ -63,11 +63,11 @@ fn Test_With_Identity_Should_Participate_By_The_Bytes_A_Reparsed_Identity_Carrie
     // travelled as text. So the field has to participate by the bytes a rendering decodes to:
     // an identity that had been through `Parse` on the way must address the same input, or every
     // derivation reading a citation would be judged stale the moment it was written down.
-    let input = Derivation::Of("chunk").With_Text("text", "a passage").Seal().Identity();
+    let input = Derivation::Of("chunk").With_Text("text", "a passage").Seal().expect("a bounded identity fixture").Identity();
     let reparsed = ContentIdentity::Parse(&input.Render()).expect("a rendering this crate produced");
 
-    let referenced = Derivation::Of("synthesis").With_Identity("input", &input).Seal();
-    let round_tripped = Derivation::Of("synthesis").With_Identity("input", &reparsed).Seal();
+    let referenced = Derivation::Of("synthesis").With_Identity("input", &input).Seal().expect("a bounded identity fixture");
+    let round_tripped = Derivation::Of("synthesis").With_Identity("input", &reparsed).Seal().expect("a bounded identity fixture");
 
     assert_eq!(
         referenced.Identity(),
@@ -84,8 +84,8 @@ fn Test_With_Bytes_Should_Distinguish_Two_Values_Differing_In_One_Octet()
     // smallest thing that can make it false. If it hashed anything but the value — a normalized
     // form, a rendering, a prefix — two documents a byte apart would land on one address, and the
     // second write would report the first one's bytes as already present.
-    let one = Derivation::Of("document").With_Bytes("content", b"a passage").Seal();
-    let other = Derivation::Of("document").With_Bytes("content", b"a passagf").Seal();
+    let one = Derivation::Of("document").With_Bytes("content", b"a passage").Seal().expect("a bounded identity fixture");
+    let other = Derivation::Of("document").With_Bytes("content", b"a passagf").Seal().expect("a bounded identity fixture");
 
     assert_ne!(one.Identity(), other.Identity());
 }
@@ -97,7 +97,7 @@ fn Test_With_Absent_Should_Still_Report_The_Field_As_One_That_Participated()
     // asking what this identity was derived from has to see that `scope` was considered and had
     // no value; without it the only record of the layout is a digest, and a digest is not
     // something a person reads back.
-    let sealed = Derivation::Of("claim").With_Absent("scope").Seal();
+    let sealed = Derivation::Of("claim").With_Absent("scope").Seal().expect("a bounded identity fixture");
 
     assert_eq!(
         sealed.Included(),
@@ -114,11 +114,11 @@ fn Test_Excluding_Should_Change_No_Identity_And_Carry_Its_Reason_Verbatim()
     // wrong thing: an exclusion that changed the identity is a field, and a reason the caller
     // did not write is the omission this type exists to be told apart from.
     let because = "two books asserting one claim must become one claim with two citations";
-    let plain = Derivation::Of("claim").With_Text("text", "a passage").Seal();
+    let plain = Derivation::Of("claim").With_Text("text", "a passage").Seal().expect("a bounded identity fixture");
     let excluding = Derivation::Of("claim")
         .With_Text("text", "a passage")
         .Excluding("source", because)
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_eq!(plain.Identity(), excluding.Identity(), "recording an exclusion changed the digest");
     assert_eq!(
@@ -137,7 +137,7 @@ fn Test_Seal_Should_Carry_The_Fields_And_The_Exclusions_Into_One_Answer()
     let sealed = Derivation::Of("claim")
         .With_Text("text", "a passage")
         .Excluding("source", "two books, one claim")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_eq!(sealed.Included(), ["text"]);
     assert_eq!(

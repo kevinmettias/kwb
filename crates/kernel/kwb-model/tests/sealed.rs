@@ -21,7 +21,7 @@ fn Test_Identity_Should_Survive_A_Round_Trip_Through_Its_Own_Rendering()
     // `D-002` promises Nomos an opaque string, so the rendering is what a peer carries and what
     // comes back. An identity that could not be recognized from its own text would make every
     // citation a peer wrote down unusable — and unusable silently, since the text looks right.
-    let sealed = Derivation::Of("claim").With_Text("text", "a passage").Seal();
+    let sealed = Derivation::Of("claim").With_Text("text", "a passage").Seal().expect("a bounded identity fixture");
     let recognized = ContentIdentity::Parse(&sealed.Identity().Render())
         .expect("a rendering this crate produced");
 
@@ -39,7 +39,7 @@ fn Test_Included_Should_List_The_Fields_In_The_Order_They_Were_Written()
         .With_Text("concept", "entropy")
         .With_Absent("scope")
         .With_Text("text", "a passage")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_eq!(sealed.Included(), ["concept", "scope", "text"]);
 }
@@ -55,7 +55,7 @@ fn Test_Excluded_Should_Carry_Each_Field_With_The_Reason_It_Was_Left_Out()
         .With_Bytes("content", b"a passage")
         .Excluding("source", "two references carrying one passage must become one document")
         .Excluding("received", "when a document arrived is a fact about this run")
-        .Seal();
+        .Seal().expect("a bounded identity fixture");
 
     assert_eq!(
         sealed.Excluded(),

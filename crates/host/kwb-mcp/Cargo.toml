@@ -35,7 +35,7 @@ kwb-retrieval = { workspace = true }
 # The catalogue seam and the line framing that serves it, reached through the one crate
 # permitted to name XVPE. This crate names none: `KWB-112` puts the wire in XVPE under
 # `D-135` and keeps the tool list here, which is `D-012`'s split stated one layer up.
-kwb-platform-xvpe = { workspace = true }
+kwb-platform-xvpe = { workspace = true, default-features = true }
 
 # Reading this crate's own tool arguments, and nothing else.
 #

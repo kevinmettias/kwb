@@ -15,7 +15,7 @@ publish.workspace = true
 band = "1"
 
 [dependencies]
-sha2 = { workspace = true }
+kwb-platform-xvpe = { workspace = true, default-features = false, features = ["content-identity"] }
 
 [lints]
 workspace = true

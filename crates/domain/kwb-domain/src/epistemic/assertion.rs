@@ -72,7 +72,7 @@ impl Assertion
     /// same source asserting the same claim at the same scope is the same assertion, and any
     /// of the three differing makes a different one.
     #[must_use]
-    pub fn By(source: &str, claim: &Claim, scope: Scope) -> Self
+    pub fn By(source: &str, claim: &Claim, scope: Scope) -> Result<Self, kwb_model::InputTooLong>
     {
         use kwb_model::Derivation;
 
@@ -84,15 +84,15 @@ impl Assertion
                 "strength",
                 "D-004 holds the epistemic-strength model; a grade here would be assigned, not measured",
             )
-            .Seal()
+            .Seal()?
             .Identity();
 
-        return Self {
+        return Ok(Self {
             identity,
             claim: claim.Identity(),
             source: kwb_model::Normalize_Text(source),
             scope,
-        };
+        });
     }
 
     /// The address this assertion has.

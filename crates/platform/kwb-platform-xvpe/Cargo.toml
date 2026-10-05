@@ -44,6 +44,7 @@ band = "1p"
 # is this file's job to contain would prove nothing a reader of the line does not already know.
 # `KWB-98`, and `D-007` carries the measurement.
 [dependencies.xvpe-collections-persistent]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 default-features = false
@@ -60,6 +61,7 @@ workspace = true
 # `default-features` stays on. `D-007`'s 2026-09-30 amendment records what that
 # setting exposes now that the hosted implementation lives in `xvpe-host-clock`.
 [dependencies.xvpe-clock]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 
@@ -70,10 +72,12 @@ rev = "726aa3fee"
 # packages enter, and neither crate carries a provider, which is what makes the quarantine the
 # extractor sits behind separable rather than aspirational.
 [dependencies.xvpe-corpus-text]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 
 [dependencies.xvpe-ai-inference]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 
@@ -93,14 +97,17 @@ rev = "726aa3fee"
 # re-export of a crate this manifest does not declare would make the quarantine depend on a
 # resolution rather than on a decision.
 [dependencies.xvpe-remote-call]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 
 [dependencies.xvpe-remote-call-backend-json]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 
 [dependencies.xvpe-primitives]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 
@@ -108,13 +115,22 @@ rev = "726aa3fee"
 # its default closure adds nothing this closure lacks. D-007's 2026-09-30 amendment
 # measures the move. The collections feature is deliberately not enabled.
 [dependencies.xvpe-host-clock]
+optional = true
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 
 [features]
-model-calling = ["dep:xvpe-ai-pipeline"]
+default = ["runtime"]
+runtime = ["dep:xvpe-collections-persistent", "dep:xvpe-clock", "dep:xvpe-corpus-text", "dep:xvpe-ai-inference", "dep:xvpe-remote-call", "dep:xvpe-remote-call-backend-json", "dep:xvpe-primitives", "dep:xvpe-host-clock"]
+content-identity = ["dep:xvpe-content-identity"]
+model-calling = ["runtime", "dep:xvpe-ai-pipeline"]
 
 [dependencies.xvpe-ai-pipeline]
+optional = true
+git = "https://github.com/kevinmettias/xvpe.git"
+rev = "726aa3fee"
+
+[dependencies.xvpe-content-identity]
 git = "https://github.com/kevinmettias/xvpe.git"
 rev = "726aa3fee"
 optional = true

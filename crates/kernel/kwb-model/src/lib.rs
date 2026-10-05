@@ -55,20 +55,9 @@
 
 #![forbid(unsafe_code)]
 
-mod content_identity;
-mod derivation;
-mod exclusion;
-mod identity_error;
-mod sealed;
-
 #[cfg(test)]
 mod tests;
 
-pub use content_identity::ContentIdentity;
-pub use content_identity::IDENTITY_BYTES;
-pub use content_identity::IDENTITY_CHARACTERS;
-pub use derivation::Derivation;
-pub use derivation::Normalize_Text;
-pub use exclusion::Exclusion;
-pub use identity_error::IdentityError;
-pub use sealed::Sealed;
+// D-018: kinds and fields remain with their products; the derivation scheme has one owner.
+pub use kwb_platform_xvpe::identity::{ContentIdentity, Derivation, Exclusion, IdentityError,
+    InputTooLong, Normalize_Text, Sealed, IDENTITY_BYTES, IDENTITY_CHARACTERS};
