@@ -7128,7 +7128,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-126, preserving the complete obligation and predicate while allocating docs/records/D-028 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-103",
         "KWB-109"
@@ -7148,7 +7152,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -7290,7 +7297,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-129, preserving the complete obligation and predicate while allocating docs/records/D-029 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-103",
         "KWB-109"
@@ -7310,7 +7321,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -7327,7 +7341,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-130, preserving the complete obligation and predicate while allocating docs/records/D-030 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-103",
         "KWB-109"
@@ -7347,7 +7365,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -7364,7 +7385,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-131, preserving the complete obligation and predicate while allocating docs/records/D-031 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-127",
         "KWB-103",
@@ -7385,7 +7410,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -7402,7 +7430,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-132, preserving the complete obligation and predicate while allocating docs/records/D-032 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-126",
         "KWB-103",
@@ -7423,7 +7455,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -7440,7 +7475,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-133, preserving the complete obligation and predicate while allocating docs/records/D-033 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-129",
         "KWB-103",
@@ -7461,7 +7500,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -7478,7 +7520,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-134, preserving the complete obligation and predicate while allocating docs/records/D-034 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-129",
         "KWB-131",
@@ -7500,7 +7546,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -7893,7 +7942,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-143, preserving the complete obligation and predicate while allocating docs/records/D-035 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-142",
         "KWB-103",
@@ -7914,7 +7967,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -8692,7 +8748,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-160, preserving the complete obligation and predicate while allocating docs/records/D-036 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-142",
         "KWB-103",
@@ -8713,7 +8773,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -8730,7 +8793,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-161, preserving the complete obligation and predicate while allocating docs/records/D-037 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-116",
         "KWB-103",
@@ -8751,7 +8818,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -8768,7 +8838,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-162, preserving the complete obligation and predicate while allocating docs/records/D-038 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-114",
         "KWB-103",
@@ -8789,7 +8863,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -9946,7 +10023,11 @@
         ],
         "patterns": []
       },
-      "state": "Ready",
+      "state": {
+        "Declined": {
+          "reason": "Superseded by REL09-REPLACE-KWB-185, preserving the complete obligation and predicate while allocating docs/records/D-039 instead of reserving the whole records directory. REL09-NARROW-LEGACY-RECORD-RESERVATIONS repairs this twelve-item closure together; no requirement is declined."
+        }
+      },
       "depends_on": [
         "KWB-140",
         "KWB-171",
@@ -9968,7 +10049,10 @@
       "verified": null,
       "abandoned": [],
       "displaced": [],
-      "declined": null,
+      "declined": {
+        "holder": "codex-release-loop",
+        "declined_at": 1791164197
+      },
       "widened": []
     },
     {
@@ -10267,6 +10351,525 @@
         "rules": "NotDeclared",
         "revision": "a88e1b31557d4cb8d924ff53da2b4d506472adc9"
       },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-NARROW-LEGACY-RECORD-RESERVATIONS",
+      "title": "Replace unclaimed record-directory reservations with explicit allocated identifiers while preserving every obligation",
+      "why": "Twelve legacy Ready decisions reserve docs/records, so the record-allocation guard refuses every new amendment, including D-018 despite no live writer. Exact identifiers retain allocation safety while ordinary claim exclusion continues to serialize any later amendment.",
+      "done_when": "Supersede precisely the twelve unclaimed decisions currently reserving docs/records with one replacement apiece reserving unique unspent identifiers D-028 through D-039. Preserve each title, complete done_when, kind, origin, verification argv and timeout, all non-directory territory and patterns, and dependencies with replacement IDs substituted only within this twelve-item closure. Preserve each original item as Declined naming its replacement. Verify the preservation directly against a pre-mutation snapshot and validate the resulting board. Record the mapping and measurement in docs/corpus/kwb-record-reservation-repair.md. No production source, Cargo metadata, published record, guard, correctness rule or original data changes. The repository contract tests pass.",
+      "kind": "Cleanup",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "work/ledger.json",
+          "docs/corpus/kwb-record-reservation-repair.md"
+        ],
+        "patterns": []
+      },
+      "state": "Done",
+      "depends_on": [],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "output_tail": "_It_Was_Written_For ... ok\ntest Test_The_Scan_Should_Actually_Have_Found_The_Commands ... ok\ntest Test_No_Command_A_Reader_Is_Told_To_Type_Should_Have_A_Hole_In_It ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 5 tests\ntest Test_The_Detector_Should_Not_Find_What_Is_Not_Damage ... ok\ntest Test_The_Detector_Should_Find_The_Damage_It_Was_Written_For ... ok\ntest Test_The_Scan_Should_Actually_Have_Read_The_Workspace ... ok\ntest Test_The_Threshold_Should_Still_Sit_Above_Every_Legitimate_Run ... ok\ntest Test_No_Literal_Should_Read_With_A_Gap_In_The_Middle_Of_A_Sentence ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 4 tests\ntest Test_The_Projection_Should_Actually_Describe_The_Tools ... ok\ntest Test_The_Readme_Tool_Table_Should_Be_What_The_Registry_Projects ... ok\ntest Test_The_Readme_Bands_Table_Should_Be_What_The_Manifests_Project ... ok\ntest Test_Every_Crate_Should_Declare_Which_Band_It_Is_In ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.90s\n     Running unittests src\\lib.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\kwb_contract_tests-4b594c8526d62f5f.exe)\n     Running tests\\boundaries.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\boundaries-da0bd5a1cfcbd2d8.exe)\n     Running tests\\commands.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\commands-cbd9c1dd9a4423be.exe)\n     Running tests\\literals.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\literals-4d2dc5b45c318f8f.exe)\n     Running tests\\projections.rs (F:\\repos\\xvpe\\.agent\\task\\release-loop\\targets\\kwb\\debug\\deps\\projections-e2dff84033769910.exe)\n   Doc-tests kwb_contract_tests\n",
+        "verified_at": 1791164362,
+        "gate": {
+          "argv": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0
+        },
+        "rules": "NotDeclared",
+        "revision": "80741b1e2a7443d53ce5a200151d3803eb309bae"
+      },
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-126",
+      "title": "The query surface answers five of the prototype's nine tools, unranked, unbounded and over no protocol, and nothing verdicts the other four or the HTTP API",
+      "why": "Replaces KWB-126 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Goal G3 of D-021, rows C-55 to C-67 of docs/corpus/prototype-capabilities.md. The prototype served nine MCP tools over stdio with every reply bounded; ranked keyword search, semantic search over embeddings and a hybrid of the two; shortest paths; a claim's support and status; a source's gaps; an HTTP API of 79 routes behind reader and writer keys; and a durable job queue. kwb-mcp declares five tools, answers them over argv and speaks no protocol (KWB-112 adopts XVPE's JSON-RPC backend). Its search is an unranked word-containment test. Nothing produces a vector, and XVPE has no embedding API, vector index or ranked keyword index (XVPE kwb-parity.md, X5 to X7). KWB-82 carried semantic search with its blocker in its title, which an unattended pass cannot read as a blocker, and is declined in favour of this item. Historical reads (C-63) already exceed the prototype.",
+      "done_when": "A record verdicts C-55 to C-67 by name. It decides: which of the prototype's tools this surface keeps, and for each kept tool the world it reads and the bound on its reply; ranked keyword search and the definition of its ranking; semantic and hybrid search, including what is embedded and when, and how an embedding's model and version take part in staleness; path, given that D-011 holds typed relations; whether an HTTP API exists at all, and if so its authentication, or a refusal with the reason; and the job queue, confirming or overturning the answer prototype-incidents.md records for D19 (a). For every verdict of met or diverges it authors implementation items with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes; semantic search's item depends on the item that adopts XVPE's embeddings. It specifies XVPE steps X5 to X7 to ready in XVPE's kwb-parity.md, or names the revision that has each mechanism. Forbidden: a tool that takes the world it reads as an argument, which is the D19-B incident; a write path in kwb-retrieval or kwb-mcp; a live network call in any test. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-028"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-129",
+      "title": "Thirteen of the prototype's fourteen enrichment stages have no verdict here, and the one this repository has runs inside admission",
+      "why": "Replaces KWB-129 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Goal G6 of D-021, rows C-23 and C-36 to C-45 of docs/corpus/prototype-capabilities.md. The prototype's enrichment chain ran fourteen stages -- embed, annotate, summarize, link concepts, harvest aliases, normalize, typed concept edges, identity judging, concept kind, subject taxonomy, proofs, the proof graph, exercises and concept synthesis -- incrementally, each committing alone and resuming from a coverage ledger, plus evidence weighting and evidence packs. The measured fact worth carrying is that fourteen null objects let every stage run with no model at all: remove the model and the feature still makes sense, or it is not a KWB feature. This repository links a claim to the concept its own reading named, inside one admission, and has none of the other stages.",
+      "done_when": "A record verdicts C-23 and C-36 to C-45 by name. It decides which stages this repository has, the order they run in, and what each consumes and produces; how a stage resumes and what its coverage records; what each stage does with no model, stated per stage; and, for typed concept edges, which relation kinds it may emit while D-011 holds the kernel's closed vocabulary. For every verdict of met or diverges it authors implementation items with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes, and it specifies any XVPE step it needs in kwb-parity.md. Forbidden: a stage whose output a person could not produce in the model's place; a stage that commits another stage's work; merging concepts on a model's judgement of identity, which the prototype refused by writing SameConceptAs edges instead; a closed vocabulary D-011 holds. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-029"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-130",
+      "title": "README.md says KWB means to link knowledge to the code that realises it, and no record decides whether KWB owns a code entity",
+      "why": "Replaces KWB-130 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Goal G6 of D-021, rows C-68 to C-72 of docs/corpus/prototype-capabilities.md. The prototype extracted code entities from two books behind a verbatim guard -- 798 entities and 22,316 links -- linked them to concepts by name, reported what a book explains and never implements and prints and never explains, and kept project spaces, decision notes, linked repositories and a drift check. README.md records the intent and says no record has decided what a code entity would be or whether KWB owns one. Nomos's ARC-ECOSYSTEM-001 decides ownership between the four products by semantics and gives software engineering to Nomos; KWB owns rationale and decision context.",
+      "done_when": "A record here decides, against ARC-ECOSYSTEM-001 and D-135 as they read at a named Nomos revision, whether KWB owns a code entity, and if not, which product does and what KWB holds instead -- for example a reference by opaque identity, which D-137 in Nomos admits in the other direction. It verdicts C-68 to C-72 by name accordingly, project spaces and decision notes included, since they sit closer to KWB's decision context than to code. It authors implementation items for every verdict of met or diverges, with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes, and one Correction item that brings README.md's intended-and-not-built paragraph into line with the decision. Forbidden: a KWB crate that analyses source code, where the decision gives that to Nomos; editing Nomos's records; a code entity whose identity is a path, which the prototype used and which breaks a citation the moment a file moves. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-030"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-131",
+      "title": "Revision -- a derived thing going stale when what it came from changes -- is the product loop's steps 7 and 8, and D-006 states it with nothing computing it",
+      "why": "Replaces KWB-131 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Goal G7 of D-021, rows C-74 and C-75 of docs/corpus/prototype-capabilities.md. The corpus's product loop ends by recomputing derived connections and invalidating stale syntheses, and the prototype's own roadmap named derivation-dependency staleness, graph snapshots and merge preview as verified absent. D-006, from KWB-14, decides that a derivation declares what it was derived from and that staleness is computed, not stored; nothing here computes it. Publications already replay to any prefix, which is half of a snapshot.",
+      "done_when": "A record decides what carries a derivation declaration in this repository; how staleness is computed for a changed input and for a retracted one; how a consumer learns of it without having to ask; what a snapshot is beyond a publication prefix; and what a merge preview shows before a merge is applied. It verdicts C-74 and C-75 by name, and authors implementation items with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes. Forbidden: storing a staleness flag, which D-006 refuses; deleting a derived artifact because an input changed (D17); applying a merge whose preview cannot be produced. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-031"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-127",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-132",
+      "title": "Comparing two bodies of knowledge and reconstructing a source from the graph are two of the nine operations, and neither the prototype nor this repository has either",
+      "why": "Replaces KWB-132 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Goal G7 of D-021, rows C-46, C-76 and C-77 of docs/corpus/prototype-capabilities.md. what-kwb-is-for.md names compare and reconstruct among the operations the prototype left essentially unbuilt: it compared two concepts and measured pairwise source overlap, and had no semantic diff and no reconstruction. The design corpus defines both (topic 415), and the prototype's roadmap lists semantic source diff and reconstruction as verified absent.",
+      "done_when": "A record decides what compare takes and returns -- two concepts, two sources, two bodies of knowledge -- and what a semantic diff reports that a text diff cannot; and what reconstruct produces from the graph, and how its output is checked against the source it claims to reconstruct. It verdicts C-46, C-76 and C-77 by name, and authors implementation items with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes. Forbidden: a comparison that flattens a disagreement into one answer, which the corpus names among the product's exclusions; a reconstruction presented as the source rather than as the model's account of it. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-032"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL09-REPLACE-KWB-126",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-133",
+      "title": "Assessment -- what a person or an agent understands -- is one of the nine operations, and the prototype built learning paths by improvising and never verified an exercise",
+      "why": "Replaces KWB-133 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Goal G7 of D-021, rows C-73 and C-78 of docs/corpus/prototype-capabilities.md. The prototype built learning paths by improvising over seed concepts rather than traversing a prerequisite graph, extracted exercises, and left generated exercises and verified solutions unticked in every evidence column. The corpus defines assess as one of the workbench's nine operations.",
+      "done_when": "A record decides what an assessment assesses, what counts as evidence of understanding, how a generated exercise is verified before it is shown, and whether a learning path is a traversal of the prerequisite edges G6 produces or something else. It verdicts C-73 and C-78 by name, and authors implementation items with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes. Forbidden: an exercise or solution shown unverified; a learning path presented as a traversal when it is a model's improvisation. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-033"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL09-REPLACE-KWB-129",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-134",
+      "title": "Nothing here composes an artifact from knowledge, and the essay that named the missing half says the core must know knowledge and evidence, not essays",
+      "why": "Replaces KWB-134 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Goal G7 of D-021, rows C-79 and C-80 of docs/corpus/prototype-capabilities.md. what-kwb-is-for.md records the essay's finding: the prototype synthesizes about one concept and composes nothing. KWB is two halves, knowledge compilation and artifact engineering -- intent, architecture, composition plan, evidence assignment, draft, evaluation findings, revision plan, candidate revision, validation, human decision, artifact version -- and an essay is one profile over general mechanisms, never a type in the core. The essay proposes crates for composition, evaluation and revision; the bands table has none, and README.md is the authority for bands.",
+      "done_when": "A record decides the artifact-engineering half's shape: what an artifact intent, a composition plan and an evaluation finding are; how a revision is proposed, validated and decided by a person; how an artifact version carries its provenance back to the claims it used; and how a profile such as an essay configures the mechanisms without adding a type to the core. It decides whether new crates and bands are needed, and if so authors the item that adds them with README.md's bands table in its territory. It verdicts C-79 and C-80 by name, and authors implementation items with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes. Forbidden: a type named for one artifact kind, such as a thesis paragraph, in the core model; a revision applied without a recorded human decision; a composed artifact whose claims cannot be followed back to their citations. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-034"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "REL09-REPLACE-KWB-129",
+        "REL09-REPLACE-KWB-131",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-143",
+      "title": "A citation cannot be followed from a new process, and two processes may write one store with nothing between them",
+      "why": "Replaces KWB-143 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Re-authored from KWB-123, which depended on KWB-120; that item was re-authored as KWB-142 when its pin target left GitHub on 2026-09-30, so KWB-123 could never become claimable. Only the item references change. Goal G1 of D-021, rows C-14, C-65 and C-81 of docs/corpus/prototype-capabilities.md. KWB-140 moves the pin to 726aa3fee and KWB-142 keeps the documents through XVPE's content store, which settles where the bytes live and leaves two things open. README.md says following a citation returns the exact bytes, but DocumentStore::Read consults an in-memory map that a store opened by a new process starts empty, and no command follows a citation at all, so a document one process admitted cannot be read back by another (C-65). And two processes may write one store at once with nothing between them (C-81), where the prototype had optimistic concept creation and a stage lock, and XVPE's cross-process lock is not started. C-14, content-derived claim identity, is met by KWB-1 and KWB-15 and needs only its verdict.",
+      "done_when": "A record verdicts C-14, C-65 and C-81 by name. For C-65 it decides whether DocumentStore::Read consults the durable medium when memory does not hold an address, and whether a verb prints the bytes at an address or README.md's present-tense claim is corrected, saying which and why. For C-81 it decides whether concurrent writers are serialized through an XVPE lock -- specifying step X8 in XVPE's docs/plans/programs/ecosystem-substrate/kwb-parity.md to ready -- refused by a lock of this repository's own, or declined with the reason. It authors the implementation items those decisions imply, each with territory, a done_when that names what is forbidden, and a predicate that selects every crate it changes, depending on KWB-142 wherever they touch the store. Forbidden: a read that answers for a document the store does not hold, which is the D19-B incident in another shape; moving a pin; any source edit, which is the authored items' work. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Required",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-035"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-142",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 1800
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-160",
+      "title": "A file at a content address is never compared with its address, so a truncated or foreign file there is answered AlreadyPresent for ever",
+      "why": "Replaces KWB-160 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F15). DocumentStore answers AlreadyPresent whenever the medium says it holds the address; DirectoryContentStore::Put returns early when a file is already at the destination; Get returns whatever bytes are there. document_store.rs explains why nothing re-reads: the write path guarantees a complete value under a complete address. D-014 names a half-written file under a content address as the one way the store can lie, because nothing downstream re-hashes what it reads -- and a file can be damaged after a correct write, by a disk, a sync tool or a person. XVPE's content store states that it does not re-derive identities either, so after KWB-142 the check is still this repository's to decide. Following a citation (KWB-136) returns those bytes as the document.",
+      "done_when": "A record decides whether DocumentStore re-derives a document's identity from the medium's bytes when it answers AlreadyPresent, when it reads a document, or both; what a mismatch does -- refuse, replace atomically, or set the file aside -- and how it is reported; and what the check costs per write and per read, measured on a scratch store, not estimated. It is consistent with what KWB-143 decides for two processes on one store. It authors the implementation items, among them a Validation item whose tests place a truncated file, a foreign file and a directory at an address and assert the decided outcome. Forbidden: deleting or overwriting a file whose bytes disagree with its address without recording it (D17); taking a file's name as evidence of its content; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-036"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-142",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-161",
+      "title": "A publication record carries nothing replay can check it against, and a run's records have no boundary, so a corrupted name replays as another concept and a stopped run leaves uncited claims",
+      "why": "Replaces KWB-161 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Read 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md, F27 and F28). Replay re-derives every record from its text, so a one-byte change inside a concept's name derives a different and perfectly valid concept, and nothing can tell. kwb admit appends a run's records one at a time; a failure or a kill between two of them leaves concepts and claims in the log with no assertion citing them, while the run reports that it failed. D-019 settled the torn tail -- a refusal -- and neither of these is a torn tail: every line is whole. KWB-152's corruption sweep, once it lands, counts how many single-byte corruptions replay silently.",
+      "done_when": "A record, amending D-014 or D-019 where it changes what they say, decides whether a record carries the identity it was derived as, so that replay refuses text that no longer derives it; whether a run's records are bracketed, so that a partial publication is recognisable, and what replay does with one, consistent with D-019's rule that nothing closes a torn tail; the format change each implies; and what each does to a log written before it -- read unchanged, or refused with a reason. It authors the implementation items, each with a territory, a done_when naming what is forbidden and a predicate. Forbidden: rewriting or migrating a log already written; a checksum that is not the identity the record already derives, which would be a second authority for the same fact; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-037"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-116",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-162",
+      "title": "Two spellings of one name that render identically derive two identities, and nothing decides which differences of spelling are edits",
+      "why": "Replaces KWB-162 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Measured 2026-10-03 at 17f82cf (docs/corpus/core-invariant-audit.md): the concept named with a precomposed e-acute derives ef53c55576b9...2dde and the same word with e and a combining acute accent derives d54b4d70c0a4...25f3 -- two concepts for one word. PDF text layers and model answers produce both spellings, and ligatures, soft hyphens, zero-width characters, byte-order marks, full-width forms and words hyphenated across a line break besides. Normalize_Text folds whitespace and removes control characters and does nothing else; KWB-111 owns the whitespace controls. D-002 says an identity never changes meaning once cited, so any fold moves cited identities, and Nomos D-137 holds those values as KnowledgeReferenceIds. After KWB-114 the normalizer is XVPE's, so a fold is an XVPE step and a pin move.",
+      "done_when": "A record decides keep or fold, case by case, for this catalogue: NFC against NFD; the order of combining marks; U+200B, U+200C, U+200D, U+FEFF, U+00AD and U+FE0F; the ligature U+FB01; full-width Latin letters; U+037E against the semicolon; Cyrillic letters that resemble Latin ones; U+00A0, U+2028, U+2029 and U+3000; and a word hyphenated across a line break. For every fold it decides what happens to identities already cited, reconciled with D-002 and Nomos D-137, and specifies the XVPE step in XVPE's docs/plans/programs/ecosystem-substrate/kwb-parity.md. It authors a Validation item that pins today's derivation for every case in the catalogue to a literal computed outside the code under test, and a Correction for each fold. Forbidden: folding case, which derivation.rs decides is kept; changing a cited identity without a migration the record states; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-038"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-114",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
+      "abandoned": [],
+      "displaced": [],
+      "declined": null,
+      "widened": []
+    },
+    {
+      "id": "REL09-REPLACE-KWB-185",
+      "title": "G2's composition and its end-to-end proof wait on XVPE publishing K3, and this item is what keeps that obligation on the board",
+      "why": "Replaces KWB-185 under REL09-NARROW-LEGACY-RECORD-RESERVATIONS without changing its obligation. Re-authored from KWB-183 by D-027 (KWB-128), which adds three things the composition must carry. D-025 v2 (KWB-174) decides it. D-025 defers reading PDFs, folders and web pages by model to XVPE's mining-core step K3 -- KWB's extraction through the core -- which XVPE's docs/plans/programs/ecosystem-substrate/mining-core.md holds as not yet authorable until its surfaces are published at one revision on origin/dev. KWB-125's done_when asked for an item per row it verdicted met or diverges and for G2's proof; D-025 v2 verdicts those rows deferred, and this item is the board's record that their items are owed. It depends on KWB-140 and KWB-171 because no composition can proceed without the pin they set and model calls through xvpe-ai-pipeline. The board has no typed blocker a pass can set (OD-LEDGER-002), so the K3 condition is stated here, in the done_when.",
+      "done_when": "When claimed, first establish whether XVPE has published K3 at a revision on origin/dev: mining-core.md's K3 row authorable, and the surfaces it names present at that revision. If not, abandon this item with a reason naming exactly what is not yet published, and change nothing. If so: author, with territory, a done_when naming what is forbidden, and a predicate selecting every crate it changes, (1) the pin move to that revision, measured alone as D-007's amendments require; (2) one composition item for each row D-025 v2 defers to K3 -- folder admission (C-01, C-04), PDF reading through PDFium (C-02), the provider composed in kwb-cli behind a non-default feature with README.md amended to say so (C-10), --record and --replay in the host (C-11), Skipped and Unmet recorded as D-025 decides (C-05), passages split below the page through XVPE step X2 (C-06), the quality report before spending (C-08), grounding as D-027 decides it -- a proposition admitted only when its quote is found in its passage, an unfound quote refusing that proposition alone, counted with its reason (C-16) -- a proposition a source repeats within a run refused as a repeat and recorded once (C-16), and a run the model caller stops recorded Unmet for every unread document and exiting 1 (C-21), each depending on the pin move; and (3) G2's proof: a PDF, a folder of fixtures and a text file admitted end to end through replayed answers, offline, depending on every composition item. Forbidden: naming a K3 surface before it is published at a revision on XVPE's origin/dev; a reader pipeline in this repository; a live network call in any test; any source edit in this item. cargo test -p kwb-contract-tests passes.",
+      "kind": "Decision",
+      "origin": "Proposed",
+      "territory": {
+        "resolution": "File",
+        "paths": [
+          "docs/records/D-039"
+        ],
+        "patterns": []
+      },
+      "state": "Ready",
+      "depends_on": [
+        "KWB-140",
+        "KWB-171",
+        "KWB-103",
+        "KWB-109"
+      ],
+      "blocked": null,
+      "claim": null,
+      "verification": {
+        "argv": [
+          "cargo",
+          "test",
+          "-p",
+          "kwb-contract-tests",
+          "--no-fail-fast"
+        ],
+        "timeout_seconds": 3600
+      },
+      "verified": null,
       "abandoned": [],
       "displaced": [],
       "declined": null,
